@@ -1,4 +1,3 @@
-
 export const translations = {
   ar: {
     platformName: "Isthmic Pro",
@@ -90,7 +89,6 @@ export const translations = {
     nexusIntro: "نقوم بتوليد الهوية البصرية وتحليل الفجوات السوقية فوراً.",
     confidence: "الثقة الاستدلالية",
     marketGap: "فجوة السوق",
-    // Fix: Added missing keys reported by TypeScript errors
     startInference: "بدء الاستنتاج",
     riskAssessment: "تقييم المخاطر",
     proMode: "الوضع المتقدم",
@@ -102,7 +100,12 @@ export const translations = {
     status_sold: "تم البيع",
     cancel: "إلغاء",
     thinking: "جاري التفكير...",
-    verdict: "قرار العقل"
+    verdict: "قرار العقل",
+    estimatedPortfolioValue: "القيمة التقديرية للمحفظة",
+    opsLogEmpty: "سجل العمليات فارغ.",
+    activeAssets: "الأصول النشطة",
+    sectorMix: "توزيع القطاعات",
+    navGrowth: "نمو القيمة الصافية"
   },
   en: {
     platformName: "Isthmic Pro",
@@ -194,7 +197,6 @@ export const translations = {
     nexusIntro: "Generating visual identity and market gap analysis instantly.",
     confidence: "Inference Confidence",
     marketGap: "Market Gap",
-    // Fix: Added missing keys reported by TypeScript errors
     startInference: "Start Inference",
     riskAssessment: "Risk Assessment",
     proMode: "Pro Mode",
@@ -206,6 +208,11 @@ export const translations = {
     status_sold: "Sold",
     cancel: "Cancel",
     thinking: "Thinking...",
-    verdict: "Verdict"
+    verdict: "Verdict",
+    estimatedPortfolioValue: "Estimated Portfolio Value",
+    opsLogEmpty: "Operations log is empty.",
+    activeAssets: "Active Assets",
+    sectorMix: "Sector Mix",
+    navGrowth: "Net Asset Growth"
   }
 };
