@@ -10,42 +10,17 @@ export enum AgentType {
   NEXUS_PRIME = 'NEXUS_PRIME'
 }
 
-export interface ServiceIntegration {
-  id: string;
-  name: string;
-  status: 'connected' | 'disconnected' | 'simulated' | 'recovering';
-  apiKey?: string;
-  provider: string;
-  impactArea: string;
-  lastError?: string;
-}
-
-export interface ThinkingStep {
-  id: string;
-  action: string;
-  finding: string;
-  status: 'complete' | 'searching' | 'pending' | 'failed_recovery';
-}
-
 export interface NexusOpportunity {
   id: string;
   title: string;
-  type: 'Arbitrage' | 'Temporal' | 'Forensic' | 'Strategic';
+  type: 'Arbitrage' | 'Temporal' | 'Forensic' | 'Strategic' | 'DNA_Audit';
   description: string;
   estimatedValue: string;
   probability: number;
   aiDeduction: string;
   suggestedAction: string;
-}
-
-export interface OutreachMessage {
-  id: string;
-  domainId: string;
-  recipient: string;
-  recipientRole: string;
-  tone: string;
-  status: 'draft' | 'sent';
-  content: string;
+  temporalSignal?: 'Rising' | 'Explosive' | 'Stable';
+  marketGapScore?: number;
 }
 
 export interface Domain {
@@ -80,6 +55,7 @@ export interface TechnicalMetrics {
   trademarkRisk?: string;
   sourceCitations?: string[];
   comparableSales?: {domain: string, price: number, date: string}[];
+  dnaForensics?: string;
 }
 
 export interface PlatformStats {
@@ -114,4 +90,30 @@ export interface ActivityLog {
   agent: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'critical' | 'ai_thought';
+}
+
+export interface ServiceIntegration {
+  id: string;
+  name: string;
+  provider: string;
+  status: 'simulated' | 'connected';
+  impactArea: string;
+  apiKey?: string;
+}
+
+export interface ThinkingStep {
+  id: string;
+  action: string;
+  finding: string;
+  status: 'pending' | 'searching' | 'complete';
+}
+
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent';
+  content: string;
 }

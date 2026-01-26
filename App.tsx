@@ -163,7 +163,7 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto h-full">
             {activeTab === 'INTEGRATIONS' && <IntegrationCenter integrations={integrations} onConnect={handleConnectIntegration} />}
             {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} />}
-            {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={addLog} />}
+            {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={addLog} setDomains={setDomains} />}
             {activeTab === 'PIPELINE' && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={(d) => setActiveTab(AgentType.EVALUATION)} />}
             {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}
             {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}
