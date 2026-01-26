@@ -7,35 +7,71 @@
     <title>Domainer Pro Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Inter', 'IBM Plex Sans Arabic', 'sans-serif'],
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'slide-up': 'slideUp 0.5s ease-out',
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'orb-float': 'orbFloat 20s infinite alternate',
             },
             keyframes: {
               fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
               slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+              orbFloat: {
+                '0%': { transform: 'translate(0, 0) scale(1)' },
+                '100%': { transform: 'translate(10%, 10%) scale(1.1)' },
+              }
             }
           }
         }
       }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.5s ease, color 0.5s ease; }
+        body { 
+          font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif; 
+          transition: background-color 0.5s ease;
+          overflow-x: hidden;
+        }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Smooth transitions for theme switching */
-        * { transition-property: background-color, border-color, color, fill, stroke; transition-duration: 300ms; }
+        .glass {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dark .glass-dark {
+          background: rgba(15, 17, 26, 0.7);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* OpenAI Aurora Effects */
+        .aurora-orb {
+          position: fixed;
+          width: 60vw;
+          height: 60vw;
+          border-radius: 50%;
+          filter: blur(120px);
+          z-index: -1;
+          opacity: 0.15;
+          pointer-events: none;
+        }
+        .orb-1 { top: -20%; left: -10%; background: #00f2ff; }
+        .orb-2 { bottom: -20%; right: -10%; background: #7000ff; }
+        .orb-3 { top: 20%; right: 10%; background: #00ffaa; opacity: 0.1; }
+
+        * { transition: all 0.2s ease-in-out; }
     </style>
 <script type="importmap">
 {
@@ -49,7 +85,12 @@
 }
 </script>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-[#0a0c10] dark:text-white">
+<body class="bg-[#fcfcfc] text-slate-900 dark:bg-[#050505] dark:text-white selection:bg-indigo-500/30">
+    <!-- Aurora Orbs -->
+    <div class="aurora-orb orb-1 animate-orb-float"></div>
+    <div class="aurora-orb orb-2 animate-orb-float" style="animation-delay: -5s;"></div>
+    <div class="aurora-orb orb-3 animate-orb-float" style="animation-delay: -10s;"></div>
+
     <div id="root"></div>
 </body>
 </html>

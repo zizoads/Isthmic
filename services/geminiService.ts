@@ -5,58 +5,77 @@ import { Domain, PlatformStats } from "../types";
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Nexus Prime v2: The Sovereign Strategic Intelligence
+ * Generate Visual Brand Identity
  */
-export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: 'ar' | 'en' = 'ar') => {
+export const generateBrandIdentityAI = async (domainName: string, sector: string) => {
   const ai = getAI();
-  const langInst = lang === 'ar' ? "RESPONSES MUST BE IN ARABIC." : "RESPONSES MUST BE IN ENGLISH.";
-  
   const response = await ai.models.generateContent({
+    // Using gemini-3-pro-preview for complex brand identity generation
     model: 'gemini-3-pro-preview',
-    contents: `SYSTEM: Act as Nexus Prime v2. ${langInst}
-    MISSION: High-fidelity autonomous investment synthesis.
-    MODE: ${mode}
-    CONTEXT: ${context}
-    
-    Return JSON.`,
+    contents: `Create a brand identity for "${domainName}" in "${sector}". Suggest hex colors and a tagline.`,
     config: {
-      tools: [{ googleSearch: {} }],
-      thinkingConfig: { thinkingBudget: 15000 },
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          analysisVerdict: { type: Type.STRING },
-          strategicRiskAssessment: { type: Type.STRING },
-          opportunities: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                title: { type: Type.STRING },
-                type: { type: Type.STRING },
-                description: { type: Type.STRING },
-                estimatedValue: { type: Type.STRING },
-                probability: { type: Type.NUMBER },
-                temporalSignal: { type: Type.STRING },
-                marketGapScore: { type: Type.NUMBER },
-                aiDeduction: { type: Type.STRING },
-                suggestedAction: { type: Type.STRING }
-              }
-            }
-          }
+          primaryColor: { type: Type.STRING },
+          tagline: { type: Type.STRING },
+          logoPrompt: { type: Type.STRING }
         }
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch (e) { return null; }
+  const data = JSON.parse(response.text || '{}');
+  
+  // Call image model for logo using gemini-2.5-flash-image as recommended
+  const logoResponse = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-image',
+    contents: { parts: [{ text: `Professional minimalist logo for "${domainName}", ${data.logoPrompt}, flat design, vector style.` }] }
+  });
+
+  let logoBase64 = '';
+  // Correctly iterate through parts to find inlineData
+  if (logoResponse.candidates?.[0]?.content?.parts) {
+    for (const part of logoResponse.candidates[0].content.parts) {
+      if (part.inlineData) {
+        logoBase64 = `data:image/png;base64,${part.inlineData.data}`;
+        break;
+      }
+    }
+  }
+
+  return { ...data, logoUrl: logoBase64 };
 };
 
 /**
- * Rigorous Discovery: Sniper search for domain opportunities
+ * Analyze Market Sentiment & Trading Signals
  */
-export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar') => {
+export const getMarketSignalsAI = async (keyword: string) => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-pro-preview',
+    contents: `Analyze current market sentiment for domain keyword "${keyword}". Provide a trading signal (BUY/HOLD/SELL) and reasoning.`,
+    config: {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          signal: { type: Type.STRING, description: "BUY, HOLD, or SELL" },
+          reasoning: { type: Type.STRING },
+          momentumScore: { type: Type.NUMBER },
+          newsCatalysts: { type: Type.ARRAY, items: { type: Type.STRING } }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+/**
+ * Sniper Discovery for high-value domains
+ */
+export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
   const ai = getAI();
   const langInst = lang === 'ar' ? "ALL TEXT FIELDS MUST BE IN ARABIC." : "ALL TEXT FIELDS MUST BE IN ENGLISH.";
   try {
@@ -75,90 +94,49 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
               name: { type: Type.STRING },
               estimatedPrice: { type: Type.NUMBER },
               justification: { type: Type.STRING },
-              probability: { type: Type.NUMBER },
-              marketData: {
-                type: Type.OBJECT,
-                properties: {
-                  comparableSale: { type: Type.STRING },
-                  searchVolume: { type: Type.STRING },
-                  historyStatus: { type: Type.STRING }
-                }
-              },
-              verifiedMetrics: {
-                type: Type.OBJECT,
-                properties: {
-                  isAvailable: { type: Type.BOOLEAN },
-                  historyClean: { type: Type.BOOLEAN },
-                  marketMatch: { type: Type.STRING }
-                }
-              }
+              probability: { type: Type.NUMBER }
             }
           } 
         } 
       }
     });
     return JSON.parse(response.text || '[]');
-  } catch { return []; }
+  } catch (e) { return []; }
 };
 
 /**
- * Expert Evaluation: Forensic audit of a specific domain
+ * Expert domain evaluation with grounding
+ * Fixed: Added signal parameter to support AbortController
  */
-export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'en' = 'ar') => {
+export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
   const ai = getAI();
-  const langInst = lang === 'ar' ? "ALL TEXT FIELDS MUST BE IN ARABIC." : "ALL TEXT FIELDS MUST BE IN ENGLISH.";
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Forensic audit: "${domainName}". ${langInst}`,
+    contents: `Audit the following domain name for commercial value and market demand: "${domainName}".`,
     config: { 
       tools: [{ googleSearch: {} }],
-      thinkingConfig: { thinkingBudget: 8000 },
-      responseMimeType: "application/json", 
-      responseSchema: { 
-        type: Type.OBJECT, 
-        properties: { 
-          sector: { type: Type.STRING }, 
-          probability: { type: Type.NUMBER }, 
-          justification: { type: Type.STRING }, 
-          thinkingPath: { type: Type.STRING },
-          technicalMetrics: { 
-            type: Type.OBJECT, 
-            properties: { 
-              liquidityScore: { type: Type.NUMBER },
-              da: { type: Type.NUMBER },
-              backlinks: { type: Type.NUMBER },
-              trademarkRisk: { type: Type.STRING },
-              dnaForensics: { type: Type.STRING }
-            } 
-          } 
-        } 
-      } 
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          sector: { type: Type.STRING },
+          probability: { type: Type.NUMBER },
+          justification: { type: Type.STRING }
+        }
+      }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Trademark Risk Check: Audits legal safety of a domain
- */
-export const checkTrademarkRiskAI = async (domainName: string) => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Check trademark risks for the domain: "${domainName}". Be thorough.`,
-    config: { tools: [{ googleSearch: {} }] }
-  });
-  return response.text || "No risk data found.";
-};
-
-/**
- * Strategic Outreach: Finds potential acquirers for a domain
+ * Identify potential strategic acquirers
  */
 export const findStrategicAcquirersAI = async (domainName: string, sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Find high-intent corporate acquirers for the domain "${domainName}" in the ${sector} sector.`,
+    contents: `Identify 5 potential corporate buyers for the domain "${domainName}" in the "${sector}" industry.`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
@@ -175,29 +153,105 @@ export const findStrategicAcquirersAI = async (domainName: string, sector: strin
       }
     }
   });
-  try { return JSON.parse(response.text || '[]'); } catch { return []; }
+  return JSON.parse(response.text || '[]');
 };
 
 /**
- * Persona Pitch: Generates a tailored sales pitch
+ * High-level intelligence for Nexus Prime mode
  */
-export const generatePersonaPitchAI = async (domainName: string, company: any, persona: string) => {
+export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: 'ar' | 'en' = 'ar') => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Write a compelling sales pitch for the domain "${domainName}" targeting the ${persona} at ${company.companyName}. Mention why it's a strategic fit based on their current market position.`,
+    contents: `Nexus Prime Intelligence Report: Mode: ${mode}, Context: ${context}`,
+    config: {
+      tools: [{ googleSearch: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          analysisVerdict: { type: Type.STRING },
+          strategicRiskAssessment: { type: Type.STRING },
+          opportunities: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                type: { type: Type.STRING },
+                description: { type: Type.STRING },
+                estimatedValue: { type: Type.STRING },
+                probability: { type: Type.NUMBER },
+                marketGapScore: { type: Type.NUMBER },
+                aiDeduction: { type: Type.STRING }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+/**
+ * Quick trademark risk check
+ */
+export const checkTrademarkRiskAI = async (domainName: string) => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Analyze trademark risks for the domain name: "${domainName}" using Google Search grounding.`,
+    config: { tools: [{ googleSearch: {} }] }
   });
   return response.text;
 };
 
 /**
- * Negotiation Analysis: Provides tactical advice for sales conversations
+ * Generate executive portfolio report
+ */
+export const generateExecutiveReportAI = async (stats: any, sectors: any) => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-pro-preview',
+    contents: `Generate a high-level executive report based on these stats: ${JSON.stringify(stats)} and sectors: ${JSON.stringify(sectors)}`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary: { type: Type.STRING },
+          capitalEfficiency: { type: Type.STRING },
+          projections: { type: Type.OBJECT, properties: { liquidityTimeline: { type: Type.STRING } } },
+          tacticalActions: { type: Type.ARRAY, items: { type: Type.STRING } }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+/**
+ * Fix: Added missing export generatePersonaPitchAI
+ */
+export const generatePersonaPitchAI = async (domainName: string, company: any, persona: string) => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Generate a highly personalized and compelling email pitch for selling "${domainName}" to ${company.companyName}. Target the ${persona} and mention synergy reason: ${company.reason}.`,
+  });
+  return response.text;
+};
+
+/**
+ * Fix: Added missing export analyzeNegotiationTacticsAI
  */
 export const analyzeNegotiationTacticsAI = async (lastReply: string, domain: string, currentAsk: number) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Analyze this buyer response for the domain "${domain}" (Ask: $${currentAsk}): "${lastReply}"`,
+    contents: `Analyze this domain negotiation message: "${lastReply}". The domain is ${domain} and the current asking price is $${currentAsk}.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -212,54 +266,17 @@ export const analyzeNegotiationTacticsAI = async (lastReply: string, domain: str
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Valuation Estimation: Calculates fair market price
- */
-export const estimateFairMarketValueAI = async (domainName: string, sector: string) => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Estimate fair market value for "${domainName}" in the ${sector} sector using real comps.`,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          lowEstimate: { type: Type.NUMBER },
-          highEstimate: { type: Type.NUMBER },
-          liquidityRating: { type: Type.NUMBER }
-        }
-      }
-    }
-  });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
-};
-
-/**
- * Technical Health Audit: Scans history and metrics
- */
-export const auditTechnicalHealthAI = async (domainName: string) => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Perform a technical health audit for "${domainName}". Check history and SEO authority.`,
-    config: { tools: [{ googleSearch: {} }] }
-  });
-  return response.text;
-};
-
-/**
- * Value Proof: Generates a brand concept for a domain
+ * Fix: Added missing export generateValueProofAI
  */
 export const generateValueProofAI = async (domainName: string, sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Generate a disruptive business concept and landing page blueprint for "${domainName}" in the ${sector} sector.`,
+    contents: `Create a compelling value proof deck for the domain "${domainName}" in the "${sector}" niche.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -288,19 +305,18 @@ export const generateValueProofAI = async (domainName: string, sector: string) =
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Marketplace Optimization: Optimizes listings for Afternic/GoDaddy
+ * Fix: Added missing export optimizeAfternicListingAI
  */
 export const optimizeAfternicListingAI = async (domainName: string, sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Optimize an Afternic listing for "${domainName}" (${sector}). Suggest pricing and keywords.`,
+    model: 'gemini-3-flash-preview',
+    contents: `Optimize a sales listing for Afternic and GoDaddy for "${domainName}" in "${sector}".`,
     config: {
-      tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -320,17 +336,17 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Auction Intelligence: Tracks market trends and recent sales
+ * Fix: Added missing export getAuctionIntelligenceAI
  */
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Analyze current auction trends and recent sales in these sectors: ${sectors.join(', ')}.`,
+    contents: `Gather global domain auction market intelligence for these sectors: ${sectors.join(', ')}.`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
@@ -374,17 +390,17 @@ export const getAuctionIntelligenceAI = async (sectors: string[]) => {
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Lead-Gen Blueprint: Engineers a revenue model for a domain
+ * Fix: Added missing export generateLeadGenBlueprintAI
  */
 export const generateLeadGenBlueprintAI = async (domainName: string, sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Engineer a lead-generation revenue blueprint for the domain "${domainName}" in the ${sector} sector.`,
+    contents: `Generate a lead-generation business blueprint for using the domain "${domainName}" in "${sector}".`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -404,17 +420,17 @@ export const generateLeadGenBlueprintAI = async (domainName: string, sector: str
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };
 
 /**
- * Bulk Leads: Harvests potential bulk buyers
+ * Fix: Added missing export harvestBulkLeadsAI
  */
 export const harvestBulkLeadsAI = async (domainName: string, sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Harvest bulk corporate leads who would have a synergy with "${domainName}" (${sector}).`,
+    contents: `Find 10 high-value corporate leads who would be the perfect strategic buyers for "${domainName}" (${sector}).`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
@@ -432,17 +448,17 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string) => 
       }
     }
   });
-  try { return JSON.parse(response.text || '[]'); } catch { return []; }
+  return JSON.parse(response.text || '[]');
 };
 
 /**
- * Drop Sniper List: Identifies expiring domains
+ * Fix: Added missing export getDropSniperListAI
  */
 export const getDropSniperListAI = async (sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Find a list of high-value pending-delete domains in the ${sector} sector.`,
+    contents: `Search for high-authority domains about to expire or drop in the "${sector}" niche.`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
@@ -462,24 +478,24 @@ export const getDropSniperListAI = async (sector: string) => {
       }
     }
   });
-  try { return JSON.parse(response.text || '[]'); } catch { return []; }
+  return JSON.parse(response.text || '[]');
 };
 
 /**
- * Snipe Analysis: Tactical audit for a drop opportunity
+ * Fix: Added missing export analyzeSnipeOpportunityAI
  */
-export const analyzeSnipeOpportunityAI = async (domain: string) => {
+export const analyzeSnipeOpportunityAI = async (domainName: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Tactical audit for the expiring domain "${domain}". Assess IP risks and flip potential.`,
+    contents: `Conduct a deep forensic and market analysis for the dropping domain name: "${domainName}".`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          verdict: { type: Type.STRING, description: "e.g. Golden, Silver, Risky" },
+          verdict: { type: Type.STRING, description: "Golden or Standard" },
           historySummary: { type: Type.STRING },
           flipProbability: { type: Type.NUMBER },
           maxBackorderBid: { type: Type.NUMBER },
@@ -488,33 +504,5 @@ export const analyzeSnipeOpportunityAI = async (domain: string) => {
       }
     }
   });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
-};
-
-/**
- * Executive Report: Synthesizes a high-level investment memo
- */
-export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: string[]) => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Generate an executive investment memorandum based on portfolio stats: ${JSON.stringify(stats)} and sectors: ${sectors.join(', ')}.`,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          summary: { type: Type.STRING },
-          capitalEfficiency: { type: Type.STRING },
-          projections: {
-            type: Type.OBJECT,
-            properties: { liquidityTimeline: { type: Type.STRING } }
-          },
-          tacticalActions: { type: Type.ARRAY, items: { type: Type.STRING } }
-        }
-      }
-    }
-  });
-  try { return JSON.parse(response.text || '{}'); } catch { return null; }
+  return JSON.parse(response.text || '{}');
 };

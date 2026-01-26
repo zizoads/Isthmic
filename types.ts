@@ -41,7 +41,17 @@ export interface Domain {
   isSimulatedData?: boolean;
   technicalMetrics?: TechnicalMetrics;
   folder?: 'Quick Flip' | 'Long Term' | 'Premium';
-  workflow?: any;
+  brandAssets?: {
+    logoUrl?: string;
+    primaryColor?: string;
+    tagline?: string;
+  };
+  outreachHistory?: {
+    step: number;
+    date: string;
+    type: string;
+    status: string;
+  }[];
 }
 
 export interface TechnicalMetrics {

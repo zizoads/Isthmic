@@ -5,9 +5,11 @@ import { ServiceIntegration } from '../types';
 interface Props {
   integrations: ServiceIntegration[];
   onConnect: (id: string, key: string) => void;
+  // Fix: Added lang property to Props
+  lang: 'ar' | 'en';
 }
 
-const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect }) => {
+const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect, lang }) => {
   const [activeKeyInput, setActiveKeyInput] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -20,12 +22,16 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect }) => {
   ];
 
   return (
-    <div className="space-y-6 lg:space-y-10 animate-fade-in" dir="rtl">
+    <div className="space-y-6 lg:space-y-10 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="bg-indigo-600 dark:bg-indigo-600 p-8 lg:p-12 rounded-[32px] lg:rounded-[40px] text-white shadow-2xl relative overflow-hidden border border-white/10">
         <div className="relative z-10 max-w-3xl">
-          <h3 className="text-2xl lg:text-4xl font-black tracking-tighter uppercase mb-4 lg:mb-6 leading-tight">الأدوات الاستراتيجية</h3>
+          <h3 className="text-2xl lg:text-4xl font-black tracking-tighter uppercase mb-4 lg:mb-6 leading-tight">
+            {lang === 'ar' ? 'الأدوات الاستراتيجية' : 'Strategic Tools'}
+          </h3>
           <p className="text-indigo-100 text-xs lg:text-sm leading-relaxed font-medium">
-            قم بتوصيل حساباتك المهنية لتفعيل وضع "القناص" الكامل. في حال غياب المفتاح، سيقوم الذكاء الاصطناعي بمحاكاة البيانات عبر الاستنباط المتقدم.
+            {lang === 'ar' 
+              ? 'قم بتوصيل حساباتك المهنية لتفعيل وضع "القناص" الكامل. في حال غياب المفتاح، سيقوم الذكاء الاصطناعي بمحاكاة البيانات عبر الاستنباط المتقدم.'
+              : 'Connect your professional accounts to enable full "Sniper" mode. In the absence of a key, AI will simulate data via advanced inference.'}
           </p>
         </div>
         <i className="fas fa-plug absolute left-[-40px] top-[-40px] text-white/10 text-[200px] lg:text-[280px]"></i>
@@ -46,7 +52,7 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect }) => {
                   <div className={`px-3 py-1 lg:px-4 lg:py-1.5 rounded-full text-[8px] lg:text-[9px] font-black uppercase tracking-widest ${
                     isConnected ? 'bg-green-100 text-green-700' : 'bg-slate-100 dark:bg-white/10 text-slate-500'
                   }`}>
-                    {isConnected ? 'نشط' : 'وضع المحاكاة'}
+                    {isConnected ? (lang === 'ar' ? 'نشط' : 'Active') : (lang === 'ar' ? 'وضع المحاكاة' : 'Simulated')}
                   </div>
                 </div>
                 <h4 className="text-lg lg:text-xl font-black text-slate-900 dark:text-white mb-2 lg:mb-3">{tool.name}</h4>
@@ -60,17 +66,21 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect }) => {
                   <div className="space-y-3 animate-slide-up">
                     <input 
                       type="password" 
-                      placeholder="لصق الـ API هنا..."
+                      placeholder={lang === 'ar' ? 'لصق الـ API هنا...' : 'Paste API here...'}
                       className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500/20 text-right"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                     />
                     <div className="flex gap-2">
                        <button 
-                        onClick={() => { setActiveKeyInput(null); setInputValue(''); }}
+                        onClick={() => { onConnect(tool.id, inputValue); setActiveKeyInput(null); setInputValue(''); }}
                         className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
-                       >حفظ</button>
-                       <button onClick={() => setActiveKeyInput(null)} className="px-4 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-400 rounded-xl text-[10px] font-black uppercase hover:bg-slate-200 transition-all">إلغاء</button>
+                       >
+                         {lang === 'ar' ? 'حفظ' : 'Save'}
+                       </button>
+                       <button onClick={() => { setActiveKeyInput(null); setInputValue(''); }} className="px-4 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-400 rounded-xl text-[10px] font-black uppercase hover:bg-slate-200 transition-all">
+                         {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                       </button>
                     </div>
                   </div>
                 ) : (
@@ -80,7 +90,7 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect }) => {
                       isConnected ? 'bg-slate-900 dark:bg-white/10 text-white' : 'bg-white dark:bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white'
                     }`}
                   >
-                    {isConnected ? 'تحديث المفتاح' : 'توصيل الآن'}
+                    {isConnected ? (lang === 'ar' ? 'تحديث المفتاح' : 'Update Key') : (lang === 'ar' ? 'توصيل الآن' : 'Connect Now')}
                   </button>
                 )}
               </div>

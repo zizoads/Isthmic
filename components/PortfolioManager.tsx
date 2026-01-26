@@ -1,60 +1,42 @@
 
 import React, { useState } from 'react';
 import { Domain } from '../types';
-// Remove unused and non-existent import generateProspectusAI
-import { estimateFairMarketValueAI, auditTechnicalHealthAI } from '../services/geminiService';
+import { generateBrandIdentityAI, getMarketSignalsAI } from '../services/geminiService';
+import { translations } from '../translations';
 
 interface Props {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
+  lang: 'ar' | 'en';
 }
 
-const PortfolioManager: React.FC<Props> = ({ domains, setDomains }) => {
+const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
+  const t = translations[lang];
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const [loading, setLoading] = useState(false);
-  const [importText, setImportText] = useState('');
-  const [showImporter, setShowImporter] = useState(false);
-
-  const handleBulkImport = () => {
-    const lines = importText.split('\n').filter(l => l.trim() !== '');
-    const newDomains: Domain[] = lines.map(line => {
-      const parts = line.split(/[,;|\s]+/);
-      const name = parts[0].trim().toLowerCase();
-      const cost = parts[1] ? Number(parts[1].replace(/[^0-9.]/g, '')) : 15;
-      
-      return {
-        id: Math.random().toString(),
-        name,
-        price: cost,
-        acquisitionCost: cost,
-        acquisitionDate: new Date().toISOString(),
-        status: 'purchased' as const,
-        contentStatus: 'none' as const,
-        folder: 'Quick Flip' as const,
-        lastChecked: new Date().toISOString()
-      };
-    });
-    setDomains(prev => [...newDomains, ...prev]);
-    setImportText('');
-    setShowImporter(false);
-  };
+  const [marketSignal, setMarketSignal] = useState<any>(null);
 
   const handleDeepAudit = async (domain: Domain) => {
     setLoading(true);
     setSelectedDomain(domain);
     try {
-      const [valuation] = await Promise.all([
-        estimateFairMarketValueAI(domain.name, domain.sector || 'General'),
-        auditTechnicalHealthAI(domain.name)
-      ]);
-      
-      setDomains(prev => prev.map(d => d.id === domain.id ? {
-        ...d,
-        estimatedProfit: valuation?.highEstimate,
-        technicalMetrics: { ...d.technicalMetrics, liquidityScore: valuation?.liquidityRating }
-      } : d));
+      const signals = await getMarketSignalsAI(domain.name.split('.')[0]);
+      setMarketSignal(signals);
     } catch (e) {
-      console.error("Audit failed", e);
+      console.error(e);
+    }
+    setLoading(false);
+  };
+
+  const handleGenerateBrand = async () => {
+    if (!selectedDomain) return;
+    setLoading(true);
+    try {
+      const brand = await generateBrandIdentityAI(selectedDomain.name, selectedDomain.sector || 'Technology');
+      setDomains(prev => prev.map(d => d.id === selectedDomain.id ? { ...d, brandAssets: brand } : d));
+      setSelectedDomain(prev => prev ? { ...prev, brandAssets: brand } : null);
+    } catch (e) {
+      console.error(e);
     }
     setLoading(false);
   };
@@ -62,121 +44,90 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains }) => {
   const purchasedDomains = domains.filter(d => d.status === 'purchased');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" dir="rtl">
-      {/* قسم الإدخال */}
-      <div className="lg:col-span-1 flex flex-col gap-6">
-        <div className="bg-slate-900 p-10 rounded-[40px] text-white shadow-2xl relative overflow-hidden">
-           <h3 className="text-xl font-black tracking-tighter uppercase mb-6">مزامنة المخزون</h3>
-           <p className="text-slate-400 text-xs font-medium leading-relaxed mb-8">
-             أدخل نطاقاتك الحالية هنا. قم بلصقها بصيغة: <br/><strong>domain.com, سعر_الشراء</strong>
-           </p>
-           <button 
-            onClick={() => setShowImporter(!showImporter)}
-            className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-3"
-           >
-            <i className="fas fa-plus"></i> {showImporter ? 'إلغاء الإدخال' : 'إضافة نطاقات للخزنة'}
-           </button>
-        </div>
-
-        {showImporter && (
-          <div className="bg-white p-8 rounded-[32px] border shadow-2xl shadow-indigo-100 space-y-6 animate-slide-up">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">أداة الاستيراد الشامل</h4>
-            <textarea 
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              className="w-full h-48 bg-slate-50 border border-slate-100 rounded-2xl p-5 text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500/20 text-left"
-              placeholder="example.com, 250&#10;invest.ai, 1200&#10;meta.io, 50"
-            />
-            <button 
-              onClick={handleBulkImport}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all"
-            >
-              بدء مزامنة الأصول
-            </button>
-          </div>
-        )}
-
-        {/* قائمة الأصول */}
-        <div className="bg-white rounded-[32px] border shadow-sm overflow-hidden flex flex-col flex-1">
-          <div className="p-8 border-b bg-slate-50/50 flex justify-between items-center">
-            <div className="text-right">
-              <h3 className="font-black text-slate-800 uppercase text-sm tracking-tighter">مخزون الخزنة</h3>
-              <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5 tracking-widest">أصولك الحقيقية تحت الإدارة</p>
-            </div>
-            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg uppercase">{purchasedDomains.length}</span>
-          </div>
-          <div className="flex-1 overflow-y-auto max-h-[600px] divide-y divide-slate-50">
-            {purchasedDomains.map(d => (
-              <div 
-                key={d.id} 
-                onClick={() => handleDeepAudit(d)}
-                className={`p-6 cursor-pointer transition-all hover:bg-indigo-50/50 flex items-center justify-between ${selectedDomain?.id === d.id ? 'bg-indigo-50 border-r-4 border-indigo-500' : ''}`}
-              >
-                <div className="text-right">
-                  <div className="font-black text-slate-900 text-base">{d.name}</div>
-                  <div className="flex gap-2 mt-1">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">التكلفة: ${d.acquisitionCost || d.price}</span>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* List Sidebar */}
+      <div className="lg:col-span-4 space-y-6">
+        <div className="glass dark:glass-dark rounded-[40px] p-8">
+           <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-6">{t.portfolio}</h3>
+           <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-hide">
+              {purchasedDomains.map(d => (
+                <div 
+                  key={d.id} 
+                  onClick={() => handleDeepAudit(d)}
+                  className={`p-5 rounded-3xl cursor-pointer transition-all border ${selectedDomain?.id === d.id ? 'bg-indigo-600 border-indigo-400 text-white' : 'glass dark:glass-dark hover:border-indigo-500'}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-sm">{d.name}</span>
+                    <span className="text-[10px] opacity-60">${d.price}</span>
                   </div>
                 </div>
-                <div className="text-left">
-                  {d.estimatedProfit ? (
-                    <div className="text-green-600 font-black text-sm tracking-tighter">${d.estimatedProfit}</div>
-                  ) : <div className="text-slate-200"><i className="fas fa-ellipsis-h"></i></div>}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+           </div>
         </div>
       </div>
 
-      {/* قسم التحليل والتفاصيل */}
-      <div className="lg:col-span-2 bg-white rounded-[40px] border shadow-sm p-12 min-h-[700px] flex flex-col relative overflow-hidden">
-        {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-8">
-            <div className="relative">
-               <div className="w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-               <i className="fas fa-shield-alt absolute inset-0 flex items-center justify-center text-indigo-600 text-2xl"></i>
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">جاري إجراء الفحص المؤسسي...</p>
-          </div>
-        ) : selectedDomain ? (
-          <div className="animate-fade-in space-y-12 text-right">
-             <div className="flex justify-between items-start border-b border-slate-100 pb-10">
-              <div>
-                <h2 className="text-5xl font-black text-slate-900 tracking-tighter">{selectedDomain.name}</h2>
-                <div className="flex gap-4 mt-6">
-                  <span className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black rounded-xl uppercase tracking-widest">في المخزون</span>
-                  <span className="px-4 py-1.5 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-xl uppercase tracking-widest border border-indigo-100">مراقبة السوق</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">مصادر التقييم</h4>
-                  <div className="space-y-4">
-                     {['قاعدة بيانات مبيعات NameBio', 'تقييمات Afternic الحية', 'حجم البحث في Google Trends'].map(src => (
-                       <div key={src} className="flex items-center gap-3 text-xs font-bold text-slate-700">
-                         <i className="fas fa-check-circle text-green-500"></i> {src}
-                       </div>
-                     ))}
+      {/* Detail Area */}
+      <div className="lg:col-span-8 space-y-8">
+        {selectedDomain ? (
+          <div className="space-y-8">
+            {/* Market Signal Card - TradingView Style */}
+            <div className="glass dark:glass-dark rounded-[40px] p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t-4 border-indigo-500">
+               <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Market Sentiment Signal</div>
+                  <div className={`text-4xl font-black ${marketSignal?.signal === 'BUY' ? 'text-green-500' : marketSignal?.signal === 'SELL' ? 'text-red-500' : 'text-amber-500'}`}>
+                    {marketSignal?.signal || '---'}
                   </div>
                </div>
-               <div className="bg-indigo-600 p-8 rounded-[32px] text-white shadow-xl shadow-indigo-100">
-                  <h4 className="text-[10px] font-black text-indigo-200 uppercase mb-4 tracking-widest">الاستراتيجية المقترحة</h4>
-                  <p className="text-sm font-medium leading-relaxed italic">
-                    "هذا الأصل لديه رنين عالٍ في قطاع {selectedDomain.sector || 'التكنولوجيا'}. نوصي بوضعه للبيع فوراً."
-                  </p>
+               <div className="flex-1 bg-white/5 p-6 rounded-3xl border border-white/5">
+                  <p className="text-xs text-slate-400 leading-relaxed italic">"{marketSignal?.reasoning || 'Awaiting signal...'}"</p>
                </div>
+               <div className="text-center">
+                  <div className="text-2xl font-black text-indigo-500">{marketSignal?.momentumScore || 0}%</div>
+                  <div className="text-[8px] font-black text-slate-500 uppercase">Momentum</div>
+               </div>
+            </div>
+
+            {/* Brand Canvas - Atom Style */}
+            <div className="glass dark:glass-dark rounded-[40px] p-12 relative overflow-hidden min-h-[500px]">
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <div className="space-y-8">
+                     <h2 className="text-5xl font-black tracking-tighter text-slate-900 dark:text-white">{selectedDomain.name}</h2>
+                     <p className="text-lg text-slate-500 dark:text-slate-400 font-medium italic">"{selectedDomain.brandAssets?.tagline || 'No tagline generated yet.'}"</p>
+                     
+                     <div className="flex gap-4">
+                        <button 
+                          onClick={handleGenerateBrand}
+                          disabled={loading}
+                          className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center gap-2"
+                        >
+                          {loading ? <i className="fas fa-sync fa-spin"></i> : <i className="fas fa-magic"></i>}
+                          Generate Brand DNA
+                        </button>
+                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-center">
+                     {selectedDomain.brandAssets?.logoUrl ? (
+                        <div className="p-10 bg-white dark:bg-slate-800 rounded-[50px] shadow-2xl border dark:border-white/5 group relative">
+                           <img src={selectedDomain.brandAssets.logoUrl} alt="Logo" className="w-64 h-64 object-contain rounded-2xl" />
+                           <div className="absolute inset-0 bg-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[50px] flex items-center justify-center">
+                              <span className="text-white font-black text-[10px] uppercase tracking-widest">Brand Visualized</span>
+                           </div>
+                        </div>
+                     ) : (
+                        <div className="w-64 h-64 border-4 border-dashed border-slate-200 dark:border-white/10 rounded-[50px] flex items-center justify-center text-slate-300">
+                           <i className="fas fa-palette text-5xl"></i>
+                        </div>
+                     )}
+                  </div>
+               </div>
+               <i className="fas fa-rocket absolute right-[-50px] bottom-[-50px] text-white/5 text-[300px] pointer-events-none"></i>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
-            <i className="fas fa-vault text-[120px] mb-10 opacity-5"></i>
-            <div className="max-w-xs text-center">
-              <p className="text-base font-bold text-slate-400 mb-2 tracking-tight uppercase">جاهز للبدء</p>
-              <p className="text-sm italic text-slate-300">"أدخل قائمة نطاقاتك في الخانة اليمنى لنبدأ العمل."</p>
-            </div>
+          <div className="glass dark:glass-dark rounded-[40px] h-[600px] flex flex-col items-center justify-center text-slate-300 opacity-20">
+             <i className="fas fa-vault text-[120px] mb-8"></i>
+             <p className="text-xl font-black uppercase tracking-widest">Select an asset to engineer</p>
           </div>
         )}
       </div>
