@@ -9,6 +9,20 @@ export enum AgentType {
   MASTER_BRAIN = 'MASTER_BRAIN'
 }
 
+export interface AgentWorkflowState {
+  currentStep: string;
+  history: string[];
+  contextData: Record<string, any>;
+  lastEvent?: string;
+}
+
+export interface ThinkingStep {
+  id: string;
+  action: string;
+  finding: string;
+  status: 'complete' | 'searching' | 'analyzing' | 'failed';
+}
+
 export interface TechnicalMetrics {
   da?: number; 
   pa?: number; 
@@ -16,35 +30,30 @@ export interface TechnicalMetrics {
   isBlacklisted?: boolean;
   mxRecordsFound?: boolean;
   historyYears?: number;
-  // Added metrics to support AI evaluation logic
   liquidityScore?: number;
   trademarkRisk?: string;
-}
-
-export interface PlatformStrategy {
-  minProfitMargin: number;
-  maxDomainPrice: number;
-  dailyMessageLimit: number;
-  riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
-  autoEvaluate: boolean;
-  autoPilotMode: boolean; // جديد: وضع الطيار الآلي
+  sourceCitations?: string[];
+  thinkingSteps?: ThinkingStep[];
 }
 
 export interface Domain {
   id: string;
   name: string;
   price: number;
+  acquisitionCost?: number;
+  acquisitionDate?: string;
   status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
   contentStatus: 'none' | 'parking' | 'active';
   sector?: string;
   probability?: number;
   estimatedProfit?: number;
   potentialClients?: string[];
-  linkedinLeads?: { name: string; role: string; profileUrl: string }[];
   lastChecked?: string;
   justification?: string;
+  thinkingPath?: string;
   technicalMetrics?: TechnicalMetrics;
-  folder?: 'Quick Flip' | 'Long Term' | 'Premium'; // جديد: تصنيف المحفظة
+  folder?: 'Quick Flip' | 'Long Term' | 'Premium';
+  workflow?: AgentWorkflowState; // إضافة سياق المهمة المستمر
 }
 
 export interface ActivityLog {
@@ -52,27 +61,7 @@ export interface ActivityLog {
   time: string;
   agent: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'critical';
-}
-
-export interface Notification {
-  id: string;
-  time: string;
-  title: string;
-  message: string;
-  type: 'opportunity' | 'alert' | 'success';
-  read: boolean;
-}
-
-export interface OutreachMessage {
-  id: string;
-  domainId: string;
-  recipient: string;
-  recipientRole: string;
-  tone: 'Formal' | 'Creative' | 'Direct';
-  status: 'draft' | 'scheduled' | 'sent' | 'replied';
-  sentDate?: string;
-  content: string;
+  type: 'info' | 'success' | 'warning' | 'critical' | 'ai_thought';
 }
 
 export interface PlatformStats {
@@ -84,4 +73,33 @@ export interface PlatformStats {
   avgProfit: number;
   totalSpent: number;
   estimatedPortfolioValue: number;
+  unrealizedGains?: number;
+}
+
+/**
+ * Interface for platform-wide investment strategy settings
+ */
+export interface PlatformStrategy {
+  totalBudget: number;
+  maxPricePerDomain: number;
+  targetTLDs: string[];
+  minLiquidityScore: number;
+  targetROI: number;
+  minHoldingPeriod: number;
+  riskTolerance: string;
+  autoEvaluate: boolean;
+  autoPilotMode: boolean;
+}
+
+/**
+ * Interface for tracking outreach communication with potential buyers
+ */
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent' | 'received' | 'failed';
+  content: string;
 }
