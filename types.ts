@@ -1,19 +1,27 @@
 
 export enum AgentType {
+  MASTER_BRAIN = 'MASTER_BRAIN',
+  NEXUS_PRIME = 'NEXUS_PRIME',
   DISCOVERY = 'DISCOVERY',
   EVALUATION = 'EVALUATION',
-  PURCHASE = 'PURCHASE',
+  DROP_SNIPER = 'DROP_SNIPER',
+  PIPELINE = 'PIPELINE',
+  PORTFOLIO = 'PORTFOLIO',
+  VALUE_PROOF = 'VALUE_PROOF',
+  VALUE_MULTIPLIER = 'VALUE_MULTIPLIER',
   MESSAGING = 'MESSAGING',
   NEGOTIATION = 'NEGOTIATION',
+  MARKETPLACE = 'MARKETPLACE',
+  AUCTION_WATCH = 'AUCTION_WATCH',
+  INTEGRATIONS = 'INTEGRATIONS',
   FEEDBACK = 'FEEDBACK',
-  MASTER_BRAIN = 'MASTER_BRAIN',
-  NEXUS_PRIME = 'NEXUS_PRIME'
+  EXECUTIVE = 'EXECUTIVE'
 }
 
 export interface NexusOpportunity {
   id: string;
   title: string;
-  type: 'Arbitrage' | 'Temporal' | 'Forensic' | 'Strategic' | 'DNA_Audit';
+  type: string;
   description: string;
   estimatedValue: string;
   probability: number;
@@ -46,12 +54,6 @@ export interface Domain {
     primaryColor?: string;
     tagline?: string;
   };
-  outreachHistory?: {
-    step: number;
-    date: string;
-    type: string;
-    status: string;
-  }[];
 }
 
 export interface TechnicalMetrics {
@@ -77,7 +79,6 @@ export interface PlatformStats {
   avgProfit: number;
   totalSpent: number;
   estimatedPortfolioValue: number;
-  dataIntegrity?: number; 
   systemResilienceStatus: 'nominal' | 'degraded' | 'autonomous_recovery';
 }
 
@@ -108,7 +109,6 @@ export interface ServiceIntegration {
   provider: string;
   status: 'simulated' | 'connected';
   impactArea: string;
-  apiKey?: string;
 }
 
 export interface ThinkingStep {
