@@ -1,96 +1,110 @@
-# 🚀 Domainer Pro: Technical Command Center
-### *Industrial-Grade Multi-Agent AI Platform for Strategic Domain Investment*
+# 🚀 Domainer Pro: Industrial AI Command Center
+### *Comprehensive Technical Documentation for Multi-Agent Domain Investment Orchestration*
 
-Domainer Pro is a sophisticated, high-fidelity React application designed for professional domain investors. It leverages the **Gemini 3 Pro** engine to automate the end-to-end lifecycle of domain flipping—from discovery and forensic appraisal to outreach and tactical negotiation.
-
----
-
-## 🏗️ System Architecture
-
-The platform is built on a modular **Multi-Agent Architecture** where specialized AI nodes coordinate through a central "Master Brain."
-
-### 1. Frontend Stack
-- **Framework:** React 19 (Functional Components & Hooks).
-- **Type Safety:** Strict TypeScript implementation for business logic and API contracts.
-- **Styling:** Tailwind CSS using an industrial-dark "Glassmorphism" aesthetic.
-- **Visualizations:** `Recharts` for real-time portfolio analytics and sector distribution.
-- **State Persistence:** LocalStorage-based synchronization for cross-session data integrity.
-
-### 2. AI Intelligence Layer (Gemini SDK)
-The core intelligence resides in `services/geminiService.ts`, utilizing:
-- **Model:** `gemini-3-pro-preview` for high-stakes reasoning.
-- **Thinking Budget:** Configured between 6,000 to 8,000 tokens per request to enable deep "Chain of Thought" (CoT) processing.
-- **Grounding Tool:** `googleSearch` is integrated into discovery and evaluation prompts to fetch live market data, comparable sales (Comps), and trademark status.
-- **Resilience Protocol:** An "Autonomous Recovery" logic that falls back to `gemini-3-flash-preview` and simulated data if primary API connections are throttled or unavailable.
+Domainer Pro is a state-of-the-art, high-fidelity React 19 application engineered for professional domain name investors. It operates as a multi-agent command center that automates the discovery, forensic appraisal, strategic outreach, and tactical negotiation of premium digital assets.
 
 ---
 
-## 🤖 Neural Agent Modules
+## 🏗️ System Architecture & Design Philosophy
+
+The platform is built on a **Modular Multi-Agent Architecture (MMAA)**. Unlike traditional linear tools, Domainer Pro treats each investment stage as an autonomous "Agent" node that shares state through a central orchestrator.
+
+### 1. Core Technical Stack
+- **Engine:** React 19 (Functional Paradigm).
+- **Language:** Strict TypeScript (4.x+) for robust domain modeling.
+- **AI Integration:** `@google/genai` SDK using Gemini 3 Pro and Flash.
+- **Styling:** Tailwind CSS (Atomic CSS) with a custom "Cyber-Industrial" design system.
+- **Data Visualization:** `recharts` for portfolio equity and sector distribution analysis.
+- **Persistence:** Synchronous `localStorage` mirroring for state retention across sessions.
+
+### 2. State Management & Orchestration
+The root `App.tsx` acts as the **System Brain**, managing three primary global states:
+- **Asset State:** `domains[]` - A comprehensive array of `Domain` objects tracking lifecycle from 'available' to 'sold'.
+- **System Stats:** `PlatformStats` - Real-time calculation of ROI, NAV (Net Asset Value), and system health.
+- **Strategy State:** `PlatformStrategy` - User-defined investment thesis that constraints AI agent behavior.
+
+---
+
+## 🧠 AI Strategy & Implementation (Gemini 3)
+
+The platform utilizes advanced features of the Gemini 3 series to ensure industrial reliability.
+
+### 1. Grounding & Search Integration
+Most agents (Discovery, Evaluation, AuctionWatch) utilize the `googleSearch` tool. This allows the model to:
+- Fetch live comparable sales (Comps) from DNJournal or NameBio.
+- Verify real-time registrar listings on Afternic, Sedo, and Dan.
+- Perform trademark risk audits via WIPO/USPTO grounded searches.
+
+### 2. Thinking Budget & Deep Reasoning
+For high-stakes decisions (Evaluation/Negotiation), the system allocates a **Thinking Budget** of up to **8,000 tokens**. This enables the model to perform internal "Chain of Thought" (CoT) processing before returning a structured JSON response.
+
+### 3. Resilience & Autonomous Recovery
+The `services/geminiService.ts` implements a dual-layer recovery logic:
+- **Primary Layer:** `gemini-3-pro-preview` with strict JSON schema enforcement.
+- **Fallback Layer:** If the Pro model fails or hits rate limits, the system triggers an emergency scan via `gemini-3-flash-preview` to maintain operation in "Degraded Mode."
+
+---
+
+## 🤖 Specialized Agent Nodes
 
 ### 🎯 Strategic Sniper (Discovery)
-- **Logic:** Scans unlisted inventories and registrar feeds.
-- **Verification:** Cross-references findings with NameBio-style historical data via search grounding.
-- **Output:** Returns high-probability investment candidates with justification scores.
+- **Logic:** Synthesizes the user's "Investment Thesis" into search parameters.
+- **Verification:** Cross-checks keyword commerciality and CPC (Cost-Per-Click) data using search grounding.
+- **Dashboard:** `DiscoveryDashboard.tsx` provides a real-time "Radar" interface.
 
 ### 🛡️ Forensic Appraiser (Evaluation)
-- **Forensics:** Analyzes domain history cleaness and backlink profiles using search snippets (simulating Moz/Ahrefs).
-- **Risk Audit:** Performs trademark collision checks via USPTO/WIPO search grounding.
-- **Reasoning:** Displays the "Chain of Thought" in the **Agent Reasoning Lab** for human-in-the-loop verification.
+- **Audit:** Simulates technical SEO metrics (DA/PA/Backlinks) via search snippet analysis.
+- **Reasoning Lab:** `AgentReasoningLab.tsx` exposes the AI's internal logic steps to the user.
+- **Risk Assessment:** Flags trademark collisions and potential UDRP (Uniform Domain-Name Dispute-Resolution Policy) risks.
 
-### 💼 Master Brain (Orchestrator)
-- **Control:** Manages the **Commander's Intent**, setting budget caps, ROI targets, and risk tolerance.
-- **Stats Engine:** Aggregates portfolio value, spent capital, and system resilience scores.
+### ⚔️ Tactical Negotiator (War Room)
+- **Sentiment Analysis:** Parses buyer replies to identify "Hidden Motives" (e.g., end-user vs. reseller).
+- **Battlecards:** Generates persona-specific counter-offers and tactical responses.
 
-### ✉️ Outreach & Negotiation War Room
-- **Leads:** Identifies corporate decision-makers (CEOs/Marketing Managers) using Hunter.io-style logic.
-- **Tactics:** Analyzes buyer sentiment to generate "Battlecard" responses and suggested counter-offers.
-
----
-
-## 🔌 Integration Ecosystem
-
-The platform features a **Service Integration Center** that manages connections to five strategic "senses":
-1.  **NameBio:** Historical sales benchmark data.
-2.  **Hunter.io:** Strategic lead harvesting.
-3.  **WhoisXML:** Ownership and lifecycle verification.
-4.  **Moz SEO:** Domain Authority (DA) and technical metrics.
-5.  **Escrow.com:** Financial settlement simulation.
-
-**Resilience Feature:** When an integration is `simulated`, the AI uses **Grounded Deduction** to estimate parameters, ensuring the platform remains functional without active API keys.
+### 📊 Executive Reporter
+- **Synthesis:** Aggregates portfolio metadata into a professional **Investment Memorandum**.
+- **Financials:** Calculates Equity Growth Curves and Annualized ROI projections.
 
 ---
 
-## 📂 Project Structure
+## 🔌 Integration Ecosystem (The Five Senses)
 
-```text
-├── services/
-│   └── geminiService.ts    # AI logic, grounding, and JSON schemas
-├── components/
-│   ├── MasterBrain.tsx     # Executive command & stats
-│   ├── Discovery.tsx       # Search & Sniper engine
-│   ├── Evaluation.tsx      # Deep audit & reasoning console
-│   ├── Pipeline.tsx        # Kanban-style asset management
-│   ├── ExecutiveReport.tsx # Synthesis of market intelligence
-│   └── ...                 # Specialized agent dashboards
-├── types.ts                # Strict interfaces for Domains, Stats, and Strategies
-├── App.tsx                 # Central orchestrator & state manager
-└── metadata.json           # Platform descriptors
-```
+The platform measures its **Data Integrity Score** based on five strategic API integrations managed in `IntegrationCenter.tsx`:
+1.  **NameBio:** Benchmarking against historical sales records.
+2.  **Hunter.io:** Harvesting executive lead contacts.
+3.  **WhoisXML:** Registry ownership and expiration tracking.
+4.  **Moz:** Technical domain authority and trust metrics.
+5.  **Escrow.com:** Financial settlement security logic.
+
+*Note: In "Simulated Mode," the AI uses **Grounded Deduction** to estimate these values when API keys are not provided.*
 
 ---
 
-## 🚀 Operational Logic
+## 📂 Component Hierarchy
 
-### Data Integrity & Resilience
-The system calculates a **Data Integrity Score** based on the status of external integrations. If the score is `< 100%`, the system enters "Degraded Operation Mode," where the AI explicitly reasons through missing data points to provide the most accurate possible estimates.
+- **`App.tsx`**: Central orchestrator.
+- **`components/PipelineDashboard.tsx`**: Kanban-style asset flow management.
+- **`components/MasterBrainDashboard.tsx`**: Executive configuration & financial controls.
+- **`components/PortfolioManager.tsx`**: Asset vault with bulk import/export capabilities.
+- **`components/DropSniperDashboard.tsx`**: Monitors the "Pending-Delete" cycle for high-value drops.
+- **`components/CommandPalette.tsx`**: Global shortcut (`Ctrl+K`) for rapid navigation and command execution.
 
-### Reasoning Console
-The `AgentReasoningLab` component provides transparency into how the AI reached a specific valuation. It breaks down the grounding sources, comparable sales found, and the logical steps of the appraisal.
+---
+
+## 🚀 Operational Workflow
+
+1.  **Define Thesis:** User sets ROI targets and budget in the Master Brain.
+2.  **Snipe:** The Discovery Agent identifies undervalued candidates.
+3.  **Audit:** The Evaluation Agent performs a deep forensic audit and risk check.
+4.  **Acquire:** User executes purchase (linked to registrars like Namecheap).
+5.  **Liquidate:** The Messaging and Negotiation agents manage the sale lifecycle to strategic buyers.
 
 ---
 
-## 📜 Legal & Operational Disclaimer
-Domainer Pro is a decision-support system. While it utilizes advanced grounding and thinking budgets, all financial transactions and trademark audits should be subject to final human review before capital deployment.
+## 📜 Disclaimer
+This software is a decision-support system. While it employs advanced AI grounding, users are advised to perform final due diligence on trademark matters before high-value capital deployment.
 
 ---
-**Technical Documentation for Version 2.5.0-Industrial.**
+**Version:** 2.5.0-Industrial  
+**Lead Engineer:** Senior AI & Frontend Architect  
+**License:** MIT Proprietary Implementation
