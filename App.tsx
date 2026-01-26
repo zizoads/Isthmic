@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AgentType, Domain, PlatformStats, ActivityLog, PlatformStrategy, ServiceIntegration } from './types';
 import DiscoveryDashboard from './components/DiscoveryDashboard';
 import EvaluationDashboard from './components/EvaluationDashboard';
@@ -8,13 +8,10 @@ import MessagingDashboard from './components/MessagingDashboard';
 import NegotiationDashboard from './components/NegotiationDashboard';
 import MasterBrainDashboard from './components/MasterBrainDashboard';
 import PortfolioManager from './components/PortfolioManager';
-import ValueProofDashboard from './components/ValueProofDashboard';
 import ExecutiveReportDashboard from './components/ExecutiveReportDashboard';
 import PipelineDashboard from './components/PipelineDashboard';
-import CommandPalette from './components/CommandPalette';
-import AgentReasoningLab from './components/AgentReasoningLab';
-import SonnerNotification from './components/SonnerNotification';
 import IntegrationCenter from './components/IntegrationCenter';
+import NexusPrimeDashboard from './components/NexusPrimeDashboard';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AgentType | 'PORTFOLIO' | 'VALUE_PROOF' | 'EXECUTIVE' | 'PIPELINE' | 'INTEGRATIONS'>(AgentType.MASTER_BRAIN);
@@ -23,7 +20,6 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Fixed: Added missing required property 'investmentThesis'
   const [strategy, setStrategy] = useState<PlatformStrategy>({
     totalBudget: 25000,
     maxPricePerDomain: 500,
@@ -37,7 +33,6 @@ const App: React.FC = () => {
     investmentThesis: ''
   });
 
-  // Fixed: Added missing required property 'systemResilienceStatus'
   const [stats, setStats] = useState<PlatformStats>({
     totalDiscovered: 0,
     totalPurchased: 0,
@@ -68,9 +63,7 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('domainer_pro_domains', JSON.stringify(domains));
     
-    // Update stats based on domains
     const purchased = domains.filter(d => d.status === 'purchased');
-    const sold = domains.filter(d => d.status === 'sold');
     const spent = purchased.reduce((acc, d) => acc + (d.acquisitionCost || d.price), 0);
     const value = purchased.reduce((acc, d) => acc + (d.estimatedProfit || d.price * 2), 0);
 
@@ -81,7 +74,6 @@ const App: React.FC = () => {
       totalSpent: spent,
       estimatedPortfolioValue: value,
       dataIntegrity: integrityScore,
-      // Fixed: included systemResilienceStatus in the update to satisfy the type definition
       systemResilienceStatus: integrityScore === 100 ? 'nominal' : 'degraded'
     }));
   }, [domains, integrityScore]);
@@ -97,16 +89,17 @@ const App: React.FC = () => {
 
   const handleConnectIntegration = (id: string, key: string) => {
     setIntegrations(prev => prev.map(i => i.id === id ? { ...i, status: 'connected', apiKey: key } : i));
-    addLog('System', `تم ربط ${integrations.find(x => x.id === id)?.name} بنجاح. البيانات الآن حقيقية لهذا القطاع.`, 'success');
+    addLog('System', `تم ربط ${integrations.find(x => x.id === id)?.name} بنجاح.`, 'success');
   };
 
   const sidebarItems = [
     { type: AgentType.MASTER_BRAIN, icon: 'fa-brain', label: 'العقل المدبر', desc: 'الإعدادات المالية' },
+    { type: AgentType.NEXUS_PRIME, icon: 'fa-microchip', label: 'NEXUS PRIME', desc: 'الشريك الاستراتيجي المتقدم' },
     { type: 'INTEGRATIONS', icon: 'fa-plug', label: 'الربط الحقيقي', desc: 'إدارة حسابات الـ API' },
     { type: 'PIPELINE', icon: 'fa-layer-group', label: 'خط الإنتاج', desc: 'إدارة التدفق' },
     { type: AgentType.DISCOVERY, icon: 'fa-search', label: 'الاستكشاف', desc: 'البحث عن فرص' },
     { type: AgentType.EVALUATION, icon: 'fa-chart-pie', label: 'التقييم', desc: 'فحص المخاطر' },
-    { type: 'PORTFOLIO', icon: 'fa-vault', label: 'المحفظة (الخزنة)', desc: 'إدارة أصولك' },
+    { type: 'PORTFOLIO', icon: 'fa-vault', label: 'المحفظة', desc: 'إدارة أصولك' },
     { type: 'EXECUTIVE', icon: 'fa-file-invoice-dollar', label: 'التقرير التنفيذي', desc: 'تحليل الأرباح' },
   ];
 
@@ -124,10 +117,10 @@ const App: React.FC = () => {
               key={item.label}
               onClick={() => setActiveTab(item.type as any)}
               className={`w-full flex items-center gap-4 px-4 py-3 text-right transition-all rounded-xl border border-transparent ${
-                activeTab === item.type ? 'bg-indigo-600/10 text-white border-indigo-500/30 shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'
-              }`}
+                activeTab === item.type ? 'bg-indigo-600 text-white border-indigo-500/30 shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'
+              } ${item.type === AgentType.NEXUS_PRIME ? 'border-indigo-500/20' : ''}`}
             >
-              <i className={`fas ${item.icon} w-6 text-center ${activeTab === item.type ? 'text-indigo-400' : ''}`}></i>
+              <i className={`fas ${item.icon} w-6 text-center ${activeTab === item.type ? 'text-white' : ''}`}></i>
               <div className="flex flex-col items-start">
                 <span className="text-sm font-bold">{item.label}</span>
                 <span className="text-[8px] opacity-50">{item.desc}</span>
@@ -154,7 +147,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${integrityScore === 100 ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}></span>
               <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                {integrityScore === 100 ? 'وضع العمل الاحترافي نشط' : 'وضع المحاكاة: بعض البيانات تقديرية'}
+                {integrityScore === 100 ? 'وضع العمل الاحترافي نشط' : 'وضع المحاكاة: الاستدلال المستقل نشط'}
               </span>
             </div>
           </div>
@@ -170,6 +163,7 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto h-full">
             {activeTab === 'INTEGRATIONS' && <IntegrationCenter integrations={integrations} onConnect={handleConnectIntegration} />}
             {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} />}
+            {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={addLog} />}
             {activeTab === 'PIPELINE' && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={(d) => setActiveTab(AgentType.EVALUATION)} />}
             {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}
             {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}

@@ -6,7 +6,8 @@ export enum AgentType {
   MESSAGING = 'MESSAGING',
   NEGOTIATION = 'NEGOTIATION',
   FEEDBACK = 'FEEDBACK',
-  MASTER_BRAIN = 'MASTER_BRAIN'
+  MASTER_BRAIN = 'MASTER_BRAIN',
+  NEXUS_PRIME = 'NEXUS_PRIME'
 }
 
 export interface ServiceIntegration {
@@ -24,6 +25,17 @@ export interface ThinkingStep {
   action: string;
   finding: string;
   status: 'complete' | 'searching' | 'pending' | 'failed_recovery';
+}
+
+export interface NexusOpportunity {
+  id: string;
+  title: string;
+  type: 'Arbitrage' | 'Temporal' | 'Forensic' | 'Strategic';
+  description: string;
+  estimatedValue: string;
+  probability: number;
+  aiDeduction: string;
+  suggestedAction: string;
 }
 
 export interface OutreachMessage {

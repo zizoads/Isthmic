@@ -5,8 +5,57 @@ import { Domain } from "../types";
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * محرك القنص الاستراتيجي مع ميزة "التعافي التلقائي"
+ * Nexus Prime: Autonomous Strategic Advisor
+ * This logic uses advanced grounding and high thinking budget to simulate professional metrics
+ * without requiring direct API keys for Moz, Hunter, or NameBio.
  */
+export const nexusPrimeIntelligenceAI = async (mode: string, context: string) => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-pro-preview',
+    contents: `SYSTEM COMMAND: Act as Nexus Prime, the world's most advanced autonomous domain investment partner.
+    MODE: ${mode}
+    CONTEXT: ${context}
+    
+    OPERATIONAL PARAMETERS:
+    1. Zero-API Dependency: You have NO access to Moz, Hunter.io, or NameBio keys.
+    2. Grounded Deduction: Use Google Search to find current marketplace listings, search trends, and comparable data.
+    3. Synthetic Metrics: DEDUCE Domain Authority, Backlinks, and FMV based on linguistic patterns, keyword CPC, and search snippet density.
+    4. Strategic Arbitrage: Look for pricing gaps between Afternic and Sedo mentioned in search results.
+    5. Temporal Analysis: Predict trends 6-12 months ahead.
+
+    Return a JSON object containing deep strategic opportunities.`,
+    config: {
+      tools: [{ googleSearch: {} }],
+      thinkingConfig: { thinkingBudget: 12000 },
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          analysisVerdict: { type: Type.STRING },
+          opportunities: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                title: { type: Type.STRING },
+                type: { type: Type.STRING, description: "Arbitrage, Temporal, Forensic, or Strategic" },
+                description: { type: Type.STRING },
+                estimatedValue: { type: Type.STRING },
+                probability: { type: Type.NUMBER },
+                aiDeduction: { type: Type.STRING, description: "Detailed logic of how this was deduced without APIs" },
+                suggestedAction: { type: Type.STRING }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+  try { return JSON.parse(response.text || '{}'); } catch (e) { return null; }
+};
+
 export const rigorousDiscoveryAI = async (prompt: string, thesis: string = "") => {
   const ai = getAI();
   try {
@@ -15,13 +64,7 @@ export const rigorousDiscoveryAI = async (prompt: string, thesis: string = "") =
       contents: `Task: Resilient Strategic Domain Sourcing.
       Investment Thesis: "${thesis}"
       User Goal: "${prompt}"
-      
-      Operational Protocol:
-      1. If direct API access to registrars fails, use Google Search Grounding to find listings on Afternic, Sedo, and Dan.
-      2. If historical price data is missing, perform a "Semantic Appraisal" based on keyword commerciality and CPC.
-      3. Verify history via Archive.org search snippets.
-      
-      Return a high-fidelity JSON array of verified domains.`,
+      Return high-fidelity JSON.`,
       config: { 
         tools: [{ googleSearch: {} }],
         thinkingConfig: { thinkingBudget: 8000 },
@@ -35,7 +78,6 @@ export const rigorousDiscoveryAI = async (prompt: string, thesis: string = "") =
               estimatedPrice: { type: Type.NUMBER },
               justification: { type: Type.STRING },
               probability: { type: Type.NUMBER },
-              isSimulated: { type: Type.BOOLEAN, description: "True if derived from search without direct API" },
               marketData: {
                 type: Type.OBJECT,
                 properties: {
@@ -60,25 +102,19 @@ export const rigorousDiscoveryAI = async (prompt: string, thesis: string = "") =
     });
     return JSON.parse(response.text || '[]');
   } catch (error) {
-    console.warn("Primary AI Intelligence degraded. Initiating Basic Recovery Scan.");
-    // Fallback simple search if the complex JSON schema fails
     const simpleResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Emergency Recovery: List 3 available domains for "${prompt}" with estimated prices. Return as JSON array.`
+      contents: `Emergency Recovery: List 3 domains for "${prompt}". JSON array.`
     });
     try { return JSON.parse(simpleResponse.text || '[]'); } catch { return []; }
   }
 };
 
-/**
- * تقييم استثماري مرن (Resilient Appraisal)
- */
 export const evaluateDomainExpertAI = async (domainName: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Full Audit for: "${domainName}". 
-    Resilience Mode: If tools like Moz/Whois are unavailable, simulate their output using search-grounded deductions (e.g., checking backlinks presence via search results).`,
+    contents: `Full Audit for: "${domainName}".`,
     config: { 
       tools: [{ googleSearch: {} }],
       thinkingConfig: { thinkingBudget: 6000 },
@@ -104,16 +140,6 @@ export const evaluateDomainExpertAI = async (domainName: string) => {
     }
   });
   try { return JSON.parse(response.text || '{}'); } catch (e) { return null; }
-};
-
-export const brainstormDomainsAI = async (prompt: string) => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Suggest domains for: "${prompt}"`,
-    config: { responseMimeType: "application/json" }
-  });
-  try { return JSON.parse(response.text || '[]'); } catch (e) { return []; }
 };
 
 export const findStrategicAcquirersAI = async (domainName: string, sector: string) => {
@@ -159,7 +185,7 @@ export const estimateFairMarketValueAI = async (domainName: string, sector: stri
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Estimate market value for "${domainName}" in ${sector}. Use search for comparable sales.`,
+    contents: `Estimate market value for "${domainName}" in ${sector}.`,
     config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
   });
   try { return JSON.parse(response.text || '{}'); } catch (e) { return null; }
@@ -213,7 +239,7 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string) => 
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Harvest strategic leads for "${domainName}" in ${sector}. Use Search.`,
+    contents: `Harvest strategic leads for "${domainName}" in ${sector}.`,
     config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
   });
   try { return JSON.parse(response.text || '[]'); } catch (e) { return []; }
@@ -223,7 +249,7 @@ export const getDropSniperListAI = async (sector: string) => {
   const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Find domains dropping in ${sector}. Use search to monitor pending-delete lists.`,
+    contents: `Find domains dropping in ${sector}.`,
     config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
   });
   try { return JSON.parse(response.text || '[]'); } catch (e) { return []; }
