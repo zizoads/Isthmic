@@ -205,8 +205,8 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Content Wrapper */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {/* Content Wrapper - Fixed Scrollability */}
+        <div className="flex-1 overflow-y-auto">
           <div className={`${viewportClass[viewportMode]} min-h-full p-4 lg:p-10 transition-all duration-500`}>
             <div className="max-w-7xl mx-auto pb-20">
               {activeTab === 'INTEGRATIONS' && <IntegrationCenter integrations={integrations} onConnect={() => {}} lang={lang} />}
