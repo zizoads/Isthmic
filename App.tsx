@@ -6,20 +6,25 @@ import EvaluationDashboard from './components/EvaluationDashboard';
 import PurchaseDashboard from './components/PurchaseDashboard';
 import MessagingDashboard from './components/MessagingDashboard';
 import NegotiationDashboard from './components/NegotiationDashboard';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
 import MasterBrainDashboard from './components/MasterBrainDashboard';
 import FeedbackDashboard from './components/FeedbackDashboard';
 import PortfolioManager from './components/PortfolioManager';
+import ValueProofDashboard from './components/ValueProofDashboard';
+import MarketplaceDashboard from './components/MarketplaceDashboard';
+import AuctionWatchDashboard from './components/AuctionWatchDashboard';
+import ValueMultiplierDashboard from './components/ValueMultiplierDashboard';
+import DropSniperDashboard from './components/DropSniperDashboard';
+import ExecutiveReportDashboard from './components/ExecutiveReportDashboard';
+import { getTrendingSectorsAI, brainstormDomainsAI } from './services/geminiService';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AgentType | 'PORTFOLIO'>(AgentType.MASTER_BRAIN);
+  const [activeTab, setActiveTab] = useState<AgentType | 'PORTFOLIO' | 'VALUE_PROOF' | 'MARKETPLACE' | 'AUCTION_RADAR' | 'VALUE_MULTIPLIER' | 'DROP_SNIPER' | 'EXECUTIVE'>(AgentType.MASTER_BRAIN);
   const [domains, setDomains] = useState<Domain[]>(() => {
     const saved = localStorage.getItem('domainer_pro_domains');
     return saved ? JSON.parse(saved) : [];
   });
+  const [isMasterScanning, setIsMasterScanning] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   
   const [strategy, setStrategy] = useState<PlatformStrategy>({
     minProfitMargin: 15,
@@ -45,7 +50,6 @@ const App: React.FC = () => {
     estimatedPortfolioValue: 0
   });
 
-  // حفظ التغييرات فوراً في localStorage
   useEffect(() => {
     localStorage.setItem('domainer_pro_domains', JSON.stringify(domains));
   }, [domains]);
@@ -59,6 +63,46 @@ const App: React.FC = () => {
       type
     };
     setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+  };
+
+  const initiateMasterScan = async () => {
+    setIsMasterScanning(true);
+    addLog('Master Brain', 'Initiating Global Market Synthesis...', 'critical');
+    
+    try {
+      // 1. Find hottest sectors
+      const trendingSectors = await getTrendingSectorsAI();
+      addLog('Master Brain', `Identified ${trendingSectors.length} high-growth sectors: ${trendingSectors.map((s:any) => s.sector).join(', ')}`, 'success');
+      
+      let allNewDomains: Domain[] = [];
+      
+      // 2. Discover domains for each sector
+      for (const sectorData of trendingSectors.slice(0, 3)) { // Limit to 3 for speed
+        addLog('Discovery', `Deep-scanning ${sectorData.sector} market...`, 'info');
+        const suggestedNames = await brainstormDomainsAI(sectorData.sector + " " + sectorData.suggestedKeywords.join(" "));
+        
+        const newDomains: Domain[] = suggestedNames.slice(0, 3).map((name: string) => ({
+          id: Math.random().toString(),
+          name: name.toLowerCase(),
+          price: Math.floor(Math.random() * 50) + 20,
+          status: 'available',
+          contentStatus: 'none',
+          lastChecked: new Date().toISOString(),
+          sector: sectorData.sector,
+          probability: Math.random() * 0.4 + 0.4 // Base probability
+        }));
+        
+        allNewDomains = [...allNewDomains, ...newDomains];
+      }
+      
+      setDomains(prev => [...allNewDomains, ...prev]);
+      addLog('Master Brain', `Global Synthesis Complete. Added ${allNewDomains.length} strategic assets to buffer.`, 'success');
+      setActiveTab(AgentType.DISCOVERY);
+    } catch (error) {
+      addLog('Master Brain', 'Global Synthesis Failed due to network latency.', 'critical');
+    } finally {
+      setIsMasterScanning(false);
+    }
   };
 
   useEffect(() => {
@@ -77,10 +121,16 @@ const App: React.FC = () => {
 
   const sidebarItems = [
     { type: AgentType.MASTER_BRAIN, icon: 'fa-brain', label: 'Master Brain' },
+    { type: 'EXECUTIVE', icon: 'fa-file-invoice-dollar', label: 'Executive Intel' },
     { type: AgentType.DISCOVERY, icon: 'fa-search', label: 'Discovery' },
     { type: AgentType.EVALUATION, icon: 'fa-chart-pie', label: 'Evaluation' },
     { type: AgentType.PURCHASE, icon: 'fa-shopping-cart', label: 'Purchase' },
+    { type: 'DROP_SNIPER', icon: 'fa-crosshairs', label: 'Drop Sniper' },
     { type: 'PORTFOLIO', icon: 'fa-vault', label: 'Portfolio Vault' },
+    { type: 'VALUE_PROOF', icon: 'fa-magic', label: 'Value Proof Engine' },
+    { type: 'VALUE_MULTIPLIER', icon: 'fa-layer-group', label: 'Value Multiplier' },
+    { type: 'AUCTION_RADAR', icon: 'fa-satellite-dish', label: 'Auction Radar' },
+    { type: 'MARKETPLACE', icon: 'fa-globe-americas', label: 'Marketplace Sync' },
     { type: AgentType.MESSAGING, icon: 'fa-envelope', label: 'Messaging' },
     { type: AgentType.NEGOTIATION, icon: 'fa-handshake', label: 'Negotiation' },
     { type: AgentType.FEEDBACK, icon: 'fa-sync', label: 'Feedback & Learning' },
@@ -114,73 +164,46 @@ const App: React.FC = () => {
               </button>
             ))}
           </div>
-          
-          <div className="mt-10 px-4">
-             <div className="bg-slate-800/30 rounded-2xl p-4 border border-slate-800">
-                <div className="flex items-center justify-between mb-2">
-                   <span className="text-[10px] font-black text-slate-500 uppercase">Auto-Pilot</span>
-                   <button 
-                    onClick={() => setStrategy(s => ({...s, autoPilotMode: !s.autoPilotMode}))}
-                    className={`w-8 h-4 rounded-full transition-all relative ${strategy.autoPilotMode ? 'bg-indigo-500' : 'bg-slate-700'}`}
-                   >
-                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${strategy.autoPilotMode ? 'left-4.5' : 'left-0.5'}`}></div>
-                   </button>
-                </div>
-                <div className="text-[9px] text-slate-400 leading-tight">
-                  Agents will act independently based on strategy.
-                </div>
-             </div>
-          </div>
         </nav>
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 rounded-l-[40px] shadow-2xl shadow-black my-2 mr-2">
         <header className="h-20 bg-white/50 backdrop-blur-xl border-b flex items-center justify-between px-10 sticky top-0 z-10 rounded-tl-[40px]">
-          <div className="flex items-center gap-8">
-            <div>
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">{sidebarItems.find(i => i.type === activeTab)?.label}</h2>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">System Operational</span>
-              </div>
-            </div>
-            
-            <div className="hidden md:flex relative group">
-              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
-              <input 
-                type="text" 
-                placeholder="Search Assets (Ctrl+K)" 
-                className="bg-slate-100/50 border-none rounded-2xl pl-12 pr-4 py-2.5 text-xs font-bold w-64 focus:w-80 transition-all outline-none focus:ring-2 focus:ring-indigo-500/20"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <div>
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">{sidebarItems.find(i => i.type === activeTab)?.label}</h2>
+            <div className="flex items-center gap-2">
+              <span className="w-red-500 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+              <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Reporting Mode: Institutional Grade</span>
             </div>
           </div>
-          
           <div className="flex items-center gap-6">
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Portfolio</span>
-              <span className="text-lg font-black text-slate-900">${stats.estimatedPortfolioValue.toLocaleString()}</span>
-            </div>
             <button 
-              onClick={() => setShowNotifications(true)}
-              className="relative w-11 h-11 bg-white border border-slate-100 text-slate-500 rounded-2xl hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm flex items-center justify-center"
+              onClick={initiateMasterScan}
+              disabled={isMasterScanning}
+              className="px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all flex items-center gap-3 shadow-lg"
             >
-              <i className="fas fa-bell"></i>
-              {notifications.some(n => !n.read) && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-              )}
+              {isMasterScanning ? <i className="fas fa-sync-alt fa-spin"></i> : <><i className="fas fa-bolt"></i> Master Scan</>}
             </button>
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Status</span>
+              <span className="text-lg font-black text-green-600">Optimal ROI</span>
+            </div>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-10 scrollbar-hide">
           <div className="max-w-7xl mx-auto">
-            {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} />}
+            {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} onInitiateScan={initiateMasterScan} isScanning={isMasterScanning} />}
+            {activeTab === 'EXECUTIVE' && <ExecutiveReportDashboard domains={domains} stats={stats} />}
             {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}
             {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} />}
             {activeTab === AgentType.PURCHASE && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
+            {activeTab === 'DROP_SNIPER' && <DropSniperDashboard />}
             {activeTab === 'PORTFOLIO' && <PortfolioManager domains={domains} setDomains={setDomains} />}
+            {activeTab === 'VALUE_PROOF' && <ValueProofDashboard domains={domains} />}
+            {activeTab === 'VALUE_MULTIPLIER' && <ValueMultiplierDashboard domains={domains} />}
+            {activeTab === 'AUCTION_RADAR' && <AuctionWatchDashboard domains={domains} />}
+            {activeTab === 'MARKETPLACE' && <MarketplaceDashboard domains={domains} />}
             {activeTab === AgentType.MESSAGING && <MessagingDashboard domains={domains} setDomains={setDomains} />}
             {activeTab === AgentType.NEGOTIATION && <NegotiationDashboard domains={domains} setDomains={setDomains} />}
             {activeTab === AgentType.FEEDBACK && <FeedbackDashboard domains={domains} stats={stats} />}
