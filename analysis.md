@@ -1,24 +1,28 @@
 # System Analysis - Isthmic Pro
 
-## SECTION 1: Observed Functionality
-- **Modular Agent-Based Architecture**: The platform uses a centralized `AgentType` enum to drive specific dashboard views for different domaining lifecycle stages. (Ref: `types.ts:1-18`, `App.tsx:112-140`)
-- **AI-Native Domain Discovery**: Uses `gemini-3-pro-preview` with `googleSearch` tools to find market opportunities based on user-defined investment theses. (Ref: `services/geminiService.ts:88-118`)
-- **Grounded Forensic Audit**: Implements real-time trademark and commercial risk checking via Google Search grounding to verify AI claims. (Ref: `services/geminiService.ts:168-181`, `components/EvaluationDashboard.tsx:43-55`)
-- **Visual Brand DNA Generation**: Combines reasoning (`gemini-3-pro-preview`) and image generation (`gemini-2.5-flash-image`) to create immediate visual proof-of-concept for assets. (Ref: `services/geminiService.ts:11-53`)
-- **Multi-Channel Liquidation Suite**: Dedicated components for Afternic optimization, Corporate outreach prospecting, and Negotiation analysis. (Ref: `components/MarketplaceDashboard.tsx`, `components/MessagingDashboard.tsx`, `components/NegotiationDashboard.tsx`)
+## SECTION 1: Observed Code Functionality
+- **Multi-Agent Orchestration**: Managed via `activeTab` state in `App.tsx` (lines 35, 137-172) utilizing `AgentType` enum from `types.ts` (lines 1-18).
+- **AI-Native Discovery**: Implemented in `services/geminiService.ts` via `rigorousDiscoveryAI` (lines 88-118) using `gemini-3-pro-preview` and `googleSearch`.
+- **Forensic Audit Logic**: Code found in `components/EvaluationDashboard.tsx` (lines 28-65) calling `evaluateDomainExpertAI` and `checkTrademarkRiskAI` from `services/geminiService.ts`.
+- **State Persistence**: Exclusively using `localStorage` for `domains` and `strategy` in `App.tsx` (lines 42-45, 50-63, 102-109).
+- **Brand Synthesis**: Visual logic defined in `services/geminiService.ts` (lines 11-53) using a two-step prompt for `gemini-3-pro-preview` and `gemini-2.5-flash-image`.
 
-## SECTION 2: Missing Features
-- **Dynamic System Re-weighting**: While a `FeedbackDashboard` exists, it lacks a mechanism to inject rejected/approved logic back into the `MasterBrain`'s system instruction. (Ref: `components/FeedbackDashboard.tsx`)
-- **Hard Persistence**: The system relies exclusively on `localStorage`. (Ref: `App.tsx:77-85`). Institutional-grade operations require an external database integration for portfolio recovery.
-- **Bulk Operation Handling**: Discovery results are injected one-by-one or via a simple map; no robust deduplication or conflict resolution logic for large datasets is present.
+## SECTION 2: Mismatches with README Claims
+- **Resilience Protocol**: README claims "Resilience Protocol", but `App.tsx` (line 123) only provides a static status `'nominal'` without actual self-healing logic.
+- **Fast Transfer Eligibility**: UI in `MarketplaceDashboard.tsx` (line 72) shows "Fast Transfer Eligible", but there is no underlying API check against registrar databases.
+- **DNA Forensics**: README mentions deep DNA forensics, but code in `AgentReasoningLab.tsx` (lines 43-60) merely splits a string thinking path rather than performing technical DNS/whois parsing.
 
-## SECTION 3: User Persona
-- **The Institutional Domainer**: Professional digital asset investors managing 6-figure portfolios who require automated forensic auditing and high-volume outbound marketing tools.
+## SECTION 3: Gaps in Implementation
+- **Feedback Loop**: `FeedbackDashboard.tsx` exists but is disconnected from the actual `systemInstruction` used in `geminiService.ts`.
+- **Database Backend**: Lack of remote persistence; loss of `localStorage` equals total loss of portfolio.
+- **Error Handling**: `App.tsx` (line 97) catches scan failures with a simple log, lacking retry logic or partial success recovery.
 
-## SECTION 4: Problem Statement
-- Domain investing is currently fragmented. Users must toggle between Whois, Trademark databases, Logo designers, and Email scrapers. Isthmic Pro consolidates this into a single "Command Center" to reduce operational friction.
+## SECTION 4: Required Features
+- **Dynamic Context Injection**: Ability to pass approval/rejection results from `FeedbackDashboard` into future discovery prompts.
+- **Real-time Collaboration**: WebSocket integration for multi-user portfolio management.
+- **Native Registrar Purchase**: Direct API integration with Namecheap/GoDaddy (current code uses external link redirects, e.g., `PurchaseDashboard.tsx:16`).
 
-## SECTION 5: Assumptions (Explicit)
-- The execution context provides a valid `process.env.API_KEY` with access to Gemini 2.5/3 models.
-- The user is operating in a modern browser that supports `localStorage` and `AbortController`.
-- All domain names processed are `.com` by default unless specified in the thesis.
+## SECTION 5: Assumptions with Code References
+- **API Availability**: Assumes `process.env.API_KEY` is pre-injected (Reference: `services/geminiService.ts:6`).
+- **Browser Environment**: Assumes `localStorage` is not blocked by privacy settings (Reference: `App.tsx:42`).
+- **Language Support**: Assumes translations are exhaustive in `translations.ts` (Reference: `App.tsx:34`).
