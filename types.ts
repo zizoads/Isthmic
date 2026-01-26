@@ -9,31 +9,31 @@ export enum AgentType {
   MASTER_BRAIN = 'MASTER_BRAIN'
 }
 
-export interface AgentWorkflowState {
-  currentStep: string;
-  history: string[];
-  contextData: Record<string, any>;
-  lastEvent?: string;
+export interface ServiceIntegration {
+  id: string;
+  name: string;
+  status: 'connected' | 'disconnected' | 'simulated' | 'recovering';
+  apiKey?: string;
+  provider: string;
+  impactArea: string;
+  lastError?: string;
 }
 
 export interface ThinkingStep {
   id: string;
   action: string;
   finding: string;
-  status: 'complete' | 'searching' | 'analyzing' | 'failed';
+  status: 'complete' | 'searching' | 'pending' | 'failed_recovery';
 }
 
-export interface TechnicalMetrics {
-  da?: number; 
-  pa?: number; 
-  backlinks?: number;
-  isBlacklisted?: boolean;
-  mxRecordsFound?: boolean;
-  historyYears?: number;
-  liquidityScore?: number;
-  trademarkRisk?: string;
-  sourceCitations?: string[];
-  thinkingSteps?: ThinkingStep[];
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent';
+  content: string;
 }
 
 export interface Domain {
@@ -51,17 +51,23 @@ export interface Domain {
   lastChecked?: string;
   justification?: string;
   thinkingPath?: string;
+  isSimulatedData?: boolean;
   technicalMetrics?: TechnicalMetrics;
   folder?: 'Quick Flip' | 'Long Term' | 'Premium';
-  workflow?: AgentWorkflowState; // إضافة سياق المهمة المستمر
+  workflow?: any;
 }
 
-export interface ActivityLog {
-  id: string;
-  time: string;
-  agent: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'critical' | 'ai_thought';
+export interface TechnicalMetrics {
+  da?: number;
+  pa?: number;
+  backlinks?: number;
+  isBlacklisted?: boolean;
+  mxRecordsFound?: boolean;
+  historyYears?: number;
+  liquidityScore?: number;
+  trademarkRisk?: string;
+  sourceCitations?: string[];
+  comparableSales?: {domain: string, price: number, date: string}[];
 }
 
 export interface PlatformStats {
@@ -73,12 +79,10 @@ export interface PlatformStats {
   avgProfit: number;
   totalSpent: number;
   estimatedPortfolioValue: number;
-  unrealizedGains?: number;
+  dataIntegrity?: number; 
+  systemResilienceStatus: 'nominal' | 'degraded' | 'autonomous_recovery';
 }
 
-/**
- * Interface for platform-wide investment strategy settings
- */
 export interface PlatformStrategy {
   totalBudget: number;
   maxPricePerDomain: number;
@@ -89,17 +93,13 @@ export interface PlatformStrategy {
   riskTolerance: string;
   autoEvaluate: boolean;
   autoPilotMode: boolean;
+  investmentThesis: string;
 }
 
-/**
- * Interface for tracking outreach communication with potential buyers
- */
-export interface OutreachMessage {
+export interface ActivityLog {
   id: string;
-  domainId: string;
-  recipient: string;
-  recipientRole: string;
-  tone: string;
-  status: 'draft' | 'sent' | 'received' | 'failed';
-  content: string;
+  time: string;
+  agent: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'critical' | 'ai_thought';
 }

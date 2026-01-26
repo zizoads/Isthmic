@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Domain, ThinkingStep } from '../types';
-import { evaluateDomainAI, checkTrademarkRiskAI } from '../services/geminiService';
+import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../services/geminiService';
 
 interface Props {
   domains: Domain[];
@@ -18,25 +18,22 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, onI
   const handleEvaluate = async (domain: Domain) => {
     setEvaluatingId(domain.id);
     setLiveSteps([
-      { id: '1', action: 'Initializing Search Agent', finding: 'Connecting to Google Search Grounding...', status: 'complete' },
-      { id: '2', action: 'Analyzing Historical Sales', finding: 'Querying NameBio & Afternic APIs...', status: 'searching' }
+      { id: '1', action: 'Grounded Research', finding: 'Connecting to Market APIs...', status: 'searching' },
+      { id: '2', action: 'History Scrubbing', finding: 'Scanning Archive.org fingerprints...', status: 'pending' },
+      { id: '3', action: 'Risk Modeling', finding: 'Analyzing trademark risk factors...', status: 'pending' }
     ]);
 
-    addLog('Evaluation', `Executing Deep Audit for ${domain.name}...`);
+    addLog('Appraiser', `بدء التقييم الاستثماري المعمق للنطاق: ${domain.name}`);
     
     const [result, tmResult] = await Promise.all([
-      evaluateDomainAI(domain.name),
+      evaluateDomainExpertAI(domain.name),
       checkTrademarkRiskAI(domain.name)
     ]);
     
     if (result) {
-      setLiveSteps(prev => [
-        ...prev.map(s => ({ ...s, status: 'complete' as const })),
-        { id: '3', action: 'IP Risk Assessment', finding: tmResult.substring(0, 100), status: 'complete' },
-        { id: '4', action: 'Final Appraisal', finding: `Score: ${result.probability * 100}%`, status: 'complete' }
-      ]);
-
+      setLiveSteps(prev => prev.map(s => ({ ...s, status: 'complete' as const })));
       setActiveAnalysis(result);
+      
       setDomains(prev => prev.map(d => d.id === domain.id ? {
         ...d,
         sector: result.sector,
@@ -45,76 +42,56 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, onI
         thinkingPath: result.thinkingPath,
         technicalMetrics: {
           ...result.technicalMetrics,
-          trademarkRisk: tmResult.toLowerCase().includes('high') ? 'High' : 'Low'
+          trademarkRisk: tmResult
         }
       } : d));
       
-      addLog('Evaluation', `${domain.name}: Audit Finalized.`, 'success');
+      addLog('Appraiser', `انتهى التدقيق. درجة السيولة: ${result.technicalMetrics?.liquidityScore}%`, 'success');
     }
     setEvaluatingId(null);
-  };
-
-  const openTool = (tool: 'wayback' | 'namebio' | 'godaddy' | 'trademark', domainName: string) => {
-    const keyword = domainName.split('.')[0];
-    const urls = {
-      wayback: `https://web.archive.org/web/*/${domainName}`,
-      namebio: `https://namebio.com/?s=${keyword}`,
-      godaddy: `https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${domainName}`,
-      trademark: `https://www.trademarkia.com/trademarks-search.aspx?tn=${keyword}`
-    };
-    window.open(urls[tool], '_blank');
   };
 
   return (
     <div className="space-y-10 animate-fade-in" dir="rtl">
       <div className="bg-[#0b0e14] rounded-[40px] p-12 text-white shadow-2xl relative overflow-hidden text-right border border-white/5">
         <div className="relative z-10">
-          <h3 className="text-4xl font-black tracking-tighter uppercase mb-4">وحدة الاستخبارات الميدانية</h3>
+          <h3 className="text-4xl font-black tracking-tighter uppercase mb-4">وحدة الاستدلال والتقييم المؤسسي</h3>
           <p className="text-slate-400 text-sm max-w-xl leading-relaxed mr-0 ml-auto font-medium">
-            تكامل مباشر مع محرك <span className="text-indigo-400">Gemini 3 Pro</span> لتحليل القيمة السوقية الحقيقية والمخاطر القانونية.
+            المستشار يستخدم الآن منطق <span className="text-indigo-400">Deep Reasoning</span> لربط الفرصة بالواقع التجاري والقانوني.
           </p>
         </div>
-        <div className="absolute left-[-20px] top-[-20px] opacity-10 text-[220px]">
-           <i className="fas fa-microchip"></i>
-        </div>
+        <i className="fas fa-microchip absolute left-[-20px] top-[-20px] opacity-10 text-[220px]"></i>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Assets List */}
         <div className="lg:col-span-7 bg-white rounded-[40px] border shadow-sm overflow-hidden flex flex-col h-[750px]">
           <div className="p-8 border-b bg-slate-50/50 flex justify-between items-center">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Depth: {domains.length}</span>
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">قائمة الأصول تحت التدقيق</h4>
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي الأصول: {domains.length}</span>
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">الأصول المنتظرة في الطابور</h4>
           </div>
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-right text-sm">
               <tbody className="divide-y divide-slate-100">
                 {domains.map(domain => (
-                  <tr key={domain.id} className={`hover:bg-slate-50/50 transition-all group ${activeAnalysis?.name === domain.name ? 'bg-indigo-50/50' : ''}`}>
-                    <td className="px-10 py-8 text-right">
-                      <div 
-                        onClick={() => onInspectDomain && onInspectDomain(domain)}
-                        className="font-black text-slate-900 text-lg cursor-pointer hover:text-indigo-600 transition-colors flex items-center gap-2 group/name"
-                      >
-                         {domain.name}
-                         <i className="fas fa-external-link-alt text-[10px] opacity-0 group-hover/name:opacity-100"></i>
-                      </div>
-                      <div className="text-[10px] text-indigo-500 font-black uppercase mt-1">{domain.sector || 'Uncategorized'}</div>
+                  <tr key={domain.id} className="hover:bg-slate-50/50 transition-all group">
+                    <td className="px-10 py-8">
+                      <div className="font-black text-slate-900 text-lg">{domain.name}</div>
+                      <div className="text-[10px] text-indigo-500 font-black uppercase mt-1">{domain.sector || 'غير مصنف'}</div>
                     </td>
-                    <td className="px-10 py-8 text-right">
-                      <div className="flex gap-2 justify-end">
-                         <button onClick={() => openTool('namebio', domain.name)} className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-green-600 hover:text-white transition-all shadow-sm"><i className="fas fa-dollar-sign text-[10px]"></i></button>
-                         <button onClick={() => openTool('trademark', domain.name)} className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"><i className="fas fa-registered text-[10px]"></i></button>
-                      </div>
-                    </td>
-                    <td className="px-10 py-8 text-left">
-                      <button 
-                        onClick={() => handleEvaluate(domain)}
-                        disabled={evaluatingId === domain.id}
-                        className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 disabled:bg-slate-200 transition-all shadow-lg flex items-center gap-2"
-                      >
-                        {evaluatingId === domain.id ? <i className="fas fa-cog fa-spin"></i> : <><i className="fas fa-microchip"></i> فحص مؤسسي</>}
-                      </button>
+                    <td className="px-10 py-8">
+                       <div className="flex gap-4 items-center justify-end">
+                          <div className="text-right">
+                             <div className="text-[8px] font-black text-slate-400 uppercase">قوة الفرصة</div>
+                             <div className="text-sm font-black text-slate-700">{(domain.probability || 0) * 100}%</div>
+                          </div>
+                          <button 
+                            onClick={() => handleEvaluate(domain)}
+                            disabled={evaluatingId === domain.id}
+                            className="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 disabled:bg-slate-200 transition-all shadow-lg"
+                          >
+                            {evaluatingId === domain.id ? <i className="fas fa-cog fa-spin"></i> : 'تدقيق شامل'}
+                          </button>
+                       </div>
                     </td>
                   </tr>
                 ))}
@@ -123,21 +100,20 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, onI
           </div>
         </div>
 
-        {/* Intelligence Console */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
+        <div className="lg:col-span-5 space-y-8">
            <div className="bg-[#0b0e14] rounded-[40px] text-white p-10 shadow-2xl flex flex-col h-[400px] border border-white/5 relative overflow-hidden">
-              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-8 text-right">محطة الاستدلال الحي (Reasoning Terminal)</h4>
+              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-8 text-right">محطة الاستدلال الحي (Reasoning Console)</h4>
               <div className="flex-1 overflow-y-auto space-y-4 font-mono scrollbar-hide text-right">
                  {liveSteps.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center opacity-20">
                        <i className="fas fa-terminal text-4xl mb-4"></i>
-                       <p className="text-[10px] uppercase">Awaiting Task Initiation...</p>
+                       <p className="text-[10px] uppercase tracking-[0.3em]">Awaiting Analysis Signal...</p>
                     </div>
                  ) : liveSteps.map(step => (
                     <div key={step.id} className="border-r-2 border-indigo-500 pr-4 py-1">
                        <div className="flex justify-between items-center mb-1">
                           <span className={`text-[9px] font-black uppercase ${step.status === 'complete' ? 'text-green-500' : 'text-amber-500 animate-pulse'}`}>
-                             {step.status === 'complete' ? '[DONE]' : '[SEARCHING]'}
+                             {step.status === 'complete' ? '[PASSED]' : '[EXECUTING]'}
                           </span>
                           <span className="text-white font-black text-[10px]">{step.action}</span>
                        </div>
@@ -148,26 +124,35 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, onI
            </div>
 
            <div className="bg-white rounded-[40px] border shadow-sm p-10 flex-1 flex flex-col">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 text-right">الخلاصة الاستراتيجية</h4>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 text-right">التقرير الاستثماري النهائي</h4>
               {activeAnalysis ? (
                  <div className="space-y-6 text-right animate-fade-in">
-                    <div className="flex justify-between items-center">
-                       <div className="text-3xl font-black text-slate-900">{(activeAnalysis.probability * 100).toFixed(0)}%</div>
-                       <div className="text-[10px] font-black text-slate-400 uppercase">Confidence Score</div>
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium italic border-r-2 border-indigo-500 pr-4">
-                       "{activeAnalysis.justification}"
-                    </p>
                     <div className="bg-slate-50 p-6 rounded-3xl border">
-                       <div className="text-[9px] font-black text-slate-400 uppercase mb-2">Deep Insights (Thinking Path)</div>
-                       <div className="text-[10px] text-slate-500 leading-relaxed max-h-32 overflow-y-auto">
-                          {activeAnalysis.thinkingPath}
+                       <div className="text-[9px] font-black text-slate-400 uppercase mb-2 text-right">درجة السيولة (Liquidity Score)</div>
+                       <div className="flex items-center gap-4 justify-end">
+                          <div className="text-3xl font-black text-slate-900">{activeAnalysis.technicalMetrics?.liquidityScore}%</div>
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden max-w-[100px]">
+                             <div className="bg-indigo-600 h-full" style={{ width: `${activeAnalysis.technicalMetrics?.liquidityScore}%` }}></div>
+                          </div>
                        </div>
+                    </div>
+                    <div>
+                       <div className="text-[9px] font-black text-slate-400 uppercase mb-2 text-right">المنطق الاستراتيجي</div>
+                       <p className="text-xs text-slate-600 leading-relaxed font-medium italic border-r-2 border-indigo-500 pr-4">
+                          "{activeAnalysis.justification}"
+                       </p>
+                    </div>
+                    <div className="pt-4 border-t">
+                       <div className="text-[8px] font-black text-slate-400 uppercase mb-3">سلسلة التفكير (Thinking Path)</div>
+                       <p className="text-[10px] text-slate-500 font-mono leading-relaxed h-20 overflow-y-auto pr-2">
+                          {activeAnalysis.thinkingPath}
+                       </p>
                     </div>
                  </div>
               ) : (
                  <div className="flex-1 flex flex-col items-center justify-center text-slate-300 opacity-20">
-                    <i className="fas fa-brain text-7xl"></i>
+                    <i className="fas fa-file-contract text-7xl"></i>
+                    <p className="mt-4 text-[10px] uppercase font-black">انتظار بدء التدقيق</p>
                  </div>
               )}
            </div>

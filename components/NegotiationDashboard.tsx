@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Domain } from '../types';
-import { analyzeNegotiationTacticsAI, generateClosingTermSheetAI } from '../services/geminiService';
+// Remove unused and non-existent import generateClosingTermSheetAI
+import { analyzeNegotiationTacticsAI } from '../services/geminiService';
 
 interface Props {
   domains: Domain[];
