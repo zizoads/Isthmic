@@ -1,70 +1,44 @@
 # 🚀 Isthmic: Domainer Pro Platform
-## *The Industrial-Grade Multi-Agent Command Center for Domain Investing*
 
-**Isthmic (Domainer Pro)** is an advanced AI-driven platform designed for professional domain investors. It leverages a multi-agent architecture powered by **Gemini 3 Pro** to automate the discovery, evaluation, branding, and liquidation of high-value .com assets.
+**Isthmic** هو مركز قيادة صناعي متطور لاستثمارات النطاقات، مدعوم بنظام وكلاء ذكاء اصطناعي متعدد (Multi-Agent) لتمتة دورة حياة الاستثمار الرقمي بالكامل.
 
----
+## 📋 1. Product Definition
+- **الهدف:** تحويل عملية البحث اليدوي عن النطاقات إلى عملية أوتوماتيكية تعتمد على البيانات والاستدلال المنطقي.
+- **المستخدم المستهدف:** المستثمرون المحترفون الذين يديرون محافظ نطاقات تتجاوز 100 أصل.
 
-## 🏗️ Technical Architecture
+## 🛠️ 2. Functional Scope
+- **Discovery Agent:** مسح الأسواق وتوليد فرص بناءً على رؤى استراتيجية.
+- **Forensic Appraiser:** تدقيق جنائي للنطاقات (SEO، التاريخ، مخاطر العلامات التجارية).
+- **Nexus Prime:** محرك توقع الاتجاهات وتوليد الهوية البصرية.
+- **Executive Reporting:** تحويل حالة المحفظة إلى مذكرات استثمارية قابلة للطباعة.
 
-The project follows a **Modular Agentic Design**:
-- **Inference Layer:** Uses `@google/genai` (Gemini 3) for deep market reasoning and image generation.
-- **Frontend Layer:** React 19 + TypeScript for a type-safe, high-performance UI.
-- **Styling:** Tailwind CSS with a custom "OpenAI-style" Aurora glassmorphism theme.
-- **State Management:** Centralized React state with `localStorage` persistence for "Chain of Thought" (CoT) persistence.
+## 🏗️ 3. System Architecture
+- **Core:** React 19 + TypeScript.
+- **AI Engine:** Google GenAI (Gemini 3 Pro/Flash).
+- **Styling:** Tailwind CSS + Aurora Glassmorphism.
+- **Persistence:** LocalStorage Ledger System.
 
-### Folder Structure
-- `/components`: Specialized agent dashboards (Discovery, Evaluation, Nexus Prime, etc.).
-- `/services`: The "Neural Core" managing all AI inference calls.
-- `/types.ts`: Strict domain models ensuring system-wide data integrity.
-- `/translations.ts`: Bi-directional (AR/EN) support for global operations.
+## 📂 4. Folder & File Responsibilities
+- `/services`: المحرك العصبي (اتصالات الـ AI).
+- `/components`: واجهات الوكلاء المتخصصة.
+- `/types.ts`: تعريفات البيانات الصارمة لضمان Type Safety.
+- `App.tsx`: مدير الحالة المركزي ومنظم الملاحة.
 
----
+## 🔄 5. Data Flow
+1. **Input:** يقوم المستخدم بإدخال إستراتيجية أو كلمة مفتاحية.
+2. **Inference:** يقوم Gemini بتحليل فجوات السوق.
+3. **Ledger:** يتم تخزين النتائج في المستودع المحلي.
+4. **Action:** يتم نقل النطاقات عبر "خط الإنتاج" (Pipeline) من الاستكشاف إلى الشراء.
 
-## 🛠️ Installation & Setup
+## ⚙️ 6. Local Development Setup
+```bash
+npm install
+npm run dev
+```
 
-### Prerequisites
-- **Node.js:** v18.0 or higher.
-- **API Key:** A valid Google Gemini API Key.
+## 🌐 7. Deployment (Vercel)
+المشروع مهيأ للنشر الفوري على Vercel مع ضبط `API_KEY` في متغيرات البيئة.
 
-### Local Development
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/zizoads/Isthmic.git
-   ```
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-3. **Environment Variables:**
-   Create a `.env` file and add your key:
-   ```env
-   API_KEY=your_gemini_api_key_here
-   ```
-4. **Run the application:**
-   ```bash
-   npm run dev
-   ```
-
----
-
-## 🚀 Deployment (Vercel)
-
-1. Connect your GitHub repository to [Vercel](https://vercel.com).
-2. In the environment variables section, add `API_KEY`.
-3. Vercel will automatically detect the Vite/React configuration and deploy.
-
----
-
-## 🤖 Agents Inventory
-
-1. **Strategic Sniper (Discovery):** Scans markets for undervalued assets.
-2. **Forensic Appraiser (Evaluation):** Deep-dives into SEO, history, and trademark risks.
-3. **Nexus Prime:** High-level trend forecasting and DNA brand generation.
-4. **Tactical Negotiator:** Analyzes buyer psychology and generates battle-tested scripts.
-5. **Executive Reporter:** Synthesizes portfolio performance into printable memorandums.
-
----
-
-## ⚖️ License & Disclaimer
-This project is for professional investment support. Users are responsible for final financial decisions. Built with high-fidelity engineering standards.
+## ⚠️ 8. Known Limitations
+- تخزين البيانات محلي (متصفح واحد).
+- يعتمد الأداء على سرعة استجابة API محرك Gemini.
