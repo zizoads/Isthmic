@@ -1,17 +1,18 @@
 # Refactor Plan - Isthmic Pro
 
 ## 1. Directory Reorganization
-- **Move**: `components/*.tsx` to `components/dashboards/` for primary agents.
-- **Create**: `components/ui/` for primitive elements (Buttons, GlassCard, StatusBadge).
-- **Logic**: Isolating UI presentation from the heavy AI processing logic found in `geminiService.ts`.
+- **Move**: All component dashboards from `components/*.tsx` to `components/dashboards/`.
+- **Reason**: Separates primary agent views from reusable UI primitives.
+- **Action**: Create `components/dashboards` and move `DiscoveryDashboard.tsx`, `EvaluationDashboard.tsx`, etc.
 
-## 2. Global State Management
-- **Issue**: State is currently centralized in `App.tsx` but passed through deep prop drilling.
-- **Fix**: Implement `DomainContext` to provide unified `updateDomain` and `injectActivity` functions.
+## 2. Business Logic Isolation
+- **Move**: Logic within `App.tsx` (like `handleInitiateGlobalScan`) to a dedicated hook `hooks/useMasterBrain.ts`.
+- **Reason**: Prevents `App.tsx` from becoming a "God Component" (anti-pattern).
 
-## 3. Naming Conventions
-- **Standard**: All dashboards must use the suffix `Dashboard.tsx`.
-- **Standard**: All AI service functions must use the suffix `AI`.
+## 3. UI Unified Primitives
+- **Create**: `components/ui/` folder for `GlassCard.tsx`, `ActionButton.tsx`, and `StatusBadge.tsx`.
+- **Reason**: Ensures visual consistency and reduces CSS duplication.
 
-## 4. Code Removal
-- Remove unused simulated data generators in `App.tsx` and rely solely on `geminiService.ts` for data population.
+## 4. State Management Refactor
+- **Change**: Replace prop-drilling with a `DomainContext` in `App.tsx`.
+- **Reason**: Allows any nested agent (like `Messaging`) to update a domain's status without passing functions through 3 layers.

@@ -1,24 +1,24 @@
 # System Analysis - Isthmic Pro
 
 ## SECTION 1: Observed Functionality
-- **Multi-Agent Orchestration**: The system is built on a modular agent-based architecture where each `AgentType` corresponds to a specialized dashboard. (Ref: `types.ts:1-18`, `App.tsx:112-140`)
-- **AI-Driven Brand Synthesis**: Integration of `gemini-3-pro-preview` for branding logic and `gemini-2.5-flash-image` for asset generation. (Ref: `services/geminiService.ts:11-53`)
-- **Grounded Forensic Audit**: Use of Google Search grounding to perform trademark risk checks and market comps verification. (Ref: `services/geminiService.ts:168-181`, `EvaluationDashboard.tsx:43-55`)
-- **Direct Sales Pipeline**: Implementation of a state-driven kanban for domain acquisition and management. (Ref: `PipelineDashboard.tsx:18-62`)
-- **Strategic Liquidation Modules**: Specialized UI for Afternic optimization and corporate outreach. (Ref: `MarketplaceDashboard.tsx`, `MessagingDashboard.tsx`)
+- **Modular Agent-Based Architecture**: The platform uses a centralized `AgentType` enum to drive specific dashboard views for different domaining lifecycle stages. (Ref: `types.ts:1-18`, `App.tsx:112-140`)
+- **AI-Native Domain Discovery**: Uses `gemini-3-pro-preview` with `googleSearch` tools to find market opportunities based on user-defined investment theses. (Ref: `services/geminiService.ts:88-118`)
+- **Grounded Forensic Audit**: Implements real-time trademark and commercial risk checking via Google Search grounding to verify AI claims. (Ref: `services/geminiService.ts:168-181`, `components/EvaluationDashboard.tsx:43-55`)
+- **Visual Brand DNA Generation**: Combines reasoning (`gemini-3-pro-preview`) and image generation (`gemini-2.5-flash-image`) to create immediate visual proof-of-concept for assets. (Ref: `services/geminiService.ts:11-53`)
+- **Multi-Channel Liquidation Suite**: Dedicated components for Afternic optimization, Corporate outreach prospecting, and Negotiation analysis. (Ref: `components/MarketplaceDashboard.tsx`, `components/MessagingDashboard.tsx`, `components/NegotiationDashboard.tsx`)
 
 ## SECTION 2: Missing Features
-- **Dynamic Contextual Prompting**: The `FeedbackDashboard` allows voting on AI decisions but lacks the back-channel to update the `systemInstruction` in real-time.
-- **Robust Persistence**: While `localStorage` is used (Ref: `App.tsx:77-85`), a conflict resolution mechanism for bulk data injection is missing.
-- **Mobile-Specific Sidebar Gestures**: The sidebar is responsive (Ref: `App.tsx:154`) but lacks swipe-to-close logic for touch devices.
+- **Dynamic System Re-weighting**: While a `FeedbackDashboard` exists, it lacks a mechanism to inject rejected/approved logic back into the `MasterBrain`'s system instruction. (Ref: `components/FeedbackDashboard.tsx`)
+- **Hard Persistence**: The system relies exclusively on `localStorage`. (Ref: `App.tsx:77-85`). Institutional-grade operations require an external database integration for portfolio recovery.
+- **Bulk Operation Handling**: Discovery results are injected one-by-one or via a simple map; no robust deduplication or conflict resolution logic for large datasets is present.
 
 ## SECTION 3: User Persona
-- **The Digital Asset Architect**: Professional domainers managing high-value portfolios ($50k+ NAV) who require deep forensic analysis and automated marketing workflows to scale their operations.
+- **The Institutional Domainer**: Professional digital asset investors managing 6-figure portfolios who require automated forensic auditing and high-volume outbound marketing tools.
 
 ## SECTION 4: Problem Statement
-- Professional domain investing is currently fragmented. Isthmic Pro solves this by consolidating discovery, valuation, branding, and liquidation into a single, AI-orchestrated Command Center.
+- Domain investing is currently fragmented. Users must toggle between Whois, Trademark databases, Logo designers, and Email scrapers. Isthmic Pro consolidates this into a single "Command Center" to reduce operational friction.
 
 ## SECTION 5: Assumptions (Explicit)
-- `process.env.API_KEY` is pre-configured and valid for Google GenAI models.
-- The execution environment supports ES6 modules and modern React (v19).
-- Browser `localStorage` is sufficient for high-speed metadata caching.
+- The execution context provides a valid `process.env.API_KEY` with access to Gemini 2.5/3 models.
+- The user is operating in a modern browser that supports `localStorage` and `AbortController`.
+- All domain names processed are `.com` by default unless specified in the thesis.

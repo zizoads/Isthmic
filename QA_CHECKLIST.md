@@ -1,17 +1,19 @@
-# QA Checklist
+# QA Checklist - Enterprise Ready
 
-## 1. Compliance
-- [ ] Every change references `analysis.md`.
-- [ ] No "orphan code" exists.
+## 1. Code Standards
+- [ ] No `any` types used except for raw AI JSON parsing.
+- [ ] All components use `React.FC` with explicit `Props` interface.
+- [ ] File naming follows `PascalCase` for components.
 
 ## 2. Performance
-- [ ] Command Palette (`Ctrl+K`) response < 100ms.
-- [ ] Global search grounding results < 5s.
+- [ ] Dashboard switching < 100ms.
+- [ ] LocalStorage payload < 2MB.
+- [ ] Image base64 strings cleared if domain is deleted.
 
-## 3. Aesthetics
-- [ ] Dark mode first consistency.
-- [ ] Arabic/English RTL/LTR support perfect.
+## 3. Security
+- [ ] `process.env.API_KEY` is never logged to `console`.
+- [ ] All external URLs in `AgentReasoningLab` use `rel="noreferrer"`.
 
-## 4. Deployment
-- [ ] Vercel build passes with current `vite.config.ts`.
-- [ ] `process.env.API_KEY` is not exposed in client logs.
+## 4. Accessibility
+- [ ] Arabic RTL layout tested on mobile (iPhone 14/15 viewport).
+- [ ] Dark mode contrast ratios meet WCAG AA standards.

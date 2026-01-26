@@ -1,16 +1,19 @@
 # Use Case Inventory
 
-## UC-1: The Sovereign Sweep
-- **Description**: Finding 5 high-potential domains based on a niche prompt.
-- **Verification**: `rigorousDiscoveryAI` must return a valid JSON array.
-- **Test**: `DiscoveryDashboard.test.tsx` (Simulated).
+## UC-1: AI-Driven Discovery
+- **Actor**: User (Portfolio Manager).
+- **Goal**: Find 5+ high-value domains for a specific niche.
+- **Verification**: `rigorousDiscoveryAI` must return valid JSON.
+- **Automation Test**: Check if `domains` state length increases after `handleSearch` execution.
 
 ## UC-2: Forensic Audit Protocol
-- **Description**: Verifying trademark safety for a specific domain.
-- **Verification**: `checkTrademarkRiskAI` must return grounded search results.
-- **Test**: `EvaluationDashboard.test.tsx`.
+- **Actor**: Evaluation Agent.
+- **Goal**: Identify trademark risks for a new discovery.
+- **Verification**: `technicalMetrics.trademarkRisk` should contain grounded search citations.
+- **Automation Test**: Verify `domain.technicalMetrics` is not null after audit button click.
 
-## UC-3: Brand DNA Synthesis
-- **Description**: Generating a logo and color palette for a purchased domain.
-- **Verification**: `generateBrandIdentityAI` must return a base64 image and hex color.
-- **Test**: Visual validation in `PortfolioManager`.
+## UC-3: Multi-Stage Liquidation
+- **Actor**: Liquidation Agent.
+- **Goal**: Generate a corporate pitch for a purchased domain.
+- **Verification**: `MessagingDashboard` displays a pitch including company-specific synergy.
+- **Automation Test**: `messages` array in `MessagingDashboard` should contain a new item after "Generate Pitch".
