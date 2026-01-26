@@ -1,9 +1,9 @@
 
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Domainer Pro Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,25 +35,44 @@
       }
     </script>
     <style>
+        html, body, #root {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          overflow: hidden; /* نمنع التمرير الخارجي تماماً */
+        }
+        
         body { 
           font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif; 
           transition: background-color 0.5s ease;
-          overflow: hidden; /* نمنع تمرير الجسم الرئيسي لاستخدام تمرير الحاوية */
         }
         
-        /* شريط تمرير مخصص واحترافي */
+        /* شريط تمرير مخصص واحترافي يظهر فقط عند الحاجة */
         ::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         ::-webkit-scrollbar-track {
           background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-          background: rgba(99, 102, 241, 0.2); /* Indigo color with low opacity */
-          border-radius: 10px;
+          background: rgba(99, 102, 241, 0.15);
+          border-radius: 20px;
+          border: 2px solid transparent;
+          background-clip: content-box;
         }
         ::-webkit-scrollbar-thumb:hover {
-          background: rgba(99, 102, 241, 0.5);
+          background: rgba(99, 102, 241, 0.4);
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          background-clip: content-box;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+          background-clip: content-box;
         }
 
         .glass {
@@ -69,7 +88,6 @@
           border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* OpenAI Aurora Effects */
         .aurora-orb {
           position: fixed;
           width: 60vw;
@@ -84,16 +102,7 @@
         .orb-2 { bottom: -20%; right: -10%; background: #7000ff; }
         .orb-3 { top: 20%; right: 10%; background: #00ffaa; opacity: 0.1; }
 
-        * { transition: all 0.2s ease-in-out; }
-
-        /* إزالة فئة إخفاء السكرول بار التي قد تعيق التمرير */
-        .scrollbar-hide {
-          -ms-overflow-style: auto !important;
-          scrollbar-width: auto !important;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: block !important;
-        }
+        * { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
     </style>
 <script type="importmap">
 {
@@ -108,7 +117,6 @@
 </script>
 </head>
 <body class="bg-[#fcfcfc] text-slate-900 dark:bg-[#050505] dark:text-white selection:bg-indigo-500/30">
-    <!-- Aurora Orbs -->
     <div class="aurora-orb orb-1 animate-orb-float"></div>
     <div class="aurora-orb orb-2 animate-orb-float" style="animation-delay: -5s;"></div>
     <div class="aurora-orb orb-3 animate-orb-float" style="animation-delay: -10s;"></div>

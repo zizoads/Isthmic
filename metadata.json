@@ -1,6 +1,6 @@
 {
-  "name": "Domainer Pro Platform",
-  "description": "An advanced multi-agent AI platform for discovering, evaluating, purchasing, and negotiating .com domains. Features automated branding, market signal analysis, and industrial-grade workflows.",
+  "name": "Isthmic - Domainer Pro Command Center",
+  "description": "The elite industrial-grade domain management suite. Multi-agent AI for discovery, forensic valuation, and executive liquidation of digital assets.",
   "requestFramePermissions": [
     "camera",
     "microphone"

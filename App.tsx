@@ -20,22 +20,27 @@ const App: React.FC = () => {
   const t = translations[lang];
 
   const [activeTab, setActiveTab] = useState<AgentType | 'PORTFOLIO' | 'VALUE_PROOF' | 'EXECUTIVE' | 'PIPELINE' | 'INTEGRATIONS'>(AgentType.MASTER_BRAIN);
+  
+  // Persistence Implementation
   const [domains, setDomains] = useState<Domain[]>(() => {
     const saved = localStorage.getItem('domainer_pro_domains');
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [strategy, setStrategy] = useState<PlatformStrategy>({
-    totalBudget: 25000,
-    maxPricePerDomain: 500,
-    targetTLDs: ['.com'],
-    minLiquidityScore: 60,
-    targetROI: 300,
-    minHoldingPeriod: 3,
-    riskTolerance: 'Balanced',
-    autoEvaluate: false,
-    autoPilotMode: false,
-    investmentThesis: ''
+  const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
+    const saved = localStorage.getItem('domainer_pro_strategy');
+    return saved ? JSON.parse(saved) : {
+      totalBudget: 25000,
+      maxPricePerDomain: 500,
+      targetTLDs: ['.com'],
+      minLiquidityScore: 60,
+      targetROI: 300,
+      minHoldingPeriod: 3,
+      riskTolerance: 'Balanced',
+      autoEvaluate: false,
+      autoPilotMode: false,
+      investmentThesis: ''
+    };
   });
 
   const [stats, setStats] = useState<PlatformStats>({
@@ -63,6 +68,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('domainer_pro_domains', JSON.stringify(domains));
+    localStorage.setItem('domainer_pro_strategy', JSON.stringify(strategy));
+    
     const purchased = domains.filter(d => d.status === 'purchased');
     const spent = purchased.reduce((acc, d) => acc + (d.acquisitionCost || d.price), 0);
     const value = purchased.reduce((acc, d) => acc + (d.estimatedProfit || d.price * 2), 0);
@@ -76,7 +83,7 @@ const App: React.FC = () => {
       dataIntegrity: integrityScore,
       systemResilienceStatus: integrityScore === 100 ? 'nominal' : 'degraded'
     }));
-  }, [domains, integrityScore]);
+  }, [domains, integrityScore, strategy]);
 
   useEffect(() => {
     localStorage.setItem('domainer_lang', lang);
@@ -89,14 +96,6 @@ const App: React.FC = () => {
     if (isDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [isDark]);
-
-  const addLog = (agent: string, message: string, type: ActivityLog['type'] = 'info') => {
-    const newLog: ActivityLog = {
-      id: Math.random().toString(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      agent, message, type
-    };
-  };
 
   const sidebarItems = [
     { type: AgentType.MASTER_BRAIN, icon: 'fa-brain', label: t.masterBrain, desc: t.masterDesc },
@@ -111,12 +110,12 @@ const App: React.FC = () => {
 
   const viewportClass = {
     desktop: 'w-full',
-    tablet: 'max-w-[768px] mx-auto border-x shadow-2xl bg-white dark:bg-[#0d1117]',
-    mobile: 'max-w-[375px] mx-auto border-x shadow-2xl bg-white dark:bg-[#0d1117]'
+    tablet: 'max-w-[768px] mx-auto border-x shadow-2xl bg-white dark:bg-[#0d1117] min-h-full',
+    mobile: 'max-w-[375px] mx-auto border-x shadow-2xl bg-white dark:bg-[#0d1117] min-h-full'
   };
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-500 ${isDark ? 'bg-[#0a0c10] text-white' : 'bg-slate-50 text-slate-900'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className={`flex h-full w-full overflow-hidden font-sans transition-colors duration-500 ${isDark ? 'bg-[#0a0c10] text-white' : 'bg-slate-50 text-slate-900'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       
       {/* Sidebar */}
       <aside className={`fixed lg:relative lg:translate-x-0 w-72 h-full flex flex-col z-[150] shadow-2xl transition-all duration-500 
@@ -149,7 +148,7 @@ const App: React.FC = () => {
             >
               <i className={`fas ${item.icon} w-6 text-center text-sm`}></i>
               <div className="flex flex-col items-start overflow-hidden">
-                <span className="text-sm font-black truncate">{item.label}</span>
+                <span className="text-sm font-black">{item.label}</span>
                 <span className="text-[8px] opacity-50 uppercase tracking-tighter truncate">{item.desc}</span>
               </div>
             </button>
@@ -172,10 +171,10 @@ const App: React.FC = () => {
       </aside>
 
       {/* Main Container */}
-      <main className={`flex-1 flex flex-col min-w-0 h-screen transition-all relative ${isDark ? 'bg-[#0a0c10]' : 'bg-slate-50'}`}>
+      <main className={`flex-1 flex flex-col min-w-0 h-full transition-all relative ${isDark ? 'bg-[#0a0c10]' : 'bg-slate-50'}`}>
         
         {/* Header */}
-        <header className={`h-20 border-b flex items-center justify-between px-6 lg:px-10 sticky top-0 z-[120] transition-colors ${isDark ? 'bg-[#0a0c10]/80 border-slate-800/50' : 'bg-white/80 border-slate-200'} backdrop-blur-xl`}>
+        <header className={`h-20 border-b flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-[120] transition-colors ${isDark ? 'bg-[#0a0c10]/80 border-slate-800/50' : 'bg-white/80 border-slate-200'} backdrop-blur-xl`}>
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className={`${isFullscreen ? 'flex' : 'lg:hidden'} text-slate-500 w-10 h-10 border rounded-xl items-center justify-center bg-white dark:bg-slate-900 shadow-sm`}>
               <i className="fas fa-bars"></i>
@@ -205,16 +204,16 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Content Wrapper - Fixed Scrollability */}
-        <div className="flex-1 overflow-y-auto">
-          <div className={`${viewportClass[viewportMode]} min-h-full p-4 lg:p-10 transition-all duration-500`}>
-            <div className="max-w-7xl mx-auto pb-20">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto scroll-smooth relative">
+          <div className={`${viewportClass[viewportMode]} p-4 lg:p-10 transition-all duration-500`}>
+            <div className="max-w-7xl mx-auto pb-24">
               {activeTab === 'INTEGRATIONS' && <IntegrationCenter integrations={integrations} onConnect={() => {}} lang={lang} />}
               {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={[]} strategy={strategy} setStrategy={setStrategy} lang={lang} />}
-              {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={addLog} setDomains={setDomains} lang={lang} />}
+              {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={() => {}} setDomains={setDomains} lang={lang} />}
               {activeTab === 'PIPELINE' && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={() => {}} lang={lang} />}
-              {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
-              {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
+              {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={() => {}} lang={lang} />}
+              {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={() => {}} lang={lang} />}
               {activeTab === 'PORTFOLIO' && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}
               {activeTab === 'EXECUTIVE' && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
             </div>
