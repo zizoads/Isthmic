@@ -23,6 +23,7 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Fixed: Added missing required property 'investmentThesis'
   const [strategy, setStrategy] = useState<PlatformStrategy>({
     totalBudget: 25000,
     maxPricePerDomain: 500,
@@ -32,9 +33,11 @@ const App: React.FC = () => {
     minHoldingPeriod: 3,
     riskTolerance: 'Balanced',
     autoEvaluate: false,
-    autoPilotMode: false
+    autoPilotMode: false,
+    investmentThesis: ''
   });
 
+  // Fixed: Added missing required property 'systemResilienceStatus'
   const [stats, setStats] = useState<PlatformStats>({
     totalDiscovered: 0,
     totalPurchased: 0,
@@ -44,7 +47,8 @@ const App: React.FC = () => {
     avgProfit: 0,
     totalSpent: 0,
     estimatedPortfolioValue: 0,
-    dataIntegrity: 0
+    dataIntegrity: 0,
+    systemResilienceStatus: 'nominal'
   });
   
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([
@@ -76,7 +80,9 @@ const App: React.FC = () => {
       totalPurchased: purchased.length,
       totalSpent: spent,
       estimatedPortfolioValue: value,
-      dataIntegrity: integrityScore
+      dataIntegrity: integrityScore,
+      // Fixed: included systemResilienceStatus in the update to satisfy the type definition
+      systemResilienceStatus: integrityScore === 100 ? 'nominal' : 'degraded'
     }));
   }, [domains, integrityScore]);
 
