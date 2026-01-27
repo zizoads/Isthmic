@@ -1,14 +1,5 @@
 
-import { WorkflowState, WorkflowNode, NodeStatus } from '../types';
-
-type TaskFunction = (input: any) => Promise<any>;
-
-interface NodeDefinition {
-  id: string;
-  labelAr: string;
-  labelEn: string;
-  task: TaskFunction;
-}
+import { WorkflowState, NodeStatus, NodeDefinition } from '../types';
 
 export class Orchestrator {
   private state: WorkflowState;
@@ -53,7 +44,6 @@ export class Orchestrator {
 
   async execute(definitions: NodeDefinition[], initialInput: any) {
     let currentInput = initialInput;
-
     for (const def of definitions) {
       this.updateNode(def.id, 'running');
       try {
@@ -66,7 +56,6 @@ export class Orchestrator {
         throw error;
       }
     }
-
     this.state.isComplete = true;
     this.state.progress = 100;
     this.notify();

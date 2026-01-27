@@ -1,107 +1,100 @@
 
 import { Type } from "@google/genai";
-import { getAIClient, safeAICall } from "./base";
+import { generateStructuredAI } from "./base";
 
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
-  return safeAICall(async () => {
-    const ai = getAIClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Strategic Market Mining: ${prompt}. Lang: ${lang}. Find untapped alpha assets.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              estimatedPrice: { type: Type.NUMBER },
-              sector: { type: Type.STRING },
-              justification: { type: Type.STRING },
-              probability: { type: Type.NUMBER }
-            }
-          }
+  return generateStructuredAI<any[]>(
+    'gemini-3-pro-preview',
+    `You are a strategic market miner. Language: ${lang}.`,
+    `Find untapped alpha domain assets for: ${prompt}.`,
+    {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          estimatedPrice: { type: Type.NUMBER },
+          sector: { type: Type.STRING },
+          justification: { type: Type.STRING },
+          probability: { type: Type.NUMBER }
         }
       }
-    });
-    return JSON.parse(response.text || '[]');
-  });
+    },
+    [{ googleSearch: {} }],
+    signal
+  );
 };
 
 export const getDropSniperListAI = async (sector: string) => {
-  return safeAICall(async () => {
-    const ai = getAIClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Hunt for high-authority dropped domains in ${sector}.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              domain: { type: Type.STRING },
-              dropDate: { type: Type.STRING },
-              estimatedAuthority: { type: Type.NUMBER },
-              estimatedValue: { type: Type.NUMBER },
-              reasonToSnipe: { type: Type.STRING },
-              backorderPlatform: { type: Type.STRING }
-            }
-          }
+  return generateStructuredAI<any[]>(
+    'gemini-3-pro-preview',
+    "Elite drop-catching intelligence agent.",
+    `Hunt for high-authority dropped domains in ${sector}.`,
+    {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          domain: { type: Type.STRING },
+          dropDate: { type: Type.STRING },
+          estimatedAuthority: { type: Type.NUMBER },
+          estimatedValue: { type: Type.NUMBER },
+          reasonToSnipe: { type: Type.STRING },
+          backorderPlatform: { type: Type.STRING }
         }
       }
-    });
-    return JSON.parse(response.text || '[]');
-  });
+    },
+    [{ googleSearch: {} }]
+  );
 };
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
-  return safeAICall(async () => {
-    const ai = getAIClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Execute deep sniper audit for dropping domain: ${domainName}. Calculate flip probability.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            verdict: { type: Type.STRING, enum: ['Golden', 'Standard', 'Risky'] },
-            historySummary: { type: Type.STRING },
-            flipProbability: { type: Type.NUMBER },
-            maxBackorderBid: { type: Type.NUMBER },
-            trademarkAlert: { type: Type.STRING }
-          }
-        }
+  return generateStructuredAI<any>(
+    'gemini-3-pro-preview',
+    "Forensic sniper auditor.",
+    `Deep audit for dropping domain: ${domainName}.`,
+    {
+      type: Type.OBJECT,
+      properties: {
+        verdict: { type: Type.STRING, enum: ['Golden', 'Standard', 'Risky'] },
+        historySummary: { type: Type.STRING },
+        flipProbability: { type: Type.NUMBER },
+        maxBackorderBid: { type: Type.NUMBER },
+        trademarkAlert: { type: Type.STRING }
       }
-    });
-    return JSON.parse(response.text || '{}');
-  });
+    },
+    [{ googleSearch: {} }]
+  );
 };
 
 export const registrarInquiryAI = async (domainName: string) => {
-  return safeAICall(async () => {
-    const ai = getAIClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Verify real-time status and retail price for ${domainName}.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            available: { type: Type.BOOLEAN },
-            price: { type: Type.NUMBER }
-          }
-        }
+  return generateStructuredAI<any>(
+    'gemini-3-flash-preview',
+    "Real-time registrar liaison.",
+    `Verify real-time status and price for ${domainName}.`,
+    {
+      type: Type.OBJECT,
+      properties: {
+        available: { type: Type.BOOLEAN },
+        price: { type: Type.NUMBER }
       }
-    });
-    return JSON.parse(response.text || '{"available": false, "price": 0}');
-  });
+    },
+    [{ googleSearch: {} }]
+  );
+};
+
+export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
+  return generateStructuredAI<any>(
+    'gemini-2.5-flash',
+    "Geographic market specialist.",
+    `Identify local buyers for ${query} near ${lat}, ${lng}.`,
+    {
+      type: Type.OBJECT,
+      properties: {
+        text: { type: Type.STRING },
+        sources: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { maps: { type: Type.OBJECT, properties: { uri: { type: Type.STRING }, title: { type: Type.STRING } } } } } }
+      }
+    },
+    [{ googleMaps: {} }]
+  );
 };

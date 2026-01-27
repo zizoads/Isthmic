@@ -1,4 +1,5 @@
 
+
 export enum AgentType {
   INTELLIGENCE = 'INTELLIGENCE',
   ACQUISITION = 'ACQUISITION',
@@ -20,7 +21,6 @@ export interface AgentThought {
   message: string;
   timestamp: string;
   status: 'thinking' | 'resolved' | 'rejected' | 'action_taken';
-  metadata?: any;
 }
 
 export interface NegotiationBattleCard {
@@ -37,15 +37,15 @@ export interface TechnicalMetrics {
   pa: number;
   spamScore: number;
   backlinks: number;
-  backlinkVelocity: number;
-  historyYears: number;
-  isBlacklisted: boolean;
   trademarkRisk: string;
   liquidityScore: number;
   securityRating?: string;
-  whoisPrivacy?: boolean;
   mxRecordsFound?: boolean;
   dnaForensics?: string;
+  // Fix: Added missing fields for ForensicScanner
+  isBlacklisted?: boolean;
+  whoisPrivacy?: boolean;
+  historyYears?: number;
 }
 
 export interface DomainFinancials {
@@ -69,24 +69,11 @@ export interface Domain {
   sector?: string;
   probability?: number;
   justification?: string;
-  agentThoughts?: AgentThought[];
   brandAssets?: any;
   financials?: DomainFinancials;
   technicalMetrics?: TechnicalMetrics;
   battleCard?: NegotiationBattleCard;
-  folder?: string;
   lastChecked?: string;
-}
-
-export interface NexusOpportunity {
-  id: string;
-  title: string;
-  type: string;
-  description: string;
-  estimatedValue: string;
-  probability: number;
-  marketGapScore: number;
-  aiDeduction: string;
 }
 
 export interface PlatformStats {
@@ -97,8 +84,6 @@ export interface PlatformStats {
   avgProfit: number;
   estimatedPortfolioValue: number;
   systemResilienceStatus: 'nominal' | 'degraded';
-  totalSpent?: number;
-  repliesReceived?: number;
 }
 
 export interface PlatformStrategy {
@@ -106,12 +91,6 @@ export interface PlatformStrategy {
   riskTolerance: string;
   investmentThesis: string;
   autoPilot: boolean;
-  autoPilotMode?: boolean;
-  maxPricePerDomain?: number;
-  targetTLDs?: string[];
-  minLiquidityScore?: number;
-  targetROI?: number;
-  minHoldingPeriod?: number;
 }
 
 export interface ActivityLog {
@@ -156,12 +135,6 @@ export interface WorkflowState {
   isComplete: boolean;
 }
 
-export interface SystemState {
-  status: 'nominal' | 'degraded';
-  lastSync: string;
-  activeWorkflows: number;
-}
-
 export interface ThinkingStep {
   id: string;
   action: string;
@@ -169,19 +142,47 @@ export interface ThinkingStep {
   status: 'searching' | 'pending' | 'complete' | 'executing';
 }
 
+export interface NodeDefinition {
+  id: string;
+  labelAr: string;
+  labelEn: string;
+  task: (input: any) => Promise<any>;
+}
+
+// Fix: Added missing OutreachMessage interface
 export interface OutreachMessage {
   id: string;
   domainId: string;
   recipient: string;
   recipientRole: string;
   tone: string;
-  status: 'draft' | 'sent' | 'replied';
+  status: 'draft' | 'sent';
   content: string;
 }
 
+// Fix: Added missing NexusOpportunity interface
+export interface NexusOpportunity {
+  id: string;
+  title: string;
+  type: string;
+  estimatedValue: string;
+  description: string;
+  aiDeduction: string;
+  probability: number;
+  marketGapScore: number;
+}
+
+// Fix: Added missing SystemState interface
+export interface SystemState {
+  status: 'nominal' | 'degraded';
+  lastSync: string;
+  activeWorkflows: number;
+}
+
+// Fix: Added missing AutonomousAction interface
 export interface AutonomousAction {
   id: string;
-  type: 'PURCHASE' | 'BRANDING' | 'MARKETING' | 'NEGOTIATION' | 'PRICE_SYNC' | 'CLOSE_DEAL';
+  type: 'PURCHASE' | 'NEGOTIATION' | 'LIQUIDATION' | 'ANALYSIS';
   domainName: string;
   description: string;
   timestamp: string;
