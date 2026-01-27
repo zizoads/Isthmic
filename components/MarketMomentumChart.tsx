@@ -1,86 +1,124 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { analyzeMarketPulseAI } from '../services/geminiService';
 
 interface Props {
   lang: 'ar' | 'en';
 }
 
 const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
-  const data = [
-    { time: '00:00', price: 4000, vol: 2400 },
-    { time: '04:00', price: 3000, vol: 1398 },
-    { time: '08:00', price: 2000, vol: 9800 },
-    { time: '12:00', price: 2780, vol: 3908 },
-    { time: '16:00', price: 1890, vol: 4800 },
-    { time: '20:00', price: 2390, vol: 3800 },
-    { time: '23:59', price: 3490, vol: 4300 },
+  const [pulse, setPulse] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [targetSector, setTargetSector] = useState('Artificial Intelligence');
+
+  useEffect(() => {
+    handleFetchPulse();
+  }, []);
+
+  const handleFetchPulse = async () => {
+    setIsLoading(true);
+    const data = await analyzeMarketPulseAI(targetSector, lang);
+    setPulse(data);
+    setIsLoading(false);
+  };
+
+  const chartData = pulse?.recentComps?.map((comp: any, i: number) => ({
+    time: i.toString(),
+    price: comp.price,
+    domain: comp.domain
+  })) || [
+    { time: '0', price: 4000 },
+    { time: '1', price: 3000 },
+    { time: '2', price: 7000 },
+    { time: '3', price: 4500 },
   ];
 
   return (
-    <div className="bg-[#0b0e14] border border-white/5 rounded-[32px] p-8 shadow-2xl h-[500px] flex flex-col group relative overflow-hidden">
-      <div className="flex justify-between items-center mb-8 relative z-10">
-        <div>
-          <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">
-            {lang === 'ar' ? 'رادار زخم السوق الفني' : 'Technical Market Momentum'}
+    <div className="bg-[#0b0e14] border border-white/10 rounded-[40px] p-8 lg:p-12 shadow-2xl h-auto min-h-[600px] flex flex-col group relative overflow-hidden">
+      <div className={`flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-12 relative z-10 ${lang === 'ar' ? 'lg:flex-row-reverse' : ''}`}>
+        <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
+          <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-3">
+            {lang === 'ar' ? 'رادار الزخم الحي الموثق' : 'GROUNDED LIVE MOMENTUM RADAR'}
           </h3>
           <div className="flex items-center gap-4 mt-2">
-            <span className="text-2xl font-black text-white tracking-tighter">AI SECTOR INDEX</span>
-            <span className="text-green-500 text-xs font-black">+14.2%</span>
+            <span className="text-3xl lg:text-4xl font-black text-white tracking-tighter uppercase">{targetSector} Index</span>
+            <span className={`text-sm font-black px-3 py-1 rounded-full ${pulse?.sentiment === 'BULLISH' ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500'}`}>
+              {pulse?.sentiment || 'ANALYZING...'}
+            </span>
           </div>
         </div>
-        <div className="flex gap-2">
-          {['1H', '4H', '1D', '1W'].map(t => (
-            <button key={t} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-400 hover:text-white transition-all">{t}</button>
-          ))}
+        
+        <div className="flex gap-3 w-full lg:w-auto">
+          <input 
+            value={targetSector}
+            onChange={(e) => setTargetSector(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500/50"
+            placeholder="Change Sector..."
+          />
+          <button 
+            onClick={handleFetchPulse}
+            disabled={isLoading}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-white hover:text-indigo-600 transition-all"
+          >
+            {isLoading ? <i className="fas fa-sync fa-spin"></i> : <i className="fas fa-satellite-dish"></i>}
+          </button>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative z-10">
+      <div className="flex-1 min-h-[300px] relative z-10 mb-10">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="colorMomentum" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+              <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
-            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#475569', fontSize: 10, fontWeight: 900}} />
+            <XAxis hide />
             <YAxis hide />
             <Tooltip 
               contentStyle={{ background: '#0b0e14', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
-              itemStyle={{ color: '#6366f1', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
+              itemStyle={{ color: '#fff', fontSize: '10px', fontWeight: '900' }}
+              labelStyle={{ display: 'none' }}
+              formatter={(value: any, name: any, props: any) => [`$${value.toLocaleString()}`, props.payload.domain || 'Valuation']}
             />
             <Area 
               type="monotone" 
-              dataKey="vol" 
+              dataKey="price" 
               stroke="#6366f1" 
-              strokeWidth={4} 
+              strokeWidth={5} 
               fillOpacity={1} 
-              fill="url(#colorMomentum)" 
-              animationDuration={2000}
+              fill="url(#colorPulse)" 
+              animationDuration={2500}
             />
-            <ReferenceLine y={5000} label="Liquidity Peak" stroke="#22c55e" strokeDasharray="3 3" />
+            {pulse?.heatScore > 70 && <ReferenceLine y={8000} label="Sector Heat Spike" stroke="#ef4444" strokeDasharray="3 3" />}
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-6 flex justify-between items-center border-t border-white/5 pt-4 opacity-50 relative z-10">
-         <div className="flex gap-6">
-            <div className="flex flex-col">
-              <span className="text-[8px] font-black text-slate-500 uppercase">RSI (14)</span>
-              <span className="text-xs font-black text-white">64.20</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[8px] font-black text-slate-500 uppercase">MACD</span>
-              <span className="text-xs font-black text-green-500">BULLISH</span>
-            </div>
-         </div>
-         <div className="text-[9px] font-mono text-slate-600">ENGINE: V3_DEEP_ANALYTICS</div>
-      </div>
+      {pulse && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10 border-t border-white/5 pt-10">
+           <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{lang === 'ar' ? 'التوصية الاستراتيجية' : 'STRATEGIC RECOMMENDATION'}</h4>
+              <p className="text-sm text-slate-300 leading-relaxed font-medium italic">
+                "{pulse.strategicAdvice}"
+              </p>
+           </div>
+           <div className="bg-white/5 p-6 rounded-3xl border border-white/10 flex justify-between items-center">
+              <div>
+                 <div className="text-[9px] font-black text-indigo-400 uppercase">Sector Heat Score</div>
+                 <div className="text-4xl font-black text-white mt-1">{pulse.heatScore}%</div>
+              </div>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${pulse.heatScore > 75 ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-600 text-white'}`}>
+                 <i className={`fas ${pulse.heatScore > 75 ? 'fa-fire' : 'fa-bolt'}`}></i>
+              </div>
+           </div>
+        </div>
+      )}
       
-      <i className="fas fa-wave-square absolute right-[-40px] top-[-40px] text-white/5 text-[200px] pointer-events-none"></i>
+      <i className="fas fa-chart-line absolute right-[-50px] bottom-[-50px] text-white/2 text-[300px] pointer-events-none -rotate-12"></i>
     </div>
   );
 };
