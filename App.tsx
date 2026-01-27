@@ -126,7 +126,7 @@ const App: React.FC = () => {
         technicalMetrics: { liquidityScore: Math.round((r.probability || 0.5) * 100) }
       }));
       setDomains(prev => [...formatted, ...prev]);
-      addLog('Master Brain', lang === 'ar' ? `اكتمل المسح. تم حقن ${formatted.length} فرصة جديدة.` : `Sweep complete. Injected ${formatted.length} new opportunities.`, 'success');
+      addLog('Master Brain', lang === 'ar' ? `اكتمل المسح. تم العثور على ${formatted.length} أصل جديد.` : `Sweep complete. Injected ${formatted.length} new assets.`, 'success');
     } catch (e) {
       addLog('System', 'Global Scan Failed', 'critical');
     } finally {
@@ -231,7 +231,7 @@ const App: React.FC = () => {
           <h1 className="text-xl font-black tracking-tighter uppercase">{t.platformName}</h1>
         </div>
         
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6 scrollbar-hide">
           {menuGroups.map((group, idx) => (
             <div key={idx} className="space-y-2">
               <h5 className="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">{group.title}</h5>
@@ -278,7 +278,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto scroll-smooth">
+        <div className="flex-1 overflow-y-auto scroll-smooth scrollbar-hide">
           <div className="p-4 lg:p-10 transition-all duration-500 max-w-7xl mx-auto pb-24">
             {activeTab === AgentType.MASTER_BRAIN && (
               <MasterBrainDashboard 
@@ -296,7 +296,7 @@ const App: React.FC = () => {
             {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
             {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
             {activeTab === AgentType.PURCHASE && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
-            {activeTab === AgentType.DROP_SNIPER && <DropSniperDashboard />}
+            {activeTab === AgentType.DROP_SNIPER && <DropSniperDashboard lang={lang} />}
             {activeTab === AgentType.PIPELINE && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
             {activeTab === AgentType.PORTFOLIO && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}
             {activeTab === AgentType.VALUE_PROOF && <ValueProofDashboard domains={domains} />}

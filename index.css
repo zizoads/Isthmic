@@ -1,0 +1,80 @@
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 210 40% 96.1%;
+  --border: 214.3 31.8% 91.4%;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 217.2 32.6% 17.5%;
+  --border: 217.2 32.6% 17.5%;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body { 
+  font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif; 
+  transition: background-color 0.5s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.aurora-orb {
+  position: fixed;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: -1;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.orb-1 { top: -20%; left: -10%; background: #00f2ff; }
+.orb-2 { bottom: -20%; right: -10%; background: #7000ff; }
+.orb-3 { top: 20%; right: 10%; background: #00ffaa; opacity: 0.1; }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
