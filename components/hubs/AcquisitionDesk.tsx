@@ -33,7 +33,7 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
                   : 'Mining for undiscovered opportunities, auditing trademark integrity, and sniping dropping domains with surgical precision.'}
             </p>
          </div>
-         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl overflow-x-auto max-w-full scrollbar-hide">
+         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl overflow-x-auto max-w-full scrollbar-hide" role="tablist">
             {[
               { id: 'mine', label: lang === 'ar' ? 'التنقيب' : 'MINING', tip: t.tooltip_mining_engine },
               { id: 'audit', label: lang === 'ar' ? 'التدقيق' : 'AUDIT', tip: t.tooltip_forensic_audit },
@@ -43,8 +43,11 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
             ].map(tab => (
               <button 
                 key={tab.id}
+                role="tab"
+                aria-selected={mode === tab.id}
+                aria-label={tab.label}
                 onClick={() => setMode(tab.id as any)} 
-                data-tooltip={tab.tip}
+                title={tab.tip}
                 className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
                   ${mode === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
               >

@@ -97,6 +97,9 @@ export const generatePersonaPitchAI = async (domainName: string, company: any, p
   );
 };
 
+/**
+ * محرك استخبارات المزادات - يحل مشكلة الاستيراد المفقود في التقرير.
+ */
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
   return generateStructuredAI<any>(
     'gemini-3-pro-preview',
