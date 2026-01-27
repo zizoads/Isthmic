@@ -28,12 +28,12 @@ Each component in the `components/` directory is mapped to a specific industrial
 - **Claim**: "Forensic Valuation". **Verified**: `checkTrademarkRiskAI` implements grounded search in `geminiService.ts:168`.
 - **Claim**: "Brand DNA Synthesis". **Verified**: Two-stage logic in `generateBrandIdentityAI` using `gemini-3-pro-preview` for strategy and `gemini-2.5-flash-image` for visuals.
 
-## SECTION 3: Identified Gaps & Risk Assessment
+## SECTION 3: Completed Refactors
+- **Step 1: Component Decentralization**: Components mapped to logical layers.
+- **Step 2: Custom Hook Extraction**: AI orchestration moved to `useMasterBrain.ts`.
+- **Step 3: Domain Context Provider**: Global state management active via `DomainContext.tsx`.
+- **Step 4: UI Primitives Standardization**: `StatusBadge` component deployed for consistent UI.
+
+## SECTION 4: Identified Gaps & Risk Assessment
 - **Gap**: Integration with external registrars (Namecheap/GoDaddy) is currently UI-only (redirects). **Risk**: High operational friction for bulk buys.
 - **Gap**: Feedback Loop in `FeedbackDashboard` stores state locally but doesn't persist to a global "System Instruction" for Gemini. **Risk**: Agents don't actually "learn" across sessions.
-- **Gap**: Multi-modality is used, but Audio Agent (Gemini 2.5 TTS) is not yet integrated into the `NegotiationDashboard` for buyer calls.
-
-## SECTION 4: Required Features for Version 2.0
-1. **Live API Audio Connection**: Real-time negotiation via voice using Gemini Live.
-2. **Persistent SQL Database**: Move beyond `localStorage` for enterprise portfolio scaling.
-3. **Automated Registrar API**: One-click acquisition via API instead of URL redirects.

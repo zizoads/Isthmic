@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="h-full">
 <head>
@@ -14,6 +13,18 @@
         darkMode: 'class',
         theme: {
           extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+              },
+            },
             fontFamily: {
               sans: ['Inter', 'IBM Plex Sans Arabic', 'sans-serif'],
             },
@@ -47,7 +58,7 @@
 }
 </script>
 </head>
-<body class="bg-[#fcfcfc] text-slate-900 dark:bg-[#050505] dark:text-white selection:bg-indigo-500/30">
+<body class="bg-background text-foreground selection:bg-primary/30">
     <div class="aurora-orb orb-1 animate-orb-float"></div>
     <div class="aurora-orb orb-2 animate-orb-float" style="animation-delay: -5s;"></div>
     <div class="aurora-orb orb-3 animate-orb-float" style="animation-delay: -10s;"></div>

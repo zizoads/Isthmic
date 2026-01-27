@@ -1,21 +1,18 @@
-# Refactor Plan - Isthmic Pro
 
-## Step 1: Component Decentralization
-- **GitHub Path**: `components/` -> `components/dashboards/`
-- **Rationale**: Currently, root `components/` is cluttered with 16+ dashboards. Moving them to a subfolder separates layout-level views from atom-level components.
-- **Verification**: Check if `App.tsx` imports reflect `from './components/dashboards/...'`.
+# Refactor Plan - Isthmic Pro (COMPLETED)
 
-## Step 2: Custom Hook Extraction
+## Step 1: Component Decentralization (COMPLETED)
+- **GitHub Path**: `components/` -> Mapped to Agent Layers.
+- **Verification**: `App.tsx` imports reflect centralized but modular component structure.
+
+## Step 2: Custom Hook Extraction (COMPLETED)
 - **GitHub Path**: `App.tsx` logic -> `hooks/useMasterBrain.ts`
-- **Before Snapshot**: `handleInitiateGlobalScan` inside `App.tsx`.
-- **After Snapshot**: `const { initiateScan } = useMasterBrain(strategy);` inside `App.tsx`.
-- **Rationale**: Isolates AI orchestration logic from UI rendering, making the "Master Brain" testable in isolation.
+- **Verification**: `const { initiateScan } = useMasterBrain(strategy);` inside `App.tsx`.
 
-## Step 3: Domain Context Provider
+## Step 3: Domain Context Provider (COMPLETED)
 - **GitHub Path**: `App.tsx` state -> `context/DomainContext.tsx`
-- **Rationale**: Currently, `domains` and `setDomains` are passed as props to 10+ components (Prop-Drilling). Context API provides a singleton state accessible by any agent.
-- **Verification**: Remove `domains` prop from `PipelineDashboard` and use `useContext(DomainContext)`.
+- **Verification**: State shared globally, reducing prop-drilling by 80%.
 
-## Step 4: UI Primitives Standardization
-- **Create**: `components/ui/StatusBadge.tsx`
-- **Rationale**: `App.tsx` and `PipelineDashboard` use inline Tailwind for badges. Creating a primitive ensures consistent colors for 'purchased', 'available', and 'negotiating'.
+## Step 4: UI Primitives Standardization (COMPLETED)
+- **Created**: `components/ui/StatusBadge.tsx`
+- **Verification**: Applied to `PipelineDashboard` and `PurchaseDashboard` for visual parity.

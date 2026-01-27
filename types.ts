@@ -128,3 +128,11 @@ export interface OutreachMessage {
   status: 'draft' | 'sent';
   content: string;
 }
+
+export interface EvaluationResult {
+  sector: string;
+  probability: number;
+  justification: string;
+  valuationContext: string;
+  technicalMetrics?: Partial<TechnicalMetrics>;
+}
