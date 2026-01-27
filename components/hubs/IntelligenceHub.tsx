@@ -7,8 +7,8 @@ import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
 import { PlatformStats } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
+import { translations } from '../../translations';
 
-// Fixed Props interface to include scan control properties
 interface Props {
   stats: PlatformStats;
   lang: 'ar' | 'en';
@@ -19,20 +19,27 @@ interface Props {
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
   const { activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
+  const t = translations[lang];
 
   return (
     <div className="space-y-10 animate-fade-in relative pb-20">
       <div className="flex bg-[#0b0e14] p-1.5 rounded-2xl border border-white/10 w-fit mx-auto lg:mx-0 overflow-x-auto max-w-full scrollbar-hide shadow-xl">
-        <button onClick={() => setSubTab('sovereign')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'sovereign' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20' : 'text-slate-500 hover:text-foreground'}`}>
+        <button onClick={() => setSubTab('sovereign')} 
+          data-tooltip={t.tooltip_sovereign_mode}
+          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'sovereign' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
           {lang === 'ar' ? 'الإدارة السيادية' : 'SOVEREIGN CEO'}
         </button>
-        <button onClick={() => setSubTab('nexus')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'nexus' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
+        <button onClick={() => setSubTab('nexus')} 
+          data-tooltip={t.tooltip_nexus_radar}
+          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'nexus' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
           {lang === 'ar' ? 'رادار الفرص' : 'NEXUS RADAR'}
         </button>
-        <button onClick={() => setSubTab('strategy')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'strategy' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
+        <button onClick={() => setSubTab('strategy')} 
+          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'strategy' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
           {lang === 'ar' ? 'تعديل الاستراتيجية' : 'STRATEGY'}
         </button>
-        <button onClick={() => setSubTab('feedback')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'feedback' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
+        <button onClick={() => setSubTab('feedback')} 
+          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${subTab === 'feedback' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
           {lang === 'ar' ? 'تدريب الذكاء' : 'TRAINING'}
         </button>
       </div>
@@ -52,6 +59,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
                       <i className="fas fa-chart-line"></i>
                    </div>
                    <h3 className="text-xl font-black text-white uppercase">محاكاة القيمة المستقبلية</h3>
+                   <div className="info-channel">PROBABILITY ENGINE V2.1</div>
                    <p className="text-slate-400 text-sm max-w-sm">
                       يقوم العقل المدبر الآن بمحاكاة عوائد محفظتك بناءً على 12 متغيراً اقتصادياً عالمياً.
                    </p>
@@ -74,7 +82,6 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
             strategy={strategy} 
             setStrategy={setStrategy} 
             lang={lang} 
-            // Fixed: Now passing initiate scan and scanning status props
             onInitiateScan={onInitiateScan}
             isScanning={isScanning}
           />

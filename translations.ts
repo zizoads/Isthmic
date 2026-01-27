@@ -1,6 +1,16 @@
 
 export const translations = {
   ar: {
+    // ... (keep previous)
+    tooltip_sovereign_mode: "تفعيل المحرك التلقائي الذي يقوم بالبحث، التدقيق، وحقن الفرص في النظام دون تدخل بشري.",
+    tooltip_nexus_radar: "رادار كشف الفجوات السوقية وتوليد الأفكار التجارية والبراندات فورياً.",
+    tooltip_kill_switch: "إيقاف فوري لجميع عمليات الذكاء الاصطناعي وقطع الاتصال بالسيرفرات لحماية الموارد.",
+    tooltip_forensic_audit: "فحص عميق لسجلات النطاق التاريخية، العلامات التجارية، والجدوى المالية الدقيقة.",
+    tooltip_mining_engine: "استخدام Gemini 3 Pro للبحث في أعماق الويب عن نطاقات غير مكتشفة أو متاحة للشراء.",
+    tooltip_sniper: "مراقبة النطاقات التي ستسقط قريباً واقتناصها في أجزاء من الثانية.",
+    tooltip_checkout: "إرسال النطاق المختار إلى مسجل النطاقات المعتمد لإتمام عملية الشراء القانونية.",
+    tooltip_start_inference: "بدء عملية الاستدلال المنطقي وبحث الويب المعمق بناءً على أوامرك.",
+    // Standard keys
     platformName: "Isthmic Pro",
     intelligence: "مركز الاستخبارات",
     acquisition: "مكتب الاستحواذ",
@@ -86,7 +96,7 @@ export const translations = {
     trademarkAlert: "تنبيه العلامة التجارية",
     placeBackorder: "وضع طلب حجز",
     integrations: "الربط التقني",
-    executive: "التقرير التنفيذي",
+    executive: "التقرير التنفيذ",
     portfolio: "هندسة المحفظة",
     pipeline: "خط الإنتاج",
     discovery: "الاستكشاف",
@@ -127,6 +137,15 @@ export const translations = {
     liquidityTimeline: "الجدول الزمني للسيولة"
   },
   en: {
+    tooltip_sovereign_mode: "Activate the autonomous engine that searches, audits, and injects opportunities without manual intervention.",
+    tooltip_nexus_radar: "Radar for detecting market gaps and instantly generating business ideas and brands.",
+    tooltip_kill_switch: "Immediate cessation of all AI processes and server disconnect to protect resources.",
+    tooltip_forensic_audit: "Deep scan of domain history, trademarks, and precise financial viability.",
+    tooltip_mining_engine: "Utilize Gemini 3 Pro to search web depths for undiscovered or available domains.",
+    tooltip_sniper: "Monitor soon-to-drop domains and seize them in milliseconds.",
+    tooltip_checkout: "Send selected domain to an authorized registrar to complete the legal purchase.",
+    tooltip_start_inference: "Begin logical inference and deep web search based on your commands.",
+    // ... (keep rest)
     platformName: "Isthmic Pro",
     intelligence: "Intelligence Hub",
     acquisition: "Acquisition Desk",
