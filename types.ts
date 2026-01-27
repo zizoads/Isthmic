@@ -1,5 +1,4 @@
 
-
 export enum AgentType {
   INTELLIGENCE = 'INTELLIGENCE',
   ACQUISITION = 'ACQUISITION',
@@ -42,7 +41,6 @@ export interface TechnicalMetrics {
   securityRating?: string;
   mxRecordsFound?: boolean;
   dnaForensics?: string;
-  // Fix: Added missing fields for ForensicScanner
   isBlacklisted?: boolean;
   whoisPrivacy?: boolean;
   historyYears?: number;
@@ -149,7 +147,6 @@ export interface NodeDefinition {
   task: (input: any) => Promise<any>;
 }
 
-// Fix: Added missing OutreachMessage interface
 export interface OutreachMessage {
   id: string;
   domainId: string;
@@ -160,7 +157,6 @@ export interface OutreachMessage {
   content: string;
 }
 
-// Fix: Added missing NexusOpportunity interface
 export interface NexusOpportunity {
   id: string;
   title: string;
@@ -172,14 +168,12 @@ export interface NexusOpportunity {
   marketGapScore: number;
 }
 
-// Fix: Added missing SystemState interface
 export interface SystemState {
   status: 'nominal' | 'degraded';
   lastSync: string;
   activeWorkflows: number;
 }
 
-// Fix: Added missing AutonomousAction interface
 export interface AutonomousAction {
   id: string;
   type: 'PURCHASE' | 'NEGOTIATION' | 'LIQUIDATION' | 'ANALYSIS';

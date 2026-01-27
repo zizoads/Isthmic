@@ -5,8 +5,8 @@ import { generateStructuredAI } from "./base";
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
   return generateStructuredAI<any[]>(
     'gemini-3-pro-preview',
-    `You are a strategic market miner. Language: ${lang}.`,
-    `Find untapped alpha domain assets for: ${prompt}.`,
+    `You are a strategic market miner. Language: ${lang}. Found alpha assets based on deep web research.`,
+    `Execute sweep for: ${prompt}`,
     {
       type: Type.ARRAY,
       items: {

@@ -24,8 +24,7 @@ export async function safeAICall<T>(fn: () => Promise<T>, retries = 3, delay = 2
 }
 
 /**
- * محرك الذكاء الاصطناعي الموحد (The Sovereign Engine)
- * يضمن مخرجات JSON دقيقة مع دعم كامل للبحث والتحقق
+ * المحرك الهيكلي الموحد - يضمن مخرجات JSON دقيقة مع دعم AbortSignal والأدوات.
  */
 export async function generateStructuredAI<T>(
   modelName: 'gemini-3-pro-preview' | 'gemini-3-flash-preview' | 'gemini-2.5-flash',

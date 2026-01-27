@@ -30,7 +30,7 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string) => 
   return generateStructuredAI<any[]>(
     'gemini-3-pro-preview',
     "Corporate prospecting engine.",
-    `Harvest leads for ${domainName} in ${sector}.`,
+    `Harvest leads for ${domainName} in ${sector}. Identify key strategic decision makers.`,
     {
       type: Type.ARRAY,
       items: {
@@ -97,12 +97,11 @@ export const generatePersonaPitchAI = async (domainName: string, company: any, p
   );
 };
 
-// Fix: Added missing getAuctionIntelligenceAI for AuctionWatchDashboard
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
   return generateStructuredAI<any>(
     'gemini-3-pro-preview',
     "Auction market intelligence scout.",
-    `Analyze auction trends and recent sales for these sectors: ${sectors.join(', ')}. Ground in recent data.`,
+    `Analyze auction trends and recent sales for: ${sectors.join(', ')}.`,
     {
       type: Type.OBJECT,
       properties: {
