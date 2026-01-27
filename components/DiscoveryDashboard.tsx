@@ -59,25 +59,35 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
   };
 
   return (
-    <div className="space-y-12 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-10 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className={`relative bg-[#08090d] border border-white/10 rounded-[40px] p-2 overflow-hidden ${isSearching ? 'shimmer-bar' : ''}`}>
+        <div className={`relative bg-[#05060a] border border-white/10 rounded-[32px] p-2 overflow-hidden ${isSearching ? 'shimmer-bar' : ''}`}>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            aria-label={t.searchPlaceholder}
             placeholder={t.searchPlaceholder}
-            className={`w-full bg-transparent text-white px-10 py-10 text-xl font-medium outline-none transition-all min-h-[220px] ${lang === 'ar' ? 'text-right' : 'text-left'}`}
+            className={`w-full bg-transparent text-white px-8 py-8 text-lg font-medium outline-none transition-all min-h-[180px] ${lang === 'ar' ? 'text-right' : 'text-left'}`}
           />
-          <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center">
-             <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <i className="fas fa-network-wired"></i> Gemini 3 Pro Engine
+          <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center">
+             <div className="flex items-center gap-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <i className="fas fa-network-wired text-indigo-400"></i> Gemini 3 Pro
              </div>
              {isSearching ? (
-                <button onClick={handleStop} className="bg-red-600 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-500 transition-all flex items-center gap-3 shadow-xl">
+                <button 
+                  onClick={handleStop} 
+                  aria-label={t.stopProcess}
+                  className="bg-red-600 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 transition-all flex items-center gap-2"
+                >
                   <i className="fas fa-stop"></i> {t.stopProcess}
                 </button>
              ) : (
-                <button onClick={handleSearch} disabled={!prompt} className="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-20">
+                <button 
+                  onClick={handleSearch} 
+                  disabled={!prompt} 
+                  aria-label={t.startInference}
+                  className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-20"
+                >
                   {t.startInference}
                 </button>
              )}
@@ -88,15 +98,19 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
       {scannedResults.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
            {scannedResults.map((r, i) => (
-             <div key={i} className="bg-[#08090d] border border-white/5 p-8 rounded-3xl hover:border-indigo-500/30 transition-all relative overflow-hidden group">
-                <div className="flex justify-between items-start mb-6">
-                   <div className="text-2xl font-black text-white italic group-hover:text-indigo-400 truncate max-w-[140px]">{r.name}</div>
-                   <div className="text-lg font-black text-green-500 tabular-nums">${r.estimatedPrice}</div>
+             <div key={i} className="bg-[#05060a] border border-white/10 p-6 rounded-2xl hover:border-indigo-500/50 transition-all relative overflow-hidden group">
+                <div className="flex justify-between items-start mb-4">
+                   <div className="text-xl font-black text-white italic truncate max-w-[120px]">{r.name}</div>
+                   <div className="text-base font-black text-green-400 tabular-nums">${r.estimatedPrice}</div>
                 </div>
-                <p className="text-[11px] text-slate-400 italic leading-relaxed line-clamp-3 mb-6">"{r.justification}"</p>
-                <div className="flex justify-between items-center pt-6 border-t border-white/5">
-                   <div className="text-[9px] font-black text-slate-600 uppercase">Probability: {Math.round(r.probability * 100)}%</div>
-                   <button onClick={addAllToPipeline} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:bg-indigo-600 hover:text-white transition-all">
+                <p className="text-[10px] text-slate-400 italic leading-relaxed line-clamp-3 mb-6">"{r.justification}"</p>
+                <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                   <div className="text-[8px] font-black text-slate-500 uppercase">Confidence: {Math.round(r.probability * 100)}%</div>
+                   <button 
+                    onClick={addAllToPipeline} 
+                    aria-label="إضافة للإنتاج"
+                    className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-300 hover:bg-indigo-600 hover:text-white transition-all"
+                   >
                      <i className="fas fa-plus"></i>
                    </button>
                 </div>
@@ -108,5 +122,4 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
   );
 };
 
-// Exporting DiscoveryDashboard as the default export to satisfy imports in AcquisitionDesk.tsx
 export default DiscoveryDashboard;
