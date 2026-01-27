@@ -7,17 +7,44 @@ export enum AgentType {
   MANAGEMENT = 'MANAGEMENT'
 }
 
-export interface NexusOpportunity {
+export enum AgentRole {
+  ANALYZER = 'ANALYZER',
+  EXECUTOR = 'EXECUTOR',
+  AUDITOR = 'AUDITOR'
+}
+
+export interface AgentThought {
+  role: AgentRole;
+  message: string;
+  timestamp: string;
+  status: 'thinking' | 'resolved' | 'rejected';
+}
+
+export type SystemStatus = 'nominal' | 'degraded' | 'autonomous_recovery' | 'maintenance';
+
+export interface SystemState {
+  status: SystemStatus;
+  lastSync: string;
+  activeWorkflows: number;
+}
+
+export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed' | 'retrying';
+
+export interface WorkflowNode {
   id: string;
-  title: string;
-  type: string;
-  description: string;
-  estimatedValue: string;
-  probability: number;
-  aiDeduction: string;
-  suggestedAction: string;
-  temporalSignal?: 'Rising' | 'Explosive' | 'Stable';
-  marketGapScore?: number;
+  labelAr: string;
+  labelEn: string;
+  status: NodeStatus;
+  output?: any;
+}
+
+export interface WorkflowState {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  nodes: WorkflowNode[];
+  progress: number;
+  isComplete: boolean;
 }
 
 export interface Domain {
@@ -35,14 +62,16 @@ export interface Domain {
   lastChecked?: string;
   justification?: string;
   thinkingPath?: string;
-  isSimulatedData?: boolean;
+  agentThoughts?: AgentThought[]; // سجل الحوار بين الوكلاء
   technicalMetrics?: TechnicalMetrics;
   folder?: 'Quick Flip' | 'Long Term' | 'Premium';
-  brandAssets?: {
-    logoUrl?: string;
-    primaryColor?: string;
-    tagline?: string;
-  };
+  brandAssets?: BrandAssets;
+}
+
+export interface BrandAssets {
+  logoUrl?: string;
+  primaryColor?: string;
+  tagline?: string;
 }
 
 export interface TechnicalMetrics {
@@ -68,7 +97,7 @@ export interface PlatformStats {
   avgProfit: number;
   totalSpent: number;
   estimatedPortfolioValue: number;
-  systemResilienceStatus: 'nominal' | 'degraded' | 'autonomous_recovery';
+  systemResilienceStatus: SystemStatus;
 }
 
 export interface PlatformStrategy {
@@ -79,7 +108,6 @@ export interface PlatformStrategy {
   targetROI: number;
   minHoldingPeriod: number;
   riskTolerance: string;
-  autoEvaluate: boolean;
   autoPilotMode: boolean;
   investmentThesis: string;
 }
@@ -90,6 +118,13 @@ export interface ActivityLog {
   agent: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'critical' | 'ai_thought';
+}
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'critical';
+  agent: string;
 }
 
 export interface ServiceIntegration {
@@ -117,17 +152,13 @@ export interface OutreachMessage {
   content: string;
 }
 
-export interface EvaluationResult {
-  sector: string;
-  probability: number;
-  justification: string;
-  valuationContext: string;
-  technicalMetrics?: Partial<TechnicalMetrics>;
-}
-
-export interface Notification {
+export interface NexusOpportunity {
   id: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'critical';
-  agent: string;
+  title: string;
+  type: string;
+  description: string;
+  estimatedValue: string;
+  probability: number;
+  marketGapScore: number;
+  aiDeduction: string;
 }

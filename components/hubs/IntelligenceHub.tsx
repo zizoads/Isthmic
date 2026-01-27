@@ -3,22 +3,32 @@ import React, { useState } from 'react';
 import MasterBrainDashboard from '../MasterBrainDashboard';
 import NexusPrimeDashboard from '../NexusPrimeDashboard';
 import FeedbackDashboard from '../FeedbackDashboard';
-import { PlatformStats, PlatformStrategy } from '../../types';
+import WorkflowIndicator from '../WorkflowIndicator';
+import { PlatformStats } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
+import { useMasterBrain } from '../../hooks/useMasterBrain';
 
 interface Props {
   stats: PlatformStats;
   lang: 'ar' | 'en';
-  onInitiateScan: () => void;
+  onInitiateScan: () => void; // Kept for interface compatibility but useMasterBrain is called locally
   isScanning: boolean;
 }
 
-const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
+const IntelligenceHub: React.FC<Props> = ({ stats, lang }) => {
   const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
+  const { isScanning, initiateScan, activeWorkflow } = useMasterBrain(strategy, lang);
   const [subTab, setSubTab] = useState<'strategy' | 'nexus' | 'feedback'>('strategy');
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in relative">
+      {/* Stage 2: Orchestration Overlay */}
+      {activeWorkflow && (
+        <div className="fixed bottom-10 right-10 z-[200] w-full max-w-sm px-4">
+          <WorkflowIndicator workflow={activeWorkflow} lang={lang} />
+        </div>
+      )}
+
       <div className="flex bg-accent/50 p-1 rounded-2xl border border-border w-fit mx-auto lg:mx-0">
         <button onClick={() => setSubTab('strategy')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${subTab === 'strategy' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-foreground'}`}>
           {lang === 'ar' ? 'الاستراتيجية' : 'Strategy'}
@@ -39,7 +49,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
             strategy={strategy} 
             setStrategy={setStrategy} 
             lang={lang} 
-            onInitiateScan={onInitiateScan} 
+            onInitiateScan={initiateScan} 
             isScanning={isScanning} 
           />
         )}

@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { AgentType, Domain, PlatformStats, ServiceIntegration } from './types';
+import React, { useState, useEffect } from 'react';
+import { AgentType, Domain } from './types';
 import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
@@ -12,16 +12,15 @@ import OperationsHub from './components/hubs/OperationsHub';
 import LiquidationEngine from './components/hubs/LiquidationEngine';
 import ExecutiveSuite from './components/hubs/ExecutiveSuite';
 
-// Core UI & Utility Imports
+// UI Components
 import CommandPalette from './components/CommandPalette';
 import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
 
 const AppContent: React.FC = () => {
-  // Destructure setDomains, setIntegrations and addLog from context to fix prop errors
   const { 
-    domains, setDomains, strategy, integrations, setIntegrations,
-    notifications, dismissNotification, addLog
+    domains, setDomains, strategy, integrations, stats, notifications, 
+    dismissNotification, addLog, connectService 
   } = useDomainContext();
   
   const [lang, setLang] = useState<'ar' | 'en'>(() => (localStorage.getItem('ist_lang') as 'ar' | 'en') || 'ar');
@@ -32,24 +31,6 @@ const AppContent: React.FC = () => {
 
   const { isScanning, initiateScan } = useMasterBrain(strategy, lang);
 
-  // Implementation for handleConnect to pass to ExecutiveSuite
-  const handleConnect = (id: string, key: string) => {
-    setIntegrations(prev => {
-      const exists = prev.find(i => i.id === id);
-      if (exists) {
-        return prev.map(i => i.id === id ? { ...i, status: 'connected' } : i);
-      }
-      return [...prev, { 
-        id, 
-        provider: id, 
-        status: 'connected', 
-        name: id, 
-        impactArea: 'Integration' 
-      } as ServiceIntegration];
-    });
-    addLog('System', `Connected to ${id}`, 'success');
-  };
-
   useEffect(() => {
     localStorage.setItem('ist_lang', lang);
     localStorage.setItem('ist_theme', isDark ? 'dark' : 'light');
@@ -58,23 +39,6 @@ const AppContent: React.FC = () => {
     if (isDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [lang, isDark]);
-
-  const stats: PlatformStats = useMemo(() => {
-    const purchased = domains.filter(d => d.status === 'purchased');
-    const spent = purchased.reduce((acc, d) => acc + (d.price || 0), 0);
-    const value = purchased.reduce((acc, d) => acc + (d.price ? d.price * 3.5 : 0), 0);
-    return {
-      totalDiscovered: domains.length,
-      totalPurchased: purchased.length,
-      messagesSent: 0,
-      openRate: 85,
-      repliesReceived: 0,
-      avgProfit: 250,
-      totalSpent: spent,
-      estimatedPortfolioValue: value,
-      systemResilienceStatus: integrations.length > 0 ? 'nominal' : 'degraded'
-    };
-  }, [domains, integrations]);
 
   const t = translations[lang];
 
@@ -88,10 +52,13 @@ const AppContent: React.FC = () => {
 
   return (
     <div className={`flex h-full w-full overflow-hidden transition-all duration-500 bg-background text-foreground`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <CommandPalette setActiveTab={setActiveTab} onSearchDomain={(name) => {
-        const d = domains.find(x => x.name === name);
-        if (d) setInspectedDomain(d);
-      }} />
+      <CommandPalette 
+        setActiveTab={setActiveTab} 
+        onSearchDomain={(name) => {
+          const d = domains.find(x => x.name === name);
+          if (d) setInspectedDomain(d);
+        }} 
+      />
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} onClose={() => setInspectedDomain(null)} />}
       
@@ -99,7 +66,9 @@ const AppContent: React.FC = () => {
         ${lang === 'ar' ? (isSidebarOpen ? 'translate-x-0 right-0 border-l' : 'translate-x-full right-0 border-l') : (isSidebarOpen ? 'translate-x-0 left-0 border-r' : '-translate-x-full left-0 border-r')}
       `}>
         <div className="p-8 border-b border-border flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg"><i className="fas fa-rocket text-primary-foreground"></i></div>
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+            <i className="fas fa-rocket text-primary-foreground"></i>
+          </div>
           <h1 className="text-xl font-black tracking-tighter uppercase">{t.platformName}</h1>
         </div>
         
@@ -122,7 +91,9 @@ const AppContent: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
         <header className={`h-20 border-b flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-[120] backdrop-blur-xl bg-background/80 border-border`}>
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-slate-500 w-10 h-10 border border-border rounded-xl flex items-center justify-center"><i className="fas fa-bars"></i></button>
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-slate-500 w-10 h-10 border border-border rounded-xl flex items-center justify-center">
+              <i className="fas fa-bars"></i>
+            </button>
             <h2 className="text-base lg:text-xl font-black tracking-tight uppercase tracking-tighter">
               {menuItems.find(i => i.type === activeTab)?.label}
             </h2>
@@ -173,7 +144,7 @@ const AppContent: React.FC = () => {
                 domains={domains}
                 stats={stats} 
                 integrations={integrations}
-                onConnect={handleConnect}
+                onConnect={connectService}
                 lang={lang} 
               />
             )}
