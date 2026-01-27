@@ -1,6 +1,7 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { AgentRole, AgentThought } from "../types";
+import { getAIClient, safeAICall } from "./ai/base";
 
 export class AgentEngine {
   private thoughts: AgentThought[] = [];
@@ -10,11 +11,6 @@ export class AgentEngine {
     this.onThoughtUpdate = onThoughtUpdate;
   }
 
-  private sanitizeInput(input: string): string {
-    // إزالة الرموز التي قد تستخدم لكسر سياق البرومبت
-    return input.replace(/[{}<>]/g, '').trim();
-  }
-
   private addThought(role: AgentRole, message: string, status: AgentThought['status'] = 'resolved') {
     const thought: AgentThought = {
       role,
@@ -22,97 +18,62 @@ export class AgentEngine {
       timestamp: new Date().toLocaleTimeString(),
       status
     };
-    this.thoughts = [...this.thoughts, thought];
-    this.onThoughtUpdate(this.thoughts);
+    this.thoughts = [thought, ...this.thoughts];
+    this.onThoughtUpdate([...this.thoughts]);
   }
 
-  async runMultiAgentSession(task: string, strategy: string): Promise<any> {
+  async runMultiAgentSession(task: string, strategy: string): Promise<any[]> {
     this.thoughts = [];
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    this.addThought(AgentRole.ANALYZER, "Deconstructing mission parameters...", "thinking");
     
-    const safeTask = this.sanitizeInput(task);
-    const safeStrategy = this.sanitizeInput(strategy);
-
-    this.addThought(AgentRole.ANALYZER, "Analyzing command intent and extracting parameters...", "thinking");
-    
-    // استخدام هيكل بيانات صارم لمنع الحقن
-    const analyzerResponse = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [
-        { text: "You are a professional investment analyzer. Analyze the following requirements strictly." },
-        { text: `Task Context: ${safeTask}` },
-        { text: `Strategy Framework: ${safeStrategy}` }
-      ],
-      config: { 
-        responseMimeType: "application/json", 
-        responseSchema: { 
-          type: Type.OBJECT, 
-          properties: { 
-            requirements: { type: Type.ARRAY, items: { type: Type.STRING } } 
-          },
-          required: ['requirements']
-        } 
-      }
-    });
-
-    const analyzerData = JSON.parse(analyzerResponse.text || '{"requirements":[]}');
-    const requirements = analyzerData.requirements || [];
-    this.addThought(AgentRole.ANALYZER, `Refined Requirements: ${requirements.join(", ")}`);
-
-    // Executor Phase
-    this.addThought(AgentRole.EXECUTOR, "Executing deep market search based on analyzer's protocol...", "thinking");
-    const executorResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Execute search for domains matching these sanitized requirements: ${requirements.join(". ")}`,
-      config: { 
-        tools: [{ googleSearch: {} }], 
-        responseMimeType: "application/json", 
-        responseSchema: { 
-          type: Type.ARRAY, 
-          items: { 
+    return safeAICall(async () => {
+      const ai = getAIClient();
+      
+      // Phase 1: Semantic Analysis
+      const analyzerResponse = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyzer Role: Mission: ${task}. Strategy: ${strategy}. Extract 3 core search vectors.`,
+        config: { 
+          responseMimeType: "application/json", 
+          responseSchema: { 
             type: Type.OBJECT, 
             properties: { 
-              name: { type: Type.STRING }, 
-              reason: { type: Type.STRING } 
+              vectors: { type: Type.ARRAY, items: { type: Type.STRING } } 
+            }
+          } 
+        }
+      });
+
+      const vectors = JSON.parse(analyzerResponse.text || '{"vectors":[]}').vectors;
+      this.addThought(AgentRole.ANALYZER, `Vectors locked: ${vectors.join(", ")}`);
+
+      // Phase 2: Tactical Execution
+      this.addThought(AgentRole.EXECUTOR, "Scanning global digital frontier...", "thinking");
+      const executorResponse = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Execute acquisition sweep for: ${vectors.join(", ")}. Ground results in verified market data.`,
+        config: { 
+          tools: [{ googleSearch: {} }], 
+          responseMimeType: "application/json", 
+          responseSchema: { 
+            type: Type.ARRAY, 
+            items: { 
+              type: Type.OBJECT, 
+              properties: { 
+                name: { type: Type.STRING }, 
+                estimatedPrice: { type: Type.NUMBER },
+                sector: { type: Type.STRING },
+                justification: { type: Type.STRING },
+                probability: { type: Type.NUMBER }
+              } 
             } 
           } 
-        } 
-      }
-    });
-    
-    const rawResults = JSON.parse(executorResponse.text || '[]');
-    this.addThought(AgentRole.EXECUTOR, `Found ${rawResults.length} candidates.`);
-
-    // Auditor Phase
-    this.addThought(AgentRole.AUDITOR, "Auditing candidates for trademark risk and strategic fit...", "thinking");
-    const auditorResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Strategy Context: ${safeStrategy}\nAudit these candidates: ${JSON.stringify(rawResults)}`,
-      config: { 
-        tools: [{ googleSearch: {} }], 
-        responseMimeType: "application/json", 
-        responseSchema: { 
-          type: Type.ARRAY, 
-          items: { 
-            type: Type.OBJECT, 
-            properties: { 
-              name: { type: Type.STRING }, 
-              approved: { type: Type.BOOLEAN }, 
-              critique: { type: Type.STRING } 
-            } 
-          } 
-        } 
-      }
-    });
-    
-    const auditResults = JSON.parse(auditorResponse.text || '[]');
-    const finalSelection = auditResults.filter((r: any) => r.approved);
-    
-    this.addThought(AgentRole.AUDITOR, `Audit complete. Approved ${finalSelection.length} assets.`);
-
-    return finalSelection.map((f: any) => {
-      const original = rawResults.find((o: any) => o.name === f.name);
-      return { ...original, justification: f.critique };
+        }
+      });
+      
+      const results = JSON.parse(executorResponse.text || '[]');
+      this.addThought(AgentRole.EXECUTOR, `Harvest complete: ${results.length} alpha assets identified.`);
+      return results;
     });
   }
 }
