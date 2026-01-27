@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Domain, PlatformStrategy, ServiceIntegration } from '../types';
+import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification } from '../types';
 
 interface DomainContextType {
   domains: Domain[];
@@ -8,6 +9,10 @@ interface DomainContextType {
   setStrategy: React.Dispatch<React.SetStateAction<PlatformStrategy>>;
   integrations: ServiceIntegration[];
   setIntegrations: React.Dispatch<React.SetStateAction<ServiceIntegration[]>>;
+  activityLogs: ActivityLog[];
+  notifications: Notification[];
+  addLog: (agent: string, message: string, type?: ActivityLog['type']) => void;
+  dismissNotification: (id: string) => void;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -22,6 +27,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const saved = localStorage.getItem('ist_integrations');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
     const saved = localStorage.getItem('ist_strategy');
@@ -39,6 +47,31 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   });
 
+  // addLog implementation with refined notification logic to avoid type mismatches
+  const addLog = useCallback((agent: string, message: string, type: ActivityLog['type'] = 'info') => {
+    const newLog: ActivityLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      time: new Date().toLocaleTimeString(),
+      agent,
+      message,
+      type
+    };
+    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+    
+    // Only show notifications for success, warning, or critical types to avoid type mismatch on ai_thought
+    if (type === 'success' || type === 'warning' || type === 'critical') {
+      const notification: Notification = { id: newLog.id, agent, message, type };
+      setNotifications(prev => [...prev, notification]);
+      setTimeout(() => {
+        setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      }, 6000);
+    }
+  }, []);
+
+  const dismissNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('ist_domains', JSON.stringify(domains));
     localStorage.setItem('ist_strategy', JSON.stringify(strategy));
@@ -46,7 +79,12 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [domains, strategy, integrations]);
 
   return (
-    <DomainContext.Provider value={{ domains, setDomains, strategy, setStrategy, integrations, setIntegrations }}>
+    <DomainContext.Provider value={{ 
+      domains, setDomains, 
+      strategy, setStrategy, 
+      integrations, setIntegrations,
+      activityLogs, notifications, addLog, dismissNotification
+    }}>
       {children}
     </DomainContext.Provider>
   );

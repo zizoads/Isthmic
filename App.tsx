@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { AgentType, Domain, PlatformStats, ActivityLog, ServiceIntegration } from './types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AgentType, Domain, PlatformStats, ServiceIntegration } from './types';
 import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
@@ -18,47 +18,36 @@ import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
 
 const AppContent: React.FC = () => {
-  const { domains, setDomains, strategy, setStrategy, integrations, setIntegrations } = useDomainContext();
+  // Destructure setDomains, setIntegrations and addLog from context to fix prop errors
+  const { 
+    domains, setDomains, strategy, integrations, setIntegrations,
+    notifications, dismissNotification, addLog
+  } = useDomainContext();
+  
   const [lang, setLang] = useState<'ar' | 'en'>(() => (localStorage.getItem('ist_lang') as 'ar' | 'en') || 'ar');
   const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('ist_theme') !== 'light');
   const [activeTab, setActiveTab] = useState<AgentType>(AgentType.INTELLIGENCE);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
 
-  const addLog = useCallback((agent: string, message: string, type: ActivityLog['type'] = 'info') => {
-    const newLog: ActivityLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      time: new Date().toLocaleTimeString(),
-      agent,
-      message,
-      type
-    };
-    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
-    if (type !== 'info') {
-      const notification = { id: newLog.id, agent, message, type };
-      setNotifications(prev => [...prev, notification]);
-      setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== notification.id)), 6000);
-    }
-  }, []);
+  const { isScanning, initiateScan } = useMasterBrain(strategy, lang);
 
-  const { isScanning, initiateScan } = useMasterBrain(strategy, lang, setDomains, addLog);
-
-  const handleConnectIntegration = (toolId: string, apiKey: string) => {
-    const toolMap: Record<string, string> = {
-      'nb-1': 'namebio', 'hi-1': 'hunter', 'mz-1': 'moz', 'tr-1': 'wipo', 'es-1': 'escrow'
-    };
-    const provider = toolMap[toolId] || 'unknown';
-    const newIntegration: ServiceIntegration = {
-      id: toolId,
-      name: provider.toUpperCase(),
-      provider: provider,
-      status: 'connected',
-      impactArea: 'Full System Access'
-    };
-    setIntegrations(prev => [...prev.filter(i => i.id !== toolId), newIntegration]);
-    addLog('Integration Center', `${provider.toUpperCase()} connected successfully.`, 'success');
+  // Implementation for handleConnect to pass to ExecutiveSuite
+  const handleConnect = (id: string, key: string) => {
+    setIntegrations(prev => {
+      const exists = prev.find(i => i.id === id);
+      if (exists) {
+        return prev.map(i => i.id === id ? { ...i, status: 'connected' } : i);
+      }
+      return [...prev, { 
+        id, 
+        provider: id, 
+        status: 'connected', 
+        name: id, 
+        impactArea: 'Integration' 
+      } as ServiceIntegration];
+    });
+    addLog('System', `Connected to ${id}`, 'success');
   };
 
   useEffect(() => {
@@ -99,7 +88,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className={`flex h-full w-full overflow-hidden transition-all duration-500 bg-background text-foreground`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <CommandPalette domains={domains} setActiveTab={setActiveTab} onSearchDomain={(name) => {
+      <CommandPalette setActiveTab={setActiveTab} onSearchDomain={(name) => {
         const d = domains.find(x => x.name === name);
         if (d) setInspectedDomain(d);
       }} />
@@ -151,44 +140,40 @@ const AppContent: React.FC = () => {
             {activeTab === AgentType.INTELLIGENCE && (
               <IntelligenceHub 
                 stats={stats} 
-                activityLogs={activityLogs} 
-                strategy={strategy} 
-                setStrategy={setStrategy} 
                 lang={lang} 
                 onInitiateScan={initiateScan} 
                 isScanning={isScanning} 
-                domains={domains}
               />
             )}
             {activeTab === AgentType.ACQUISITION && (
               <AcquisitionDesk 
-                domains={domains} 
-                setDomains={setDomains} 
-                addLog={addLog} 
+                domains={domains}
+                setDomains={setDomains}
+                addLog={addLog}
                 lang={lang} 
               />
             )}
             {activeTab === AgentType.OPERATIONS && (
               <OperationsHub 
-                domains={domains} 
-                setDomains={setDomains} 
+                domains={domains}
+                setDomains={setDomains}
                 onInspect={setInspectedDomain} 
                 lang={lang} 
               />
             )}
             {activeTab === AgentType.LIQUIDATION && (
               <LiquidationEngine 
-                domains={domains} 
-                setDomains={setDomains} 
+                domains={domains}
+                setDomains={setDomains}
                 lang={lang} 
               />
             )}
             {activeTab === AgentType.MANAGEMENT && (
               <ExecutiveSuite 
-                domains={domains} 
+                domains={domains}
                 stats={stats} 
-                integrations={integrations} 
-                onConnect={handleConnectIntegration} 
+                integrations={integrations}
+                onConnect={handleConnect}
                 lang={lang} 
               />
             )}
@@ -196,7 +181,7 @@ const AppContent: React.FC = () => {
         </div>
       </main>
       
-      <SonnerNotification notifications={notifications} onDismiss={(id) => setNotifications(prev => prev.filter(n => n.id !== id))} />
+      <SonnerNotification notifications={notifications} onDismiss={dismissNotification} />
     </div>
   );
 };

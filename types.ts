@@ -124,3 +124,10 @@ export interface EvaluationResult {
   valuationContext: string;
   technicalMetrics?: Partial<TechnicalMetrics>;
 }
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'critical';
+  agent: string;
+}

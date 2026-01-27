@@ -3,20 +3,18 @@ import React, { useState } from 'react';
 import MasterBrainDashboard from '../MasterBrainDashboard';
 import NexusPrimeDashboard from '../NexusPrimeDashboard';
 import FeedbackDashboard from '../FeedbackDashboard';
-import { AgentType, PlatformStats, ActivityLog, PlatformStrategy, Domain } from '../../types';
+import { PlatformStats, PlatformStrategy } from '../../types';
+import { useDomainContext } from '../../context/DomainContext';
 
 interface Props {
   stats: PlatformStats;
-  activityLogs: ActivityLog[];
-  strategy: PlatformStrategy;
-  setStrategy: React.Dispatch<React.SetStateAction<PlatformStrategy>>;
   lang: 'ar' | 'en';
   onInitiateScan: () => void;
   isScanning: boolean;
-  domains: Domain[];
 }
 
-const IntelligenceHub: React.FC<Props> = ({ stats, activityLogs, strategy, setStrategy, lang, onInitiateScan, isScanning, domains }) => {
+const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
+  const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'strategy' | 'nexus' | 'feedback'>('strategy');
 
   return (
@@ -47,9 +45,9 @@ const IntelligenceHub: React.FC<Props> = ({ stats, activityLogs, strategy, setSt
         )}
         {subTab === 'nexus' && (
           <NexusPrimeDashboard 
-            addLog={(a, m, t) => {}} 
-            setDomains={() => {}} 
             lang={lang} 
+            addLog={addLog}
+            setDomains={setDomains}
           />
         )}
         {subTab === 'feedback' && (

@@ -1,13 +1,14 @@
+
 import { useState, useCallback } from 'react';
 import { Domain, PlatformStrategy } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
+import { useDomainContext } from '../context/DomainContext';
 
 export const useMasterBrain = (
   strategy: PlatformStrategy, 
-  lang: 'ar' | 'en',
-  setDomains: React.Dispatch<React.SetStateAction<Domain[]>>,
-  addLog: (agent: string, message: string, type?: any) => void
+  lang: 'ar' | 'en'
 ) => {
+  const { setDomains, addLog } = useDomainContext();
   const [isScanning, setIsScanning] = useState(false);
 
   const initiateScan = useCallback(async () => {
