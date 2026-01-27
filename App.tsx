@@ -4,6 +4,7 @@ import { AgentType, Domain, PlatformStats, PlatformStrategy, ActivityLog } from 
 import { translations } from './translations';
 import DiscoveryDashboard from './components/DiscoveryDashboard';
 import EvaluationDashboard from './components/EvaluationDashboard';
+import PurchaseDashboard from './components/PurchaseDashboard';
 import MasterBrainDashboard from './components/MasterBrainDashboard';
 import PortfolioManager from './components/PortfolioManager';
 import ExecutiveReportDashboard from './components/ExecutiveReportDashboard';
@@ -69,7 +70,7 @@ const App: React.FC = () => {
       setNotifications(prev => [...prev, notification]);
       setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== notification.id)), 6000);
     }
-  }, []);
+  }, [lang]);
 
   const handleInitiateGlobalScan = async () => {
     if (!strategy.investmentThesis) {
@@ -146,6 +147,7 @@ const App: React.FC = () => {
       items: [
         { type: AgentType.DISCOVERY, icon: 'fa-search', label: t.discovery },
         { type: AgentType.EVALUATION, icon: 'fa-gavel', label: t.evaluation },
+        { type: AgentType.PURCHASE, icon: 'fa-shopping-cart', label: lang === 'ar' ? 'تنفيذ الشراء' : 'Purchase Action' },
         { type: AgentType.DROP_SNIPER, icon: 'fa-crosshairs', label: t.dropSniper },
       ]
     },
@@ -261,6 +263,7 @@ const App: React.FC = () => {
             {activeTab === AgentType.FEEDBACK && <FeedbackDashboard domains={domains} stats={stats} />}
             {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
             {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
+            {activeTab === AgentType.PURCHASE && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
             {activeTab === AgentType.DROP_SNIPER && <DropSniperDashboard />}
             {activeTab === AgentType.PIPELINE && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
             {activeTab === AgentType.PORTFOLIO && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}

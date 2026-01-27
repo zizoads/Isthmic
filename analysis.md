@@ -1,28 +1,39 @@
-# System Analysis - Isthmic Pro
 
-## SECTION 1: Observed Code Functionality
-- **Multi-Agent Orchestration**: Managed via `activeTab` state in `App.tsx` (lines 35, 137-172) utilizing `AgentType` enum from `types.ts` (lines 1-18).
-- **AI-Native Discovery**: Implemented in `services/geminiService.ts` via `rigorousDiscoveryAI` (lines 88-118) using `gemini-3-pro-preview` and `googleSearch`.
-- **Forensic Audit Logic**: Code found in `components/EvaluationDashboard.tsx` (lines 28-65) calling `evaluateDomainExpertAI` and `checkTrademarkRiskAI` from `services/geminiService.ts`.
-- **State Persistence**: Exclusively using `localStorage` for `domains` and `strategy` in `App.tsx` (lines 42-45, 50-63, 102-109).
-- **Brand Synthesis**: Visual logic defined in `services/geminiService.ts` (lines 11-53) using a two-step prompt for `gemini-3-pro-preview` and `gemini-2.5-flash-image`.
+# System Analysis - Isthmic Pro (Executive Audit)
 
-## SECTION 2: Mismatches with README Claims
-- **Resilience Protocol**: README claims "Resilience Protocol", but `App.tsx` (line 123) only provides a static status `'nominal'` without actual self-healing logic.
-- **Fast Transfer Eligibility**: UI in `MarketplaceDashboard.tsx` (line 72) shows "Fast Transfer Eligible", but there is no underlying API check against registrar databases.
-- **DNA Forensics**: README mentions deep DNA forensics, but code in `AgentReasoningLab.tsx` (lines 43-60) merely splits a string thinking path rather than performing technical DNS/whois parsing.
+## SECTION 1: Strategic Component Mapping
+Each component in the `components/` directory is mapped to a specific industrial domainer layer.
 
-## SECTION 3: Gaps in Implementation
-- **Feedback Loop**: `FeedbackDashboard.tsx` exists but is disconnected from the actual `systemInstruction` used in `geminiService.ts`.
-- **Database Backend**: Lack of remote persistence; loss of `localStorage` equals total loss of portfolio.
-- **Error Handling**: `App.tsx` (line 97) catches scan failures with a simple log, lacking retry logic or partial success recovery.
+| Component | Layer | Purpose | Code Reference |
+| :--- | :--- | :--- | :--- |
+| `MasterBrainDashboard` | Intelligence | Strategic "Commander's Intent" and Global Sweep control. | `MasterBrainDashboard.tsx:30` |
+| `NexusPrimeDashboard` | Intelligence | High-level forecasting and market gap synthesis. | `NexusPrimeDashboard.tsx:25` |
+| `FeedbackDashboard` | Intelligence | Human-in-the-loop AI training and decision calibration. | `FeedbackDashboard.tsx:12` |
+| `DiscoveryDashboard` | Acquisition | Grounded AI market search for .com assets. | `DiscoveryDashboard.tsx:24` |
+| `EvaluationDashboard` | Acquisition | Forensic auditing for trademarks and valuation. | `EvaluationDashboard.tsx:28` |
+| `PurchaseDashboard` | Acquisition | Acquisition execution via registrar redirects and status tracking. | `PurchaseDashboard.tsx:16` |
+| `DropSniperDashboard` | Acquisition | Live monitoring and analysis of pending-delete domains. | `DropSniperDashboard.tsx:18` |
+| `PipelineDashboard` | Operations | Kanban-style asset flow management and status logic. | `PipelineDashboard.tsx:22` |
+| `PortfolioManager` | Operations | Brand DNA generation and visual asset engineering. | `PortfolioManager.tsx:20` |
+| `ValueProofDashboard` | Operations | Business logic and landing page proof-of-concept synthesis. | `ValueProofDashboard.tsx:12` |
+| `ValueMultiplierDashboard` | Operations | Lead-gen revenue modeling and corporate synergy audits. | `ValueMultiplierDashboard.tsx:15` |
+| `MarketplaceDashboard` | Liquidation | Afternic/GoDaddy listing optimization and search snippets. | `MarketplaceDashboard.tsx:15` |
+| `MessagingDashboard` | Liquidation | Automated corporate prospecting and persona-based pitches. | `MessagingDashboard.tsx:12` |
+| `NegotiationDashboard` | Liquidation | AI "Battle Card" analysis of buyer sentiment and tactics. | `NegotiationDashboard.tsx:15` |
+| `AuctionWatchDashboard` | Market Monitor | Real-time liquidity heatmap and confirmed sales ticker. | `AuctionWatchDashboard.tsx:15` |
+| `ExecutiveReportDashboard` | Management | C-Suite portfolio reporting and capital efficiency metrics. | `ExecutiveReportDashboard.tsx:18` |
 
-## SECTION 4: Required Features
-- **Dynamic Context Injection**: Ability to pass approval/rejection results from `FeedbackDashboard` into future discovery prompts.
-- **Real-time Collaboration**: WebSocket integration for multi-user portfolio management.
-- **Native Registrar Purchase**: Direct API integration with Namecheap/GoDaddy (current code uses external link redirects, e.g., `PurchaseDashboard.tsx:16`).
+## SECTION 2: Verified Code Implementation vs README Claims
+- **Claim**: "Multi-agent AI for discovery". **Verified**: `rigorousDiscoveryAI` uses `googleSearch` tool in `geminiService.ts:88`.
+- **Claim**: "Forensic Valuation". **Verified**: `checkTrademarkRiskAI` implements grounded search in `geminiService.ts:168`.
+- **Claim**: "Brand DNA Synthesis". **Verified**: Two-stage logic in `generateBrandIdentityAI` using `gemini-3-pro-preview` for strategy and `gemini-2.5-flash-image` for visuals.
 
-## SECTION 5: Assumptions with Code References
-- **API Availability**: Assumes `process.env.API_KEY` is pre-injected (Reference: `services/geminiService.ts:6`).
-- **Browser Environment**: Assumes `localStorage` is not blocked by privacy settings (Reference: `App.tsx:42`).
-- **Language Support**: Assumes translations are exhaustive in `translations.ts` (Reference: `App.tsx:34`).
+## SECTION 3: Identified Gaps & Risk Assessment
+- **Gap**: Integration with external registrars (Namecheap/GoDaddy) is currently UI-only (redirects). **Risk**: High operational friction for bulk buys.
+- **Gap**: Feedback Loop in `FeedbackDashboard` stores state locally but doesn't persist to a global "System Instruction" for Gemini. **Risk**: Agents don't actually "learn" across sessions.
+- **Gap**: Multi-modality is used, but Audio Agent (Gemini 2.5 TTS) is not yet integrated into the `NegotiationDashboard` for buyer calls.
+
+## SECTION 4: Required Features for Version 2.0
+1. **Live API Audio Connection**: Real-time negotiation via voice using Gemini Live.
+2. **Persistent SQL Database**: Move beyond `localStorage` for enterprise portfolio scaling.
+3. **Automated Registrar API**: One-click acquisition via API instead of URL redirects.

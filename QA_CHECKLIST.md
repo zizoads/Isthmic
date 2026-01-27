@@ -1,20 +1,25 @@
-# QA Checklist - Enterprise Standards
 
-## 1. Code Standards
-- [ ] No `any` types in `types.ts` or `services/geminiService.ts`.
-- [ ] All components use `React.FC` with explicit interfaces (Ref: `App.tsx:32`).
-- [ ] 100% RTL/LTR compliance checked via `document.documentElement.dir`.
+# QA Production Checklist
 
-## 2. Performance
-- [ ] `DiscoveryDashboard` search results render within 500ms of API response.
-- [ ] `App.tsx` bundle size < 500KB (Gzipped).
-- [ ] Dashboard switching delay < 50ms.
+## 1. Technical Integrity
+- [ ] **Type Safety**: No `any` used in `geminiService.ts` or `App.tsx`.
+- [ ] **API Security**: `process.env.API_KEY` is not exposed in source maps or logs.
+- [ ] **State Persistence**: `localStorage` handles schema versioning (no crashes on older data).
+- [ ] **Error Handling**: `DiscoveryDashboard` handles `AbortController` signal correctly when user cancels mission.
 
-## 3. Security
-- [ ] `process.env.API_KEY` not visible in Chrome DevTools Network Tab as cleartext.
-- [ ] `localStorage` sanitized before parsing to prevent XSS.
-- [ ] All external links in `PurchaseDashboard.tsx` use `target="_blank" rel="noopener noreferrer"`.
+## 2. Performance Benchmarks
+- [ ] **Initial Load**: Dashboard interactive within < 1.5s.
+- [ ] **AI Latency**: Discovery results returned within < 15s (Google Search Grounding threshold).
+- [ ] **Image Generation**: Logo synthesized within < 10s.
+- [ ] **Smooth Scroll**: Pipeline scroll snapping works on mobile devices.
 
-## 4. UI/UX
-- [ ] Dark mode contrast ratios meet WCAG AA (checked in `index.html`).
-- [ ] Mobile sidebar (Ref: `App.tsx:137`) is swipable.
+## 3. UI/UX & Aesthetics
+- [ ] **RTL Compliance**: All text aligned correctly in Arabic mode (check `App.tsx` dir prop).
+- [ ] **Dark Mode**: Contrast ratios meet WCAG AA standards (checked via index.html styling).
+- [ ] **Command Palette**: `Ctrl+K` triggers correctly and searches all 16 agents.
+- [ ] **Responsive**: Sidebar collapses correctly on screens < 1024px.
+
+## 4. AI Verification
+- [ ] **Groundedness**: All `googleSearch` responses show citation links in `AgentReasoningLab`.
+- [ ] **JSON Validity**: `geminiService.ts` correctly parses all `responseSchema` responses.
+- [ ] **Multi-Modality**: `gemini-2.5-flash-image` output displayed as valid Base64 string.

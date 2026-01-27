@@ -1,19 +1,31 @@
-# Deployment Guide
 
-## 1. Local Environment
-- Install Node.js v18+.
-- Run `npm install`.
-- Start dev server: `npm run dev`.
+# Production Deployment Guide
 
-## 2. Environment Variables
-- `API_KEY`: Required. Google AI Studio API Key.
-- `VITE_APP_STAGE`: Optional (development/production).
+## 1. Local Verification
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
 
-## 3. Vercel Deployment
-1. Import GitHub repository.
-2. Under **Environment Variables**, add `API_KEY`.
-3. Build Command: `npm run build`.
-4. Output Directory: `dist` (if using Vite).
+# Type Check
+npm run lint
 
-## 4. Maintenance
-- Clear `localStorage` via browser console if schema in `types.ts` changes: `localStorage.removeItem('ist_domains');`.
+# Build Verification
+npm run build
+```
+
+## 2. Environment Variables (Required)
+- `API_KEY`: Industrial-grade Google GenAI Key.
+
+## 3. Vercel / Netlify Settings
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Root Directory**: `./`
+
+## 4. Post-Deployment Audit
+1. Access URL.
+2. Toggle Dark Mode.
+3. Switch Language to Arabic.
+4. Open Command Palette (`Ctrl+K`).
+5. Run one "Master Brain Scan" to verify API and Google Search Grounding.
+6. Verify "Brand DNA" generation creates a logo image.
