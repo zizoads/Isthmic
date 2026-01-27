@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { AgentType, Domain, PlatformStats, PlatformStrategy, ActivityLog } from './types';
+import { AgentType, Domain, PlatformStats, PlatformStrategy, ActivityLog, ServiceIntegration } from './types';
 import { translations } from './translations';
 import DiscoveryDashboard from './components/DiscoveryDashboard';
 import EvaluationDashboard from './components/EvaluationDashboard';
@@ -38,6 +38,11 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [integrations, setIntegrations] = useState<ServiceIntegration[]>(() => {
+    const saved = localStorage.getItem('ist_integrations');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
     const saved = localStorage.getItem('ist_strategy');
     return saved ? JSON.parse(saved) : {
@@ -71,6 +76,32 @@ const App: React.FC = () => {
       setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== notification.id)), 6000);
     }
   }, [lang]);
+
+  const handleConnectIntegration = (toolId: string, apiKey: string) => {
+    const toolMap: Record<string, string> = {
+      'nb-1': 'namebio',
+      'hi-1': 'hunter',
+      'mz-1': 'moz',
+      'tr-1': 'wipo',
+      'es-1': 'escrow'
+    };
+    
+    const provider = toolMap[toolId] || 'unknown';
+    const newIntegration: ServiceIntegration = {
+      id: toolId,
+      name: provider.toUpperCase(),
+      provider: provider,
+      status: 'connected',
+      impactArea: 'Full System Access'
+    };
+
+    setIntegrations(prev => {
+      const filtered = prev.filter(i => i.id !== toolId);
+      return [...filtered, newIntegration];
+    });
+    
+    addLog('Integration Center', `${provider.toUpperCase()} connected successfully.`, 'success');
+  };
 
   const handleInitiateGlobalScan = async () => {
     if (!strategy.investmentThesis) {
@@ -106,13 +137,14 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('ist_domains', JSON.stringify(domains));
     localStorage.setItem('ist_strategy', JSON.stringify(strategy));
+    localStorage.setItem('ist_integrations', JSON.stringify(integrations));
     localStorage.setItem('ist_lang', lang);
     localStorage.setItem('ist_theme', isDark ? 'dark' : 'light');
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
     if (isDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
-  }, [domains, strategy, lang, isDark]);
+  }, [domains, strategy, integrations, lang, isDark]);
 
   const stats: PlatformStats = useMemo(() => {
     const purchased = domains.filter(d => d.status === 'purchased');
@@ -127,9 +159,9 @@ const App: React.FC = () => {
       avgProfit: 250,
       totalSpent: spent,
       estimatedPortfolioValue: value,
-      systemResilienceStatus: 'nominal'
+      systemResilienceStatus: integrations.length > 0 ? 'nominal' : 'degraded'
     };
-  }, [domains]);
+  }, [domains, integrations]);
 
   const t = translations[lang];
 
@@ -274,7 +306,7 @@ const App: React.FC = () => {
             {activeTab === AgentType.MARKETPLACE && <MarketplaceDashboard domains={domains} />}
             {activeTab === AgentType.AUCTION_WATCH && <AuctionWatchDashboard domains={domains} />}
             {activeTab === AgentType.EXECUTIVE && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
-            {activeTab === AgentType.INTEGRATIONS && <IntegrationCenter integrations={[]} onConnect={() => {}} lang={lang} />}
+            {activeTab === AgentType.INTEGRATIONS && <IntegrationCenter integrations={integrations} onConnect={handleConnectIntegration} lang={lang} />}
           </div>
         </div>
       </main>
