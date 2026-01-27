@@ -2,8 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AgentRole, AgentThought } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export class AgentEngine {
   private thoughts: AgentThought[] = [];
   private onThoughtUpdate: (thoughts: AgentThought[]) => void;
@@ -23,35 +21,74 @@ export class AgentEngine {
     this.onThoughtUpdate(this.thoughts);
   }
 
+  // Executes a multi-agent reasoning session to discover and audit strategic domain assets.
   async runMultiAgentSession(task: string, strategy: string): Promise<any> {
     this.thoughts = [];
+    // Initialize GoogleGenAI inside the method to ensure it uses the most current API key.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    // 1. Analyzer Phase
+    // 1. Analyzer Phase: Extract requirements from the strategy and task.
     this.addThought(AgentRole.ANALYZER, "Analyzing command intent and extracting parameters...", "thinking");
     const analyzerResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Task: ${task}\nStrategy: ${strategy}\nExtract key domain research requirements.`,
-      config: { responseMimeType: "application/json", responseSchema: { type: Type.OBJECT, properties: { requirements: { type: Type.ARRAY, items: { type: Type.STRING } } } } }
+      config: { 
+        responseMimeType: "application/json", 
+        responseSchema: { 
+          type: Type.OBJECT, 
+          properties: { 
+            requirements: { type: Type.ARRAY, items: { type: Type.STRING } } 
+          } 
+        } 
+      }
     });
-    const requirements = JSON.parse(analyzerResponse.text || '{}').requirements;
+    const analyzerData = JSON.parse(analyzerResponse.text || '{}');
+    const requirements = analyzerData.requirements || [];
     this.addThought(AgentRole.ANALYZER, `Refined Requirements: ${requirements.join(", ")}`);
 
-    // 2. Executor Phase
+    // 2. Executor Phase: Perform market search using grounding tools.
     this.addThought(AgentRole.EXECUTOR, "Executing deep market search based on analyzer's protocol...", "thinking");
     const executorResponse = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Execute search for domains matching these requirements: ${requirements.join(". ")}`,
-      config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json", responseSchema: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, reason: { type: Type.STRING } } } } }
+      config: { 
+        tools: [{ googleSearch: {} }], 
+        responseMimeType: "application/json", 
+        responseSchema: { 
+          type: Type.ARRAY, 
+          items: { 
+            type: Type.OBJECT, 
+            properties: { 
+              name: { type: Type.STRING }, 
+              reason: { type: Type.STRING } 
+            } 
+          } 
+        } 
+      }
     });
     const rawResults = JSON.parse(executorResponse.text || '[]');
     this.addThought(AgentRole.EXECUTOR, `Found ${rawResults.length} candidates.`);
 
-    // 3. Auditor Phase
+    // 3. Auditor Phase: Filter candidates based on risks and strategic fit.
     this.addThought(AgentRole.AUDITOR, "Auditing candidates for trademark risk and strategic fit...", "thinking");
     const auditorResponse = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Strategy: ${strategy}\nAudit these candidates: ${JSON.stringify(rawResults)}\nReject any with high trademark risk or low ROI.`,
-      config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json", responseSchema: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, approved: { type: Type.BOOLEAN }, critique: { type: Type.STRING } } } } }
+      config: { 
+        tools: [{ googleSearch: {} }], 
+        responseMimeType: "application/json", 
+        responseSchema: { 
+          type: Type.ARRAY, 
+          items: { 
+            type: Type.OBJECT, 
+            properties: { 
+              name: { type: Type.STRING }, 
+              approved: { type: Type.BOOLEAN }, 
+              critique: { type: Type.STRING } 
+            } 
+          } 
+        } 
+      }
     });
     const auditResults = JSON.parse(auditorResponse.text || '[]');
     

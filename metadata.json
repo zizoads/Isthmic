@@ -3,6 +3,7 @@
   "description": "The elite industrial-grade domain management suite. Multi-agent AI for discovery, forensic valuation, and executive liquidation of digital assets.",
   "requestFramePermissions": [
     "camera",
-    "microphone"
+    "microphone",
+    "geolocation"
   ]
 }
