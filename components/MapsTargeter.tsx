@@ -14,7 +14,7 @@ const MapsTargeter: React.FC<Props> = ({ lang }) => {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      // Attempt to get user location
+      // محاولة الحصول على موقع المستخدم الجغرافي
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const res = await findLocalBuyersAI(query, pos.coords.latitude, pos.coords.longitude);
@@ -22,6 +22,7 @@ const MapsTargeter: React.FC<Props> = ({ lang }) => {
           setLoading(false);
         },
         async () => {
+          // في حال رفض الموقع، يتم البحث العام
           const res = await findLocalBuyersAI(query);
           setResults(res);
           setLoading(false);
@@ -44,7 +45,7 @@ const MapsTargeter: React.FC<Props> = ({ lang }) => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder={lang === 'ar' ? 'أدخل اسم النطاق أو النيش...' : 'Enter domain name or niche...'}
+              placeholder={lang === 'ar' ? 'أدخل اسم النطاق أو النيش (مثال: "مطعم بيتزا")...' : 'Enter domain or niche (e.g. "Pizza restaurant")...'}
             />
             <button 
               onClick={handleSearch}
@@ -71,7 +72,7 @@ const MapsTargeter: React.FC<Props> = ({ lang }) => {
 
           <div className="bg-background border border-border p-8 rounded-[40px] shadow-sm">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">
-              {lang === 'ar' ? 'المصادر والخرائط' : 'Sources & Maps'}
+              {lang === 'ar' ? 'المصادر والخرائط المستخرجة' : 'Extracted Maps Sources'}
             </h4>
             <div className="space-y-4">
               {results.sources.map((chunk: any, i: number) => (
@@ -96,7 +97,7 @@ const MapsTargeter: React.FC<Props> = ({ lang }) => {
               {results.sources.length === 0 && (
                 <div className="py-20 text-center opacity-20">
                   <i className="fas fa-ghost text-4xl mb-2"></i>
-                  <p className="text-[10px] font-black uppercase tracking-widest">{lang === 'ar' ? 'لم يتم العثور على مصادر خرائط' : 'No map sources found'}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest">{lang === 'ar' ? 'لم يتم العثور على مصادر خرائط حالياً' : 'No map sources found'}</p>
                 </div>
               )}
             </div>

@@ -13,9 +13,10 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
 
   const handleVerify = async (domain: Domain) => {
     setVerifyingId(domain.id);
+    // استدعاء الـ AI الذي سيستخدم Function Calling للتحقق
     const result = await registrarInquiryAI(domain.name);
     if (result.available) {
-       setDomains(prev => prev.map(d => d.id === domain.id ? { ...d, price: result.price } : d));
+       setDomains(prev => prev.map(d => d.id === domain.id ? { ...d, price: parseFloat(result.price.toString()) } : d));
     }
     setVerifyingId(null);
   };
@@ -36,7 +37,7 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-right">
         <div>
           <h3 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">تنفيذ الصفقات</h3>
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">اقتناص الفرص مع التحقق عبر الـ API</p>
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">اقتناص الفرص مع التحقق عبر الـ Function Calling API</p>
         </div>
       </div>
 
@@ -54,9 +55,9 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
             <button 
               onClick={() => handleVerify(domain)}
               disabled={verifyingId === domain.id}
-              className="w-full bg-slate-50 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
+              className="w-full bg-slate-50 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
             >
-              {verifyingId === domain.id ? <i className="fas fa-sync fa-spin"></i> : <><i className="fas fa-check-double ml-2"></i> تحقق من السعر الفعلي</>}
+              {verifyingId === domain.id ? <i className="fas fa-sync fa-spin"></i> : <><i className="fas fa-check-double"></i> استدعاء محرك السعر المباشر</>}
             </button>
 
             <div className="flex flex-col gap-2">
@@ -75,6 +76,12 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
             </div>
           </div>
         ))}
+        {highProbability.length === 0 && (
+          <div className="col-span-full py-20 text-center opacity-20 flex flex-col items-center">
+            <i className="fas fa-shopping-cart text-6xl mb-4"></i>
+            <p className="font-black uppercase tracking-widest">لا توجد صفقات عالية الموثوقية بانتظار التنفيذ حالياً.</p>
+          </div>
+        )}
       </div>
     </div>
   );

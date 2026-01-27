@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import DiscoveryDashboard from '../DiscoveryDashboard';
-import EvaluationDashboard from '../EvaluationDashboard';
-import DropSniperDashboard from '../DropSniperDashboard';
-import PurchaseDashboard from '../PurchaseDashboard';
-import MapsTargeter from '../MapsTargeter';
-import { Domain } from '../../types';
+import DiscoveryDashboard from './DiscoveryDashboard';
+import EvaluationDashboard from './EvaluationDashboard';
+import DropSniperDashboard from './DropSniperDashboard';
+import PurchaseDashboard from './PurchaseDashboard';
+import MapsTargeter from './MapsTargeter';
+import { Domain } from '../types';
 
 interface Props {
   domains: Domain[];
