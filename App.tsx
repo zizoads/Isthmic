@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AgentType, Domain } from './types';
 import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
@@ -16,6 +16,7 @@ import ExecutiveSuite from './components/hubs/ExecutiveSuite';
 import CommandPalette from './components/CommandPalette';
 import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
+import TickerTape from './components/TickerTape';
 
 const AppContent: React.FC = () => {
   const { 
@@ -31,23 +32,46 @@ const AppContent: React.FC = () => {
 
   const { isScanning, initiateScan } = useMasterBrain(strategy, lang);
 
+  // Global Hotkeys System
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.altKey) {
+      switch (e.key) {
+        case '1': setActiveTab(AgentType.INTELLIGENCE); break;
+        case '2': setActiveTab(AgentType.ACQUISITION); break;
+        case '3': setActiveTab(AgentType.OPERATIONS); break;
+        case '4': setActiveTab(AgentType.LIQUIDATION); break;
+        case '5': setActiveTab(AgentType.MANAGEMENT); break;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   useEffect(() => {
     localStorage.setItem('ist_lang', lang);
     localStorage.setItem('ist_theme', isDark ? 'dark' : 'light');
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
-    if (isDark) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.body.style.backgroundColor = "#0b0e14";
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.style.backgroundColor = "#f8fafc";
+    }
   }, [lang, isDark]);
 
   const t = translations[lang];
 
   const menuItems = [
-    { type: AgentType.INTELLIGENCE, icon: 'fa-brain', label: t.intelligence },
-    { type: AgentType.ACQUISITION, icon: 'fa-crosshairs', label: t.acquisition },
-    { type: AgentType.OPERATIONS, icon: 'fa-layer-group', label: t.operations },
-    { type: AgentType.LIQUIDATION, icon: 'fa-money-bill-wave', label: t.liquidation },
-    { type: AgentType.MANAGEMENT, icon: 'fa-file-signature', label: t.management }
+    { type: AgentType.INTELLIGENCE, icon: 'fa-brain', label: t.intelligence, shortcut: 'Alt+1' },
+    { type: AgentType.ACQUISITION, icon: 'fa-crosshairs', label: t.acquisition, shortcut: 'Alt+2' },
+    { type: AgentType.OPERATIONS, icon: 'fa-layer-group', label: t.operations, shortcut: 'Alt+3' },
+    { type: AgentType.LIQUIDATION, icon: 'fa-money-bill-wave', label: t.liquidation, shortcut: 'Alt+4' },
+    { type: AgentType.MANAGEMENT, icon: 'fa-file-signature', label: t.management, shortcut: 'Alt+5' }
   ];
 
   return (
@@ -75,9 +99,12 @@ const AppContent: React.FC = () => {
         <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-4 scrollbar-hide">
           {menuItems.map(item => (
             <button key={item.type} onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-4 px-4 py-4 transition-all rounded-2xl border border-transparent ${activeTab === item.type ? 'bg-primary text-primary-foreground shadow-lg' : 'text-slate-500 hover:bg-accent hover:text-foreground'}`}>
-              <i className={`fas ${item.icon} w-6 text-center text-sm`}></i>
-              <span className="text-sm font-black uppercase tracking-tight">{item.label}</span>
+              className={`w-full flex items-center justify-between px-4 py-4 transition-all rounded-2xl border border-transparent group ${activeTab === item.type ? 'bg-primary text-primary-foreground shadow-lg' : 'text-slate-500 hover:bg-accent hover:text-foreground'}`}>
+              <div className="flex items-center gap-4">
+                <i className={`fas ${item.icon} w-6 text-center text-sm`}></i>
+                <span className="text-sm font-black uppercase tracking-tight">{item.label}</span>
+              </div>
+              <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border ${activeTab === item.type ? 'border-white/20 bg-white/10' : 'border-slate-200 opacity-0 group-hover:opacity-100'}`}>{item.shortcut}</span>
             </button>
           ))}
         </nav>
@@ -152,6 +179,7 @@ const AppContent: React.FC = () => {
         </div>
       </main>
       
+      <TickerTape lang={lang} />
       <SonnerNotification notifications={notifications} onDismiss={dismissNotification} />
     </div>
   );

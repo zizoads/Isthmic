@@ -31,14 +31,14 @@ const AgentReasoningLab: React.FC<Props> = ({ domain, onClose }) => {
             <i className="fas fa-times text-xs"></i>
          </button>
          <div className="text-right">
-            <h3 className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em]">غرفة التفكير المتعدد الأدوار</h3>
+            <h3 className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em]">مختبر استدلال المحرك</h3>
             <div className="font-bold text-xl tracking-tight">{domain.name}</div>
          </div>
       </header>
 
       <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide">
          <section className="space-y-6">
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">سلسلة الاستدلال الجماعي (Collaborative CoT)</h4>
+            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">سلسلة الاستدلال الجماعي (Grounded CoT)</h4>
             
             <div className="space-y-8">
                {domain.agentThoughts ? (
@@ -72,17 +72,23 @@ const AgentReasoningLab: React.FC<Props> = ({ domain, onClose }) => {
             </div>
          </section>
 
+         {/* المراجع والمصادر (Grounded Sources) */}
          <section className="bg-indigo-600/5 p-8 rounded-[32px] border border-indigo-500/10 space-y-6">
-            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">المؤشرات الفنية (Verified by Auditor)</h4>
-            <div className="grid grid-cols-2 gap-6">
-               <div className="space-y-1">
-                  <div className="text-[8px] text-slate-500 uppercase">Trust Probability</div>
-                  <div className="text-2xl font-black text-white">{(domain.probability ? domain.probability * 100 : 0).toFixed(1)}%</div>
-               </div>
-               <div className="space-y-1">
-                  <div className="text-[8px] text-slate-500 uppercase">Market Resilience</div>
-                  <div className="text-2xl font-black text-white">{domain.technicalMetrics?.liquidityScore || '--'}</div>
-               </div>
+            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">المصادر الموثقة (Grounded Evidence)</h4>
+            <div className="space-y-3">
+               {domain.technicalMetrics?.sourceCitations && domain.technicalMetrics.sourceCitations.length > 0 ? (
+                 domain.technicalMetrics.sourceCitations.map((source, i) => (
+                   <div key={i} className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5 group hover:bg-white/10 transition-all">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-black">
+                         {i + 1}
+                      </div>
+                      <div className="flex-1 text-[10px] text-slate-400 font-medium truncate">{source}</div>
+                      <i className="fas fa-external-link-alt text-[8px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                   </div>
+                 ))
+               ) : (
+                 <div className="text-[10px] text-slate-600 italic">لا توجد مراجع خارجية مسجلة حالياً.</div>
+               )}
             </div>
          </section>
       </div>
@@ -90,11 +96,8 @@ const AgentReasoningLab: React.FC<Props> = ({ domain, onClose }) => {
       <footer className="p-8 border-t border-white/5 bg-slate-900/50 flex justify-between items-center">
          <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span className="text-[9px] font-black text-slate-500 uppercase">Multi-Agent Consensus Active</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase">Verification Engine Connected</span>
          </div>
-         <button onClick={() => window.print()} className="bg-white/5 px-6 py-3 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 transition-all">
-            تصدير سجل التفكير
-         </button>
       </footer>
     </div>
   );

@@ -4,12 +4,26 @@ import { Domain } from '../types';
 import { generateBrandIdentityAI, getMarketSignalsAI } from '../services/geminiService';
 import { translations } from '../translations';
 import StatusBadge from './ui/StatusBadge';
+import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 interface Props {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
   lang: 'ar' | 'en';
 }
+
+const Sparkline = ({ color }: { color: string }) => {
+  const data = Array.from({ length: 10 }, () => ({ val: Math.random() * 100 }));
+  return (
+    <div className="h-6 w-16">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <Line type="monotone" dataKey="val" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
   const t = translations[lang];
@@ -47,79 +61,84 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
   const purchasedDomains = domains.filter(d => d.status === 'purchased' || d.status === 'available');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Asset Selection Sidebar */}
-      <div className="lg:col-span-4 space-y-6">
-        <div className="bg-background border border-border rounded-[40px] p-8 sticky top-0 shadow-sm">
-           <h3 className="text-xl font-black text-foreground uppercase tracking-tighter mb-6">{t.portfolio}</h3>
-           <div className="space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto pr-2 custom-scrollbar">
-              {purchasedDomains.length === 0 ? (
-                <div className="py-20 text-center space-y-4 opacity-30">
-                   <i className="fas fa-box-open text-4xl"></i>
-                   <p className="text-xs font-black uppercase tracking-widest">{lang === 'ar' ? 'المحفظة فارغة' : 'Portfolio Empty'}</p>
-                </div>
-              ) : purchasedDomains.map(d => (
-                <div 
+    <div className="space-y-8 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Portfolio Terminal Grid */}
+      <div className="bg-[#0b0e14] border border-white/5 rounded-[32px] overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-white/5 bg-white/2 flex justify-between items-center">
+          <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">{t.portfolio}</h3>
+          <div className="flex gap-4 text-[10px] font-black text-slate-500">
+            <span>VOL: 24H</span>
+            <span className="text-green-500">+12.4%</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto scrollbar-hide">
+          <table className="w-full text-left font-mono border-collapse">
+            <thead className="bg-white/5 border-b border-white/5">
+              <tr className="text-[9px] text-slate-500 uppercase">
+                <th className="px-6 py-4 font-black">{lang === 'ar' ? 'الأصل' : 'ASSET'}</th>
+                <th className="px-6 py-4 font-black">{lang === 'ar' ? 'الحالة' : 'STATUS'}</th>
+                <th className="px-6 py-4 font-black text-right">{lang === 'ar' ? 'السعر' : 'PRICE'}</th>
+                <th className="px-6 py-4 font-black text-center">{lang === 'ar' ? 'الزخم' : 'MOMENTUM'}</th>
+                <th className="px-6 py-4 font-black text-right">{lang === 'ar' ? 'التغيير' : 'CHG%'}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {purchasedDomains.map(d => (
+                <tr 
                   key={d.id} 
                   onClick={() => handleDeepAudit(d)}
-                  className={`p-6 rounded-[32px] cursor-pointer transition-all border group relative overflow-hidden ${selectedDomain?.id === d.id ? 'bg-primary border-primary text-primary-foreground shadow-2xl scale-[1.02]' : 'bg-accent/30 border-border hover:border-primary/50'}`}
+                  className={`cursor-pointer hover:bg-white/2 transition-all ${selectedDomain?.id === d.id ? 'bg-indigo-500/10' : ''}`}
                 >
-                  <div className="flex justify-between items-center relative z-10">
-                    <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
-                       <span className="font-black text-sm truncate block max-w-[140px]">{d.name}</span>
-                       <div className="flex items-center gap-2 mt-1">
-                        <StatusBadge status={d.status} lang={lang} />
-                       </div>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-1.5 h-1.5 rounded-full ${d.brandAssets ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-slate-700'}`}></div>
+                      <span className="text-xs font-black text-white tracking-tight">{d.name}</span>
                     </div>
-                    <div className="flex flex-col items-end">
-                       <span className="text-[10px] font-mono opacity-80">${d.price}</span>
-                       {d.brandAssets?.logoUrl && <i className="fas fa-certificate text-[10px] text-green-400 mt-1 animate-pulse"></i>}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={d.status} lang={lang} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-xs font-bold text-slate-300">${d.price.toLocaleString()}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-center">
+                       <Sparkline color={Math.random() > 0.3 ? '#22c55e' : '#ef4444'} />
                     </div>
-                  </div>
-                  {selectedDomain?.id === d.id && (
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 -rotate-45 translate-x-10 -translate-y-10"></div>
-                  )}
-                </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className={`text-[10px] font-black ${Math.random() > 0.4 ? 'text-green-500' : 'text-red-500'}`}>
+                      {Math.random() > 0.4 ? '+' : '-'}{(Math.random() * 20).toFixed(2)}%
+                    </span>
+                  </td>
+                </tr>
               ))}
-           </div>
+              {purchasedDomains.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center opacity-20 text-white font-black uppercase text-[10px] tracking-widest">
+                     Portfolio Empty - Awaiting Signal
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Engineering Canvas */}
-      <div className="lg:col-span-8 space-y-8">
-        {selectedDomain ? (
-          <div className="space-y-8 animate-slide-up pb-10">
-            {/* Market Pulse Overlay */}
-            <div className="bg-slate-900 text-white rounded-[40px] p-10 flex flex-col md:flex-row justify-between items-center gap-10 border border-white/10 shadow-2xl relative overflow-hidden">
-               <div className={lang === 'ar' ? 'text-right w-full md:w-auto' : 'text-left w-full md:w-auto'}>
-                  <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">{t.marketSentiment}</div>
-                  <div className={`text-5xl font-black ${marketSignal?.signal === 'BUY' ? 'text-green-500' : marketSignal?.signal === 'SELL' ? 'text-red-500' : 'text-amber-500'}`}>
-                    {loading ? <i className="fas fa-circle-notch fa-spin text-3xl"></i> : (marketSignal?.signal || '---')}
-                  </div>
-               </div>
-               <div className="flex-1 bg-white/5 p-8 rounded-[32px] border border-white/5 backdrop-blur-xl">
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
-                    {loading ? t.verifyingComps : `"${marketSignal?.reasoning || t.awaitingSignal}"`}
-                  </p>
-               </div>
-               <div className="text-center bg-indigo-500/10 p-6 rounded-[32px] min-w-[120px] border border-indigo-500/20">
-                  <div className="text-3xl font-black text-indigo-400">{marketSignal?.momentumScore || 0}%</div>
-                  <div className="text-[9px] font-black text-slate-500 uppercase">{t.momentum}</div>
-               </div>
-               <i className="fas fa-wave-square absolute right-[-20px] bottom-[-20px] text-white/5 text-[150px] pointer-events-none"></i>
-            </div>
-
-            {/* Brand Engineering Studio */}
-            <div className="bg-background border border-border rounded-[40px] p-8 lg:p-14 relative overflow-hidden shadow-lg">
+      {/* Engineering Canvas - Redesigned as Sidebar Preview */}
+      {selectedDomain && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-slide-up pb-10">
+          <div className="lg:col-span-8 space-y-8">
+            <div className="bg-[#0b0e14] border border-white/5 rounded-[40px] p-8 lg:p-14 relative overflow-hidden shadow-2xl">
                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16">
                   <div className="space-y-10">
                      <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
-                        <h2 className="text-4xl lg:text-6xl font-black tracking-tighter text-foreground leading-tight break-all mb-4">{selectedDomain.name}</h2>
+                        <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-white leading-tight break-all mb-4">{selectedDomain.name}</h2>
                         <div className="flex gap-3 mb-8">
-                           <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">{selectedDomain.sector}</span>
-                           <span className="bg-green-500/10 text-green-500 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-500/20">{t.integrity}</span>
+                           <span className="bg-indigo-500/10 text-indigo-400 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">{selectedDomain.sector}</span>
                         </div>
-                        <p className="text-xl text-slate-500 dark:text-slate-400 font-medium italic leading-relaxed">
+                        <p className="text-sm text-slate-400 font-medium italic leading-relaxed">
                           "{selectedDomain.brandAssets?.tagline || (lang === 'ar' ? 'بانتظار تركيب الهوية البصرية...' : 'Awaiting identity synthesis...')}"
                         </p>
                      </div>
@@ -128,7 +147,7 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
                         <button 
                           onClick={handleGenerateBrand}
                           disabled={generatingBrand}
-                          className="bg-primary text-primary-foreground px-10 py-5 rounded-[24px] text-xs font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-4 shadow-2xl shadow-primary/20 disabled:opacity-50"
+                          className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl disabled:opacity-50"
                         >
                           {generatingBrand ? <i className="fas fa-dna fa-spin"></i> : <i className="fas fa-wand-magic-sparkles"></i>}
                           {generatingBrand ? t.designing : t.generateBrandIdentityAI}
@@ -136,70 +155,45 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
                      </div>
                   </div>
 
-                  <div className="flex items-center justify-center relative bg-accent/20 rounded-[50px] p-10 border border-border/50">
+                  <div className="flex items-center justify-center relative bg-white/2 rounded-[50px] p-10 border border-white/5">
                      {generatingBrand && (
                         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center space-y-6 bg-slate-900/60 backdrop-blur-md rounded-[50px] animate-fade-in text-white">
-                           <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                           <p className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">Engineering Pixels...</p>
+                           <div className="w-20 h-20 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                      )}
                      
                      {selectedDomain.brandAssets?.logoUrl ? (
-                        <div className="p-4 bg-white rounded-[50px] shadow-2xl group relative transition-all hover:scale-110 hover:rotate-3">
-                           <img src={selectedDomain.brandAssets.logoUrl} alt="Logo" className="w-56 h-56 lg:w-80 lg:h-80 object-contain rounded-[40px]" />
-                           <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[50px] flex items-center justify-center backdrop-blur-[2px]">
-                              <span className="text-white font-black text-xs uppercase tracking-[0.3em]">{t.masterpieceReady}</span>
-                           </div>
+                        <div className="p-4 bg-white rounded-[50px] shadow-2xl group relative transition-all">
+                           <img src={selectedDomain.brandAssets.logoUrl} alt="Logo" className="w-56 h-56 lg:w-64 lg:h-64 object-contain rounded-[40px]" />
                         </div>
                      ) : (
-                        <div className="w-56 h-56 lg:w-80 lg:h-80 border-4 border-dashed border-border rounded-[50px] flex flex-col items-center justify-center text-slate-300 animate-pulse bg-background shadow-inner">
-                           <i className="fas fa-palette text-6xl mb-4"></i>
-                           <span className="text-[10px] font-black uppercase tracking-widest opacity-50">{t.brandCanvas}</span>
+                        <div className="w-56 h-56 border-2 border-dashed border-white/10 rounded-[50px] flex flex-col items-center justify-center text-slate-700 animate-pulse">
+                           <i className="fas fa-palette text-4xl mb-4"></i>
                         </div>
                      )}
                   </div>
                </div>
-               <i className="fas fa-drafting-dots absolute right-[-100px] bottom-[-100px] text-primary/5 text-[400px] pointer-events-none -rotate-12"></i>
             </div>
+          </div>
 
-            {/* Asset Audit Specs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               <div className="bg-background border border-border p-8 rounded-[40px] shadow-sm md:col-span-2">
-                  <h4 className={`text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.operationalHistory}</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                     {[
-                        { label: lang === 'ar' ? 'تاريخ الحجز' : 'Acquisition Date', value: selectedDomain.acquisitionDate || 'Current Cycle' },
-                        { label: lang === 'ar' ? 'التقييم الحالي' : 'Current Valuation', value: `$${((selectedDomain.price || 0) * 4.2).toLocaleString()}` },
-                        { label: lang === 'ar' ? 'درجة الندرة' : 'Rarity Score', value: 'Alpha-Grade' },
-                        { label: lang === 'ar' ? 'قابلية التسييل' : 'Liquidity Horizon', value: '4-8 Months' }
-                     ].map((item, i) => (
-                        <div key={i} className={`flex justify-between items-center py-4 border-b border-border ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
-                           <span className="text-xs text-slate-500 font-bold">{item.label}</span>
-                           <span className="text-xs font-black text-foreground">{item.value}</span>
-                        </div>
-                     ))}
-                  </div>
-               </div>
-               <div className="bg-green-500 text-white p-10 rounded-[40px] shadow-xl flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden">
-                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl shadow-lg relative z-10">
-                     <i className="fas fa-shield-check"></i>
-                  </div>
-                  <h4 className="text-lg font-black tracking-tight relative z-10">{t.ipIntegrity}</h4>
-                  <p className="text-[10px] font-bold uppercase leading-relaxed opacity-80 relative z-10">{lang === 'ar' ? 'تم مسح الأصل من مخاطر العلامات التجارية العالمية.' : 'Asset cleared of global trademark risk factors.'}</p>
-                  <i className="fas fa-fingerprint absolute right-[-20px] bottom-[-20px] text-white/10 text-[120px] pointer-events-none"></i>
-               </div>
+          <div className="lg:col-span-4 space-y-8">
+            <div className="bg-[#0b0e14] border border-white/5 p-8 rounded-[40px] shadow-2xl text-right">
+                <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6">Market Pulse</div>
+                <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                  <span className="text-slate-500 text-[10px] font-bold">SENTIMENT</span>
+                  <span className={`text-xs font-black ${marketSignal?.signal === 'BUY' ? 'text-green-500' : 'text-amber-500'}`}>{marketSignal?.signal || 'WAITING'}</span>
+                </div>
+                <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                  <span className="text-slate-500 text-[10px] font-bold">MOMENTUM</span>
+                  <span className="text-xs font-black text-white">{marketSignal?.momentumScore || 0}%</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed italic">
+                  {loading ? 'Crunching data...' : marketSignal?.reasoning || 'Select an asset for deep market telemetry.'}
+                </p>
             </div>
           </div>
-        ) : (
-          <div className="bg-accent/20 border-2 border-dashed border-border rounded-[60px] min-h-[600px] flex flex-col items-center justify-center text-slate-300 p-10">
-             <div className="w-32 h-32 bg-background rounded-full flex items-center justify-center mb-8 shadow-xl border border-border">
-                <i className="fas fa-microchip text-5xl text-slate-200"></i>
-             </div>
-             <p className="text-xl font-black uppercase tracking-[0.4em] text-center max-w-sm">{t.awaitingAudit}</p>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-4">{lang === 'ar' ? 'اختر أصلاً من القائمة الجانبية للبدء' : 'Select an asset from sidebar to begin engineering'}</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

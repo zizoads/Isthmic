@@ -35,7 +35,7 @@ const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }
         {view === 'branding' && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}
         {view === 'scaling' && (
           <div className="grid grid-cols-1 gap-10">
-            <ValueProofDashboard domains={domains} />
+            <ValueProofDashboard domains={domains} lang={lang} />
             <ValueMultiplierDashboard domains={domains} />
           </div>
         )}
