@@ -20,8 +20,41 @@ async function safeCall<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Pro
 }
 
 /**
- * 5. Function Calling Implementation
- * دالة تعريفية تسمح للنموذج بفهم كيفية الاستفسار عن توفر النطاقات
+ * Veo Video Generation Engine
+ * يولد فيديو ترويجي سينمائي للنطاق بناءً على رؤيته التجارية
+ */
+export const generatePromoVideoAI = async (domainName: string, prompt: string) => {
+  const ai = getAI();
+  try {
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: `A high-end cinematic 4k commercial for ${domainName}. Style: ${prompt}. Minimalist, corporate, tech-driven, futuristic lighting, shallow depth of field.`,
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: '16:9'
+      }
+    });
+
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (error: any) {
+    if (error.message?.includes("entity was not found")) {
+      await (window as any).aistudio.openSelectKey();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Function Calling Implementation
  */
 const checkAvailabilityDeclaration: FunctionDeclaration = {
   name: 'checkDomainAvailability',
@@ -46,12 +79,9 @@ export const registrarInquiryAI = async (domain: string) => {
       }
     });
 
-    // معالجة استدعاء الدالة من قبل النموذج
     if (response.functionCalls) {
       const call = response.functionCalls[0];
       if (call.name === 'checkDomainAvailability') {
-        // هنا نقوم بمحاكاة رد من API حقيقي لمسجل نطاقات
-        // في الواقع، يمكنك هنا استدعاء API خاص بـ GoDaddy أو Namecheap
         return { 
           available: true, 
           price: (Math.random() * 20 + 10).toFixed(2), 
@@ -64,10 +94,6 @@ export const registrarInquiryAI = async (domain: string) => {
   });
 };
 
-/**
- * 3. Maps Grounding Implementation
- * استخدام خرائط جوجل لإيجاد شركات حقيقية مهتمة بالنطاق بناءً على موقع المستخدم
- */
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
   return safeCall(async () => {
     const ai = getAI();
@@ -83,18 +109,13 @@ export const findLocalBuyersAI = async (query: string, lat?: number, lng?: numbe
         }
       }
     });
-
     return {
       text: response.text,
-      // استخراج روابط الخرائط من بيانات الـ Grounding
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
     };
   });
 };
 
-/**
- * Tactical Discovery: Scans the market for domain opportunities
- */
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
   return safeCall(async () => {
     const ai = getAI();

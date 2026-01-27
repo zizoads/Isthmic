@@ -20,72 +20,58 @@ export interface AgentThought {
   status: 'thinking' | 'resolved' | 'rejected';
 }
 
-export type SystemStatus = 'nominal' | 'degraded' | 'autonomous_recovery' | 'maintenance';
-
-export interface SystemState {
-  status: SystemStatus;
-  lastSync: string;
-  activeWorkflows: number;
+// Added missing BrandAssets interface
+export interface BrandAssets {
+  primaryColor?: string;
+  tagline?: string;
+  logoUrl?: string;
+  promoVideoUrl?: string;
 }
 
-export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed' | 'retrying';
-
-export interface WorkflowNode {
-  id: string;
-  labelAr: string;
-  labelEn: string;
-  status: NodeStatus;
-  output?: any;
+// Added missing properties to TechnicalMetrics
+export interface TechnicalMetrics {
+  da: number;
+  pa: number;
+  spamScore: number;
+  backlinks: number;
+  backlinkVelocity: number;
+  historyYears: number;
+  isBlacklisted: boolean;
+  trademarkRisk: 'Low' | 'Medium' | 'High' | 'Critical';
+  sourceCitations?: string[];
+  securityRating?: string;
+  whoisPrivacy?: boolean;
+  mxRecordsFound?: boolean;
+  dnaForensics?: string;
+  liquidityScore?: number;
 }
 
-export interface WorkflowState {
-  id: string;
-  nameAr: string;
-  nameEn: string;
-  nodes: WorkflowNode[];
-  progress: number;
-  isComplete: boolean;
+export interface DomainFinancials {
+  acquisitionCost: number;
+  holdingCostPerYear: number;
+  targetExitPrice: number;
+  projectedROI: number;
+  netProfit: number;
+  platformFees: number;
+  escrowFees: number;
+  liquidityScore: number; // 0-100
+  alphaScore: number; // 0-100 (Integrated Opportunity Score)
 }
 
 export interface Domain {
   id: string;
   name: string;
   price: number;
-  acquisitionCost?: number;
-  acquisitionDate?: string;
   status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
   contentStatus: 'none' | 'parking' | 'active';
   sector?: string;
   probability?: number;
-  estimatedProfit?: number;
-  potentialClients?: string[];
-  lastChecked?: string;
   justification?: string;
-  thinkingPath?: string;
-  agentThoughts?: AgentThought[]; // سجل الحوار بين الوكلاء
+  agentThoughts?: AgentThought[];
   technicalMetrics?: TechnicalMetrics;
-  folder?: 'Quick Flip' | 'Long Term' | 'Premium';
   brandAssets?: BrandAssets;
-}
-
-export interface BrandAssets {
-  logoUrl?: string;
-  primaryColor?: string;
-  tagline?: string;
-}
-
-export interface TechnicalMetrics {
-  da?: number;
-  pa?: number;
-  backlinks?: number;
-  isBlacklisted?: boolean;
-  mxRecordsFound?: boolean;
-  historyYears?: number;
-  liquidityScore?: number;
-  trademarkRisk?: string;
-  sourceCitations?: string[];
-  comparableSales?: {domain: string, price: number, date: string}[];
-  dnaForensics?: string;
+  financials?: DomainFinancials;
+  lastChecked?: string;
 }
 
 export interface PlatformStats {
@@ -93,22 +79,15 @@ export interface PlatformStats {
   totalPurchased: number;
   messagesSent: number;
   openRate: number;
-  repliesReceived: number;
   avgProfit: number;
   totalSpent: number;
   estimatedPortfolioValue: number;
-  systemResilienceStatus: SystemStatus;
+  systemResilienceStatus: 'nominal' | 'degraded';
 }
 
 export interface PlatformStrategy {
   totalBudget: number;
-  maxPricePerDomain: number;
-  targetTLDs: string[];
-  minLiquidityScore: number;
-  targetROI: number;
-  minHoldingPeriod: number;
   riskTolerance: string;
-  autoPilotMode: boolean;
   investmentThesis: string;
 }
 
@@ -135,13 +114,27 @@ export interface ServiceIntegration {
   impactArea: string;
 }
 
+// Added NexusOpportunity interface
+export interface NexusOpportunity {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  estimatedValue: string;
+  probability: number;
+  marketGapScore: number;
+  aiDeduction: string;
+}
+
+// Added ThinkingStep interface
 export interface ThinkingStep {
   id: string;
   action: string;
   finding: string;
-  status: 'pending' | 'searching' | 'complete';
+  status: 'searching' | 'pending' | 'complete';
 }
 
+// Added OutreachMessage interface
 export interface OutreachMessage {
   id: string;
   domainId: string;
@@ -152,13 +145,29 @@ export interface OutreachMessage {
   content: string;
 }
 
-export interface NexusOpportunity {
+// Added SystemState interface
+export interface SystemState {
+  status: 'nominal' | 'degraded';
+  lastSync: string;
+  activeWorkflows: number;
+}
+
+// Added Workflow related types
+export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed';
+
+export interface WorkflowNode {
   id: string;
-  title: string;
-  type: string;
-  description: string;
-  estimatedValue: string;
-  probability: number;
-  marketGapScore: number;
-  aiDeduction: string;
+  labelAr: string;
+  labelEn: string;
+  status: NodeStatus;
+  output?: any;
+}
+
+export interface WorkflowState {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  nodes: WorkflowNode[];
+  progress: number;
+  isComplete: boolean;
 }

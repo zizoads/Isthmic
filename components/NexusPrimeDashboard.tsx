@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { NexusOpportunity, Domain } from '../types';
+import { NexusOpportunity, Domain, TechnicalMetrics } from '../types';
 import { nexusPrimeIntelligenceAI } from '../services/geminiService';
 import { translations } from '../translations';
 
@@ -40,6 +40,7 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
   };
 
   const handleInject = (opp: NexusOpportunity) => {
+    // Corrected technicalMetrics to include required backlinkVelocity and other expected fields
     const newDomain: Domain = {
       id: Math.random().toString(),
       name: opp.title,
@@ -51,9 +52,19 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
       justification: opp.aiDeduction,
       probability: opp.probability / 100,
       technicalMetrics: {
+        da: 0,
+        pa: 0,
+        spamScore: 0,
+        backlinks: 0,
+        backlinkVelocity: 0,
+        historyYears: 0,
+        isBlacklisted: false,
+        trademarkRisk: 'Low',
         liquidityScore: opp.marketGapScore,
-        dnaForensics: opp.aiDeduction
-      }
+        dnaForensics: opp.aiDeduction,
+        whoisPrivacy: false,
+        mxRecordsFound: false
+      } as TechnicalMetrics
     };
     setDomains(prev => [newDomain, ...prev]);
     addLog('System', `Opportunity injected.`, 'success');

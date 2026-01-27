@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Domain } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
@@ -43,6 +44,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
   };
 
   const addAllToPipeline = () => {
+    // Corrected technicalMetrics to satisfy the interface requirements by adding backlinkVelocity
     const formatted: Domain[] = scannedResults.map(r => ({
       id: Math.random().toString(36).substr(2, 9),
       name: r.name,
@@ -53,7 +55,17 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
       sector: r.name.split('.')[0],
       justification: r.justification,
       probability: r.probability || 0.5,
-      technicalMetrics: { liquidityScore: Math.round((r.probability || 0.5) * 100) }
+      technicalMetrics: { 
+        da: 0, 
+        pa: 0, 
+        spamScore: 0, 
+        backlinks: 0, 
+        backlinkVelocity: 0,
+        historyYears: 0, 
+        isBlacklisted: false, 
+        trademarkRisk: 'Low',
+        liquidityScore: Math.round((r.probability || 0.5) * 100) 
+      }
     }));
     setDomains(prev => [...formatted, ...prev]);
     setScannedResults([]);
