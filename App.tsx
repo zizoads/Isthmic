@@ -5,7 +5,7 @@ import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
 
-// Merged Hub Dashboards
+// Hub Dashboards
 import IntelligenceHub from './components/hubs/IntelligenceHub';
 import AcquisitionDesk from './components/hubs/AcquisitionDesk';
 import OperationsHub from './components/hubs/OperationsHub';
@@ -75,7 +75,7 @@ const AppContent: React.FC = () => {
   ];
 
   return (
-    <div className={`flex h-full w-full overflow-hidden transition-all duration-500 bg-background text-foreground`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex h-full w-full overflow-hidden transition-all duration-500 bg-background text-foreground" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <CommandPalette 
         setActiveTab={setActiveTab} 
         onSearchDomain={(name) => {
@@ -116,7 +116,7 @@ const AppContent: React.FC = () => {
       </aside>
       
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
-        <header className={`h-20 border-b flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-[120] backdrop-blur-xl bg-background/80 border-border`}>
+        <header className="h-20 border-b flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-[120] backdrop-blur-xl bg-background/80 border-border">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-slate-500 w-10 h-10 border border-border rounded-xl flex items-center justify-center">
               <i className="fas fa-bars"></i>

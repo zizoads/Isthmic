@@ -1,5 +1,4 @@
 
-
 export enum AgentType {
   INTELLIGENCE = 'INTELLIGENCE',
   ACQUISITION = 'ACQUISITION',
@@ -29,21 +28,10 @@ export interface NegotiationBattleCard {
   buyerType: 'Strategic' | 'Speculator' | 'End-User';
   leveragePoints: string[];
   suggestedCounter: number;
-  sentimentScore: number; // 0-100
+  sentimentScore: number;
   closingProbability: number;
 }
 
-export interface AutonomousAction {
-  id: string;
-  type: 'PURCHASE' | 'BRANDING' | 'MARKETING' | 'NEGOTIATION' | 'PRICE_SYNC' | 'CLOSE_DEAL';
-  domainName: string;
-  description: string;
-  timestamp: string;
-  impactScore: number; // 1-100
-  status: 'completed' | 'pending' | 'failed';
-}
-
-// Added TechnicalMetrics interface to resolve compilation errors
 export interface TechnicalMetrics {
   da: number;
   pa: number;
@@ -60,7 +48,6 @@ export interface TechnicalMetrics {
   dnaForensics?: string;
 }
 
-// Added DomainFinancials interface to resolve compilation errors
 export interface DomainFinancials {
   acquisitionCost: number;
   holdingCostPerYear: number;
@@ -84,14 +71,13 @@ export interface Domain {
   justification?: string;
   agentThoughts?: AgentThought[];
   brandAssets?: any;
-  financials?: DomainFinancials; // Added financials property
-  technicalMetrics?: TechnicalMetrics; // Added technicalMetrics property
+  financials?: DomainFinancials;
+  technicalMetrics?: TechnicalMetrics;
   battleCard?: NegotiationBattleCard;
-  folder?: string; // Added folder property used in PurchaseDashboard
-  lastChecked?: string; // Added lastChecked property used in DiscoveryDashboard
+  folder?: string;
+  lastChecked?: string;
 }
 
-// Added NexusOpportunity interface to resolve compilation errors in geminiService.ts and NexusPrimeDashboard.tsx
 export interface NexusOpportunity {
   id: string;
   title: string;
@@ -151,14 +137,13 @@ export interface ServiceIntegration {
   impactArea: string;
 }
 
-// Added NodeStatus type to resolve compilation error in orchestrator.ts
 export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed';
 
 export interface WorkflowNode {
   id: string;
   labelAr: string;
   labelEn: string;
-  status: NodeStatus; // Updated to use NodeStatus type
+  status: NodeStatus;
   output?: any;
 }
 
@@ -171,14 +156,12 @@ export interface WorkflowState {
   isComplete: boolean;
 }
 
-// Added SystemState interface to resolve compilation error in DomainContext.tsx
 export interface SystemState {
   status: 'nominal' | 'degraded';
   lastSync: string;
   activeWorkflows: number;
 }
 
-// Added ThinkingStep interface to resolve compilation error in EvaluationDashboard.tsx
 export interface ThinkingStep {
   id: string;
   action: string;
@@ -186,7 +169,6 @@ export interface ThinkingStep {
   status: 'searching' | 'pending' | 'complete' | 'executing';
 }
 
-// Added OutreachMessage interface to resolve compilation error in MessagingDashboard.tsx
 export interface OutreachMessage {
   id: string;
   domainId: string;
@@ -195,4 +177,14 @@ export interface OutreachMessage {
   tone: string;
   status: 'draft' | 'sent' | 'replied';
   content: string;
+}
+
+export interface AutonomousAction {
+  id: string;
+  type: 'PURCHASE' | 'BRANDING' | 'MARKETING' | 'NEGOTIATION' | 'PRICE_SYNC' | 'CLOSE_DEAL';
+  domainName: string;
+  description: string;
+  timestamp: string;
+  impactScore: number;
+  status: 'completed' | 'pending' | 'failed';
 }
