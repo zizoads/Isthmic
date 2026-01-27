@@ -47,24 +47,34 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   });
 
-  // addLog implementation with refined notification logic to avoid type mismatches
   const addLog = useCallback((agent: string, message: string, type: ActivityLog['type'] = 'info') => {
+    // Handle Quota Error specifically
+    let finalMessage = message;
+    let finalType = type;
+    
+    if (message.includes("QUOTA_EXHAUSTED")) {
+      finalMessage = "System Limit Reached: Please switch to a Paid API Key in Master Brain settings to continue full-scale operations.";
+      finalType = 'critical';
+    }
+
     const newLog: ActivityLog = {
       id: Math.random().toString(36).substr(2, 9),
       time: new Date().toLocaleTimeString(),
       agent,
-      message,
-      type
+      message: finalMessage,
+      type: finalType
     };
     setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
     
-    // Only show notifications for success, warning, or critical types to avoid type mismatch on ai_thought
-    if (type === 'success' || type === 'warning' || type === 'critical') {
-      const notification: Notification = { id: newLog.id, agent, message, type };
+    if (finalType === 'success' || finalType === 'warning' || finalType === 'critical') {
+      const notification: Notification = { id: newLog.id, agent, message: finalMessage, type: finalType };
       setNotifications(prev => [...prev, notification]);
+      
+      // Keep critical notifications longer
+      const timeout = finalType === 'critical' ? 10000 : 6000;
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== notification.id));
-      }, 6000);
+      }, timeout);
     }
   }, []);
 
