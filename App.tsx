@@ -5,24 +5,12 @@ import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
 
-// Decentralized Dashboard Imports
-import MasterBrainDashboard from './components/MasterBrainDashboard';
-import NexusPrimeDashboard from './components/NexusPrimeDashboard';
-import DiscoveryDashboard from './components/DiscoveryDashboard';
-import EvaluationDashboard from './components/EvaluationDashboard';
-import PurchaseDashboard from './components/PurchaseDashboard';
-import DropSniperDashboard from './components/DropSniperDashboard';
-import PipelineDashboard from './components/PipelineDashboard';
-import PortfolioManager from './components/PortfolioManager';
-import ValueProofDashboard from './components/ValueProofDashboard';
-import ValueMultiplierDashboard from './components/ValueMultiplierDashboard';
-import MarketplaceDashboard from './components/MarketplaceDashboard';
-import AuctionWatchDashboard from './components/AuctionWatchDashboard';
-import MessagingDashboard from './components/MessagingDashboard';
-import NegotiationDashboard from './components/NegotiationDashboard';
-import FeedbackDashboard from './components/FeedbackDashboard';
-import ExecutiveReportDashboard from './components/ExecutiveReportDashboard';
-import IntegrationCenter from './components/IntegrationCenter';
+// Merged Hub Dashboards
+import IntelligenceHub from './components/hubs/IntelligenceHub';
+import AcquisitionDesk from './components/hubs/AcquisitionDesk';
+import OperationsHub from './components/hubs/OperationsHub';
+import LiquidationEngine from './components/hubs/LiquidationEngine';
+import ExecutiveSuite from './components/hubs/ExecutiveSuite';
 
 // Core UI & Utility Imports
 import CommandPalette from './components/CommandPalette';
@@ -33,7 +21,7 @@ const AppContent: React.FC = () => {
   const { domains, setDomains, strategy, setStrategy, integrations, setIntegrations } = useDomainContext();
   const [lang, setLang] = useState<'ar' | 'en'>(() => (localStorage.getItem('ist_lang') as 'ar' | 'en') || 'ar');
   const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('ist_theme') !== 'light');
-  const [activeTab, setActiveTab] = useState<AgentType>(AgentType.MASTER_BRAIN);
+  const [activeTab, setActiveTab] = useState<AgentType>(AgentType.INTELLIGENCE);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
@@ -101,49 +89,12 @@ const AppContent: React.FC = () => {
 
   const t = translations[lang];
 
-  const menuGroups = [
-    {
-      title: lang === 'ar' ? 'الاستخبارات' : 'Intelligence',
-      items: [
-        { type: AgentType.MASTER_BRAIN, icon: 'fa-brain', label: t.masterBrain },
-        { type: AgentType.NEXUS_PRIME, icon: 'fa-microchip', label: t.nexusPrime },
-        { type: AgentType.FEEDBACK, icon: 'fa-graduation-cap', label: t.feedback },
-      ]
-    },
-    {
-      title: lang === 'ar' ? 'الاستحواذ' : 'Acquisition',
-      items: [
-        { type: AgentType.DISCOVERY, icon: 'fa-search', label: t.discovery },
-        { type: AgentType.EVALUATION, icon: 'fa-gavel', label: t.evaluation },
-        { type: AgentType.PURCHASE, icon: 'fa-shopping-cart', label: lang === 'ar' ? 'تنفيذ الشراء' : 'Purchase Action' },
-        { type: AgentType.DROP_SNIPER, icon: 'fa-crosshairs', label: t.dropSniper },
-      ]
-    },
-    {
-      title: lang === 'ar' ? 'العمليات' : 'Operations',
-      items: [
-        { type: AgentType.PIPELINE, icon: 'fa-layer-group', label: t.pipeline },
-        { type: AgentType.PORTFOLIO, icon: 'fa-vault', label: t.portfolio },
-        { type: AgentType.VALUE_PROOF, icon: 'fa-certificate', label: t.valueProof },
-        { type: AgentType.VALUE_MULTIPLIER, icon: 'fa-chart-line', label: t.valueMultiplier },
-      ]
-    },
-    {
-      title: lang === 'ar' ? 'التسييل' : 'Liquidation',
-      items: [
-        { type: AgentType.MESSAGING, icon: 'fa-paper-plane', label: t.messaging },
-        { type: AgentType.NEGOTIATION, icon: 'fa-comments-dollar', label: t.negotiation },
-        { type: AgentType.MARKETPLACE, icon: 'fa-store', label: t.marketplace },
-        { type: AgentType.AUCTION_WATCH, icon: 'fa-broadcast-tower', label: t.auctionWatch },
-      ]
-    },
-    {
-      title: lang === 'ar' ? 'الإدارة' : 'Management',
-      items: [
-        { type: AgentType.EXECUTIVE, icon: 'fa-file-signature', label: t.executive },
-        { type: AgentType.INTEGRATIONS, icon: 'fa-plug', label: t.integrations },
-      ]
-    }
+  const menuItems = [
+    { type: AgentType.INTELLIGENCE, icon: 'fa-brain', label: t.intelligence },
+    { type: AgentType.ACQUISITION, icon: 'fa-crosshairs', label: t.acquisition },
+    { type: AgentType.OPERATIONS, icon: 'fa-layer-group', label: t.operations },
+    { type: AgentType.LIQUIDATION, icon: 'fa-money-bill-wave', label: t.liquidation },
+    { type: AgentType.MANAGEMENT, icon: 'fa-file-signature', label: t.management }
   ];
 
   return (
@@ -152,7 +103,9 @@ const AppContent: React.FC = () => {
         const d = domains.find(x => x.name === name);
         if (d) setInspectedDomain(d);
       }} />
+      
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} onClose={() => setInspectedDomain(null)} />}
+      
       <aside className={`fixed lg:relative lg:translate-x-0 w-72 h-full flex flex-col z-[150] shadow-2xl transition-all duration-500 bg-background border-border 
         ${lang === 'ar' ? (isSidebarOpen ? 'translate-x-0 right-0 border-l' : 'translate-x-full right-0 border-l') : (isSidebarOpen ? 'translate-x-0 left-0 border-r' : '-translate-x-full left-0 border-r')}
       `}>
@@ -160,60 +113,89 @@ const AppContent: React.FC = () => {
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg"><i className="fas fa-rocket text-primary-foreground"></i></div>
           <h1 className="text-xl font-black tracking-tighter uppercase">{t.platformName}</h1>
         </div>
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6 scrollbar-hide">
-          {menuGroups.map((group, idx) => (
-            <div key={idx} className="space-y-2">
-              <h5 className="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">{group.title}</h5>
-              {group.items.map(item => (
-                <button key={item.type} onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-4 px-4 py-3 transition-all rounded-xl border border-transparent ${activeTab === item.type ? 'bg-primary text-primary-foreground shadow-lg' : 'text-slate-500 hover:bg-accent hover:text-foreground'}`}>
-                  <i className={`fas ${item.icon} w-5 text-center text-xs`}></i>
-                  <span className="text-sm font-black">{item.label}</span>
-                </button>
-              ))}
-            </div>
+        
+        <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-4 scrollbar-hide">
+          {menuItems.map(item => (
+            <button key={item.type} onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }}
+              className={`w-full flex items-center gap-4 px-4 py-4 transition-all rounded-2xl border border-transparent ${activeTab === item.type ? 'bg-primary text-primary-foreground shadow-lg' : 'text-slate-500 hover:bg-accent hover:text-foreground'}`}>
+              <i className={`fas ${item.icon} w-6 text-center text-sm`}></i>
+              <span className="text-sm font-black uppercase tracking-tight">{item.label}</span>
+            </button>
           ))}
         </nav>
+        
         <div className="p-6 border-t border-border bg-slate-900/50 flex gap-2">
-           <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-border hover:bg-accent">{lang === 'ar' ? 'English' : 'العربية'}</button>
-           <button onClick={() => setIsDark(!isDark)} className="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-border hover:bg-accent">{isDark ? 'Light' : 'Dark'}</button>
+           <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase border border-border hover:bg-accent">{lang === 'ar' ? 'English' : 'العربية'}</button>
+           <button onClick={() => setIsDark(!isDark)} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase border border-border hover:bg-accent">{isDark ? 'Light' : 'Dark'}</button>
         </div>
       </aside>
+      
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
         <header className={`h-20 border-b flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-[120] backdrop-blur-xl bg-background/80 border-border`}>
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-slate-500 w-10 h-10 border border-border rounded-xl flex items-center justify-center"><i className="fas fa-bars"></i></button>
-            <h2 className="text-base lg:text-xl font-black tracking-tight">{t[activeTab.toLowerCase() as keyof typeof t] || activeTab}</h2>
+            <h2 className="text-base lg:text-xl font-black tracking-tight uppercase tracking-tighter">
+              {menuItems.find(i => i.type === activeTab)?.label}
+            </h2>
           </div>
           <div className="flex items-center gap-4">
              <div className="flex flex-col items-end">
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{t.estimatedValue}</span>
-                <span className="text-sm lg:text-lg font-black text-green-600">$ {stats.estimatedPortfolioValue.toLocaleString()}</span>
+                <span className="text-sm lg:text-lg font-black text-green-600 tracking-tighter">$ {stats.estimatedPortfolioValue.toLocaleString()}</span>
              </div>
           </div>
         </header>
+        
         <div className="flex-1 overflow-y-auto scroll-smooth scrollbar-hide">
           <div className="p-4 lg:p-10 transition-all duration-500 max-w-7xl mx-auto pb-24">
-            {activeTab === AgentType.MASTER_BRAIN && <MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={initiateScan} isScanning={isScanning} />}
-            {activeTab === AgentType.NEXUS_PRIME && <NexusPrimeDashboard addLog={addLog} setDomains={setDomains} lang={lang} />}
-            {activeTab === AgentType.FEEDBACK && <FeedbackDashboard domains={domains} stats={stats} />}
-            {activeTab === AgentType.DISCOVERY && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
-            {activeTab === AgentType.EVALUATION && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
-            {activeTab === AgentType.PURCHASE && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
-            {activeTab === AgentType.DROP_SNIPER && <DropSniperDashboard lang={lang} />}
-            {activeTab === AgentType.PIPELINE && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
-            {activeTab === AgentType.PORTFOLIO && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}
-            {activeTab === AgentType.VALUE_PROOF && <ValueProofDashboard domains={domains} />}
-            {activeTab === AgentType.VALUE_MULTIPLIER && <ValueMultiplierDashboard domains={domains} />}
-            {activeTab === AgentType.MESSAGING && <MessagingDashboard domains={domains} setDomains={setDomains} />}
-            {activeTab === AgentType.NEGOTIATION && <NegotiationDashboard domains={domains} setDomains={setDomains} />}
-            {activeTab === AgentType.MARKETPLACE && <MarketplaceDashboard domains={domains} />}
-            {activeTab === AgentType.AUCTION_WATCH && <AuctionWatchDashboard domains={domains} />}
-            {activeTab === AgentType.EXECUTIVE && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
-            {activeTab === AgentType.INTEGRATIONS && <IntegrationCenter integrations={integrations} onConnect={handleConnectIntegration} lang={lang} />}
+            {activeTab === AgentType.INTELLIGENCE && (
+              <IntelligenceHub 
+                stats={stats} 
+                activityLogs={activityLogs} 
+                strategy={strategy} 
+                setStrategy={setStrategy} 
+                lang={lang} 
+                onInitiateScan={initiateScan} 
+                isScanning={isScanning} 
+                domains={domains}
+              />
+            )}
+            {activeTab === AgentType.ACQUISITION && (
+              <AcquisitionDesk 
+                domains={domains} 
+                setDomains={setDomains} 
+                addLog={addLog} 
+                lang={lang} 
+              />
+            )}
+            {activeTab === AgentType.OPERATIONS && (
+              <OperationsHub 
+                domains={domains} 
+                setDomains={setDomains} 
+                onInspect={setInspectedDomain} 
+                lang={lang} 
+              />
+            )}
+            {activeTab === AgentType.LIQUIDATION && (
+              <LiquidationEngine 
+                domains={domains} 
+                setDomains={setDomains} 
+                lang={lang} 
+              />
+            )}
+            {activeTab === AgentType.MANAGEMENT && (
+              <ExecutiveSuite 
+                domains={domains} 
+                stats={stats} 
+                integrations={integrations} 
+                onConnect={handleConnectIntegration} 
+                lang={lang} 
+              />
+            )}
           </div>
         </div>
       </main>
+      
       <SonnerNotification notifications={notifications} onDismiss={(id) => setNotifications(prev => prev.filter(n => n.id !== id))} />
     </div>
   );

@@ -1,39 +1,24 @@
 
-# System Analysis - Isthmic Pro (Executive Audit)
+# System Analysis - Isthmic Pro (Strategic Hub Architecture)
 
-## SECTION 1: Strategic Component Mapping
-Each component in the `components/` directory is mapped to a specific industrial domainer layer.
+## SECTION 1: Strategic Hub Mapping
+The 16 legacy agents have been merged into 5 high-performance hubs to streamline the digital asset lifecycle.
 
-| Component | Layer | Purpose | Code Reference |
-| :--- | :--- | :--- | :--- |
-| `MasterBrainDashboard` | Intelligence | Strategic "Commander's Intent" and Global Sweep control. | `MasterBrainDashboard.tsx:30` |
-| `NexusPrimeDashboard` | Intelligence | High-level forecasting and market gap synthesis. | `NexusPrimeDashboard.tsx:25` |
-| `FeedbackDashboard` | Intelligence | Human-in-the-loop AI training and decision calibration. | `FeedbackDashboard.tsx:12` |
-| `DiscoveryDashboard` | Acquisition | Grounded AI market search for .com assets. | `DiscoveryDashboard.tsx:24` |
-| `EvaluationDashboard` | Acquisition | Forensic auditing for trademarks and valuation. | `EvaluationDashboard.tsx:28` |
-| `PurchaseDashboard` | Acquisition | Acquisition execution via registrar redirects and status tracking. | `PurchaseDashboard.tsx:16` |
-| `DropSniperDashboard` | Acquisition | Live monitoring and analysis of pending-delete domains. | `DropSniperDashboard.tsx:18` |
-| `PipelineDashboard` | Operations | Kanban-style asset flow management and status logic. | `PipelineDashboard.tsx:22` |
-| `PortfolioManager` | Operations | Brand DNA generation and visual asset engineering. | `PortfolioManager.tsx:20` |
-| `ValueProofDashboard` | Operations | Business logic and landing page proof-of-concept synthesis. | `ValueProofDashboard.tsx:12` |
-| `ValueMultiplierDashboard` | Operations | Lead-gen revenue modeling and corporate synergy audits. | `ValueMultiplierDashboard.tsx:15` |
-| `MarketplaceDashboard` | Liquidation | Afternic/GoDaddy listing optimization and search snippets. | `MarketplaceDashboard.tsx:15` |
-| `MessagingDashboard` | Liquidation | Automated corporate prospecting and persona-based pitches. | `MessagingDashboard.tsx:12` |
-| `NegotiationDashboard` | Liquidation | AI "Battle Card" analysis of buyer sentiment and tactics. | `NegotiationDashboard.tsx:15` |
-| `AuctionWatchDashboard` | Market Monitor | Real-time liquidity heatmap and confirmed sales ticker. | `AuctionWatchDashboard.tsx:15` |
-| `ExecutiveReportDashboard` | Management | C-Suite portfolio reporting and capital efficiency metrics. | `ExecutiveReportDashboard.tsx:18` |
+| Hub | Legacy Agents | Purpose |
+| :--- | :--- | :--- |
+| **Intelligence Hub** | MasterBrain, NexusPrime, Feedback | Strategy synthesis, market gap forecasting, and AI training. |
+| **Acquisition Desk** | Discovery, Evaluation, Sniper, Purchase | Automated asset finding, forensic auditing, and checkout. |
+| **Operations Hub** | Pipeline, Portfolio, Proof, Multiplier | Visual engineering, business case proof, and revenue scaling. |
+| **Liquidation Engine** | Messaging, Negotiation, Marketplace, Radar | Direct outreach, battle-card negotiations, and global listing. |
+| **Executive Suite** | Executive Report, Integrations | C-Suite reporting and system-wide API orchestration. |
 
-## SECTION 2: Verified Code Implementation vs README Claims
-- **Claim**: "Multi-agent AI for discovery". **Verified**: `rigorousDiscoveryAI` uses `googleSearch` tool in `geminiService.ts:88`.
-- **Claim**: "Forensic Valuation". **Verified**: `checkTrademarkRiskAI` implements grounded search in `geminiService.ts:168`.
-- **Claim**: "Brand DNA Synthesis". **Verified**: Two-stage logic in `generateBrandIdentityAI` using `gemini-3-pro-preview` for strategy and `gemini-2.5-flash-image` for visuals.
+## SECTION 2: Architectural Benefits
+1. **Cognitive Load Reduction**: Users now manage 5 categories instead of 16.
+2. **Context Retention**: Related tools (like Discovery and Evaluation) share UI space for faster decision-making.
+3. **Streamlined State**: Centralized Hubs reduce prop-drilling and complex state synchronization between disparate components.
 
-## SECTION 3: Completed Refactors
-- **Step 1: Component Decentralization**: Components mapped to logical layers.
-- **Step 2: Custom Hook Extraction**: AI orchestration moved to `useMasterBrain.ts`.
-- **Step 3: Domain Context Provider**: Global state management active via `DomainContext.tsx`.
-- **Step 4: UI Primitives Standardization**: `StatusBadge` component deployed for consistent UI.
-
-## SECTION 4: Identified Gaps & Risk Assessment
-- **Gap**: Integration with external registrars (Namecheap/GoDaddy) is currently UI-only (redirects). **Risk**: High operational friction for bulk buys.
-- **Gap**: Feedback Loop in `FeedbackDashboard` stores state locally but doesn't persist to a global "System Instruction" for Gemini. **Risk**: Agents don't actually "learn" across sessions.
+## SECTION 3: Updated AI Flow
+- **Strategic Phase**: `IntelligenceHub` sets the thesis and finds high-level gaps.
+- **Hunting Phase**: `AcquisitionDesk` executes granular search and forensic checks.
+- **Value Injection**: `OperationsHub` builds the brand and business logic.
+- **Exit Phase**: `LiquidationEngine` finds buyers and manages the closing.
