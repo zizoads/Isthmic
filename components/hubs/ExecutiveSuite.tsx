@@ -16,22 +16,33 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
   const [activeTab, setActiveTab] = useState<'reports' | 'integrations'>('reports');
 
   return (
-    <div className="space-y-10 animate-fade-in">
-      <div className="flex bg-accent/30 p-1.5 rounded-[24px] border border-border w-fit mx-auto lg:mx-0 shadow-inner">
-        <button 
-          onClick={() => setActiveTab('reports')} 
-          className={`px-10 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'reports' ? 'bg-primary text-white shadow-xl scale-105' : 'text-slate-500 hover:text-foreground'}`}
-        >
-          <i className={`fas fa-file-invoice ${lang === 'ar' ? 'ml-2' : 'mr-2'}`}></i>
-          {lang === 'ar' ? 'التقارير التنفيذية' : 'Executive Reports'}
-        </button>
-        <button 
-          onClick={() => setActiveTab('integrations')} 
-          className={`px-10 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'integrations' ? 'bg-primary text-white shadow-xl scale-105' : 'text-slate-500 hover:text-foreground'}`}
-        >
-          <i className={`fas fa-plug-circle-check ${lang === 'ar' ? 'ml-2' : 'mr-2'}`}></i>
-          {lang === 'ar' ? 'مركز الربط والتحكم' : 'Integrations & Control'}
-        </button>
+    <div className="space-y-12 animate-fade-in pb-24">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
+         <div className="space-y-4">
+            <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
+               {lang === 'ar' ? 'الجناح التنفيذي' : 'EXECUTIVE SUITE'}
+            </h2>
+            <p className="text-slate-500 text-sm max-w-2xl font-medium leading-relaxed border-r-4 border-indigo-500/20 pr-6">
+               {lang === 'ar' 
+                  ? 'مركز الرقابة العليا، التقارير المالية الاستباقية، وإدارة تكامل البروتوكولات الخارجية للذكاء الاصطناعي.'
+                  : 'High-level oversight, proactive financial reporting, and external AI protocol integration management.'}
+            </p>
+         </div>
+         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl">
+           {[
+             { id: 'reports', label: lang === 'ar' ? 'التقارير' : 'REPORTS' },
+             { id: 'integrations', label: lang === 'ar' ? 'التكامل' : 'CONNECT' }
+           ].map(tab => (
+             <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)} 
+                className={`px-10 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
+                  ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+             >
+                {tab.label}
+             </button>
+           ))}
+         </div>
       </div>
 
       <div className="pt-6">

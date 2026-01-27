@@ -29,7 +29,8 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
       : 'Analyze arbitrage opportunities and trademark risks.';
 
     try {
-      const result = await nexusPrimeIntelligenceAI(activeMode, context, lang);
+      // Cast result to any because nexusPrimeIntelligenceAI currently returns {} in geminiServiceLegacy.ts
+      const result: any = await nexusPrimeIntelligenceAI(activeMode, context, lang);
       if (result) {
         setVerdict(result.analysisVerdict);
         setRiskAssessment(result.strategicRiskAssessment);

@@ -14,7 +14,8 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
   const handleVerify = async (domain: Domain) => {
     setVerifyingId(domain.id);
     // استدعاء الـ AI الذي سيستخدم Function Calling للتحقق
-    const result = await registrarInquiryAI(domain.name);
+    // Cast result to any because registrarInquiryAI currently returns {} in geminiServiceLegacy.ts
+    const result: any = await registrarInquiryAI(domain.name);
     if (result.available) {
        setDomains(prev => prev.map(d => d.id === domain.id ? { ...d, price: parseFloat(result.price.toString()) } : d));
     }
@@ -48,7 +49,7 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains }) => {
                <div className="text-indigo-600 font-black text-2xl tracking-tighter">$ {domain.price}</div>
                <div className="text-right">
                 <h4 className="font-black text-xl text-slate-900 tracking-tight">{domain.name}</h4>
-                <div className="text-[10px] text-indigo-500 font-black uppercase tracking-[0.2em] mt-1">{domain.sector}</div>
+                <div className="text-[10px] text-indigo-500 font-black uppercase mt-1">{domain.sector}</div>
               </div>
             </div>
 

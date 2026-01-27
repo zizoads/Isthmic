@@ -21,38 +21,43 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
   const t = translations[lang];
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="flex bg-[#0b0e14] p-1.5 rounded-2xl border border-white/10 w-fit mx-auto lg:mx-0 overflow-x-auto max-w-full scrollbar-hide">
-        <button onClick={() => setMode('mine')} 
-          data-tooltip={t.tooltip_mining_engine}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mode === 'mine' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'التنقيب الاستراتيجي' : 'MINING ENGINE'}
-        </button>
-        <button onClick={() => setMode('audit')} 
-          data-tooltip={t.tooltip_forensic_audit}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mode === 'audit' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'التدقيق والربحية' : 'FORENSIC AUDIT'}
-        </button>
-        <button onClick={() => setMode('maps')} 
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mode === 'maps' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'رادار الخرائط' : 'MAPS RADAR'}
-        </button>
-        <button onClick={() => setMode('sniper')} 
-          data-tooltip={t.tooltip_sniper}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mode === 'sniper' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'القناص القسري' : 'PRECISION SNIPER'}
-        </button>
-        <button onClick={() => setMode('checkout')} 
-          data-tooltip={t.tooltip_checkout}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mode === 'checkout' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'تنفيذ الاستثمار' : 'EXECUTE BUY'}
-        </button>
+    <div className="space-y-12 animate-fade-in pb-20">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
+         <div className="space-y-4">
+            <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
+               {lang === 'ar' ? 'مكتب الاستحواذ' : 'ACQUISITION DESK'}
+            </h2>
+            <p className="text-slate-500 text-sm max-w-2xl font-medium leading-relaxed border-r-4 border-indigo-500/20 pr-6">
+               {lang === 'ar' 
+                  ? 'التنقيب عن الفرص غير المكتشفة، التدقيق في سلامة العلامات التجارية، واقتناص النطاقات الساقطة بدقة جراحية.'
+                  : 'Mining for undiscovered opportunities, auditing trademark integrity, and sniping dropping domains with surgical precision.'}
+            </p>
+         </div>
+         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl overflow-x-auto max-w-full scrollbar-hide">
+            {[
+              { id: 'mine', label: lang === 'ar' ? 'التنقيب' : 'MINING', tip: t.tooltip_mining_engine },
+              { id: 'audit', label: lang === 'ar' ? 'التدقيق' : 'AUDIT', tip: t.tooltip_forensic_audit },
+              { id: 'maps', label: lang === 'ar' ? 'الخرائط' : 'MAPS', tip: '' },
+              { id: 'sniper', label: lang === 'ar' ? 'القناص' : 'SNIPER', tip: t.tooltip_sniper },
+              { id: 'checkout', label: lang === 'ar' ? 'التنفيذ' : 'EXECUTE', tip: t.tooltip_checkout }
+            ].map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => setMode(tab.id as any)} 
+                data-tooltip={tab.tip}
+                className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
+                  ${mode === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+              >
+                {tab.label}
+              </button>
+            ))}
+         </div>
       </div>
 
       <div className="pt-4">
         {mode === 'mine' && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
         {mode === 'audit' && (
-          <div className="space-y-8">
+          <div className="space-y-12">
              <ForensicAuditGrid domains={domains} lang={lang} />
              <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />
           </div>

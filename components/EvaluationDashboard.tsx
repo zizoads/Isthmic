@@ -30,8 +30,9 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
     ]);
 
     try {
+      // Cast the first result of Promise.all to any because it's a placeholder returning {} in geminiServiceLegacy.ts
       const [result, tmResult] = await Promise.all([
-        evaluateDomainExpertAI(domain.name, lang, abortControllerRef.current.signal),
+        evaluateDomainExpertAI(domain.name, lang, abortControllerRef.current.signal) as Promise<any>,
         checkTrademarkRiskAI(domain.name)
       ]);
       
