@@ -22,30 +22,28 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   const t = translations[lang];
 
   return (
-    <div className="space-y-12 animate-fade-in relative">
-      {/* Visual Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
-         <div className="space-y-4 flex-1">
-            <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
-               {lang === 'ar' ? 'مركز الاستخبارات' : 'INTELLIGENCE HUB'}
+    <div className="space-y-20 animate-fade-in relative">
+      {/* Precision Navigation */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
+         <div className="space-y-2">
+            <h2 className="text-4xl lg:text-5xl heading-sovereign">
+               {lang === 'ar' ? 'مركز الاستخبارات' : 'Intelligence Hub'}
             </h2>
-            <p className="text-slate-500 text-sm max-w-3xl font-medium leading-relaxed border-r-4 border-indigo-500/20 pr-6">
-               {lang === 'ar' 
-                  ? 'التحليل الاستباقي للفجوات السوقية، استشعار نبض السيولة، وتوليد استراتيجيات الاستحواذ القسرية عبر وكلاء الذكاء الاصطناعي.'
-                  : 'Proactive market gap analysis, liquidity pulse sensing, and forced acquisition strategy generation via AI agents.'}
+            <p className="text-slate-500 text-xs font-medium tracking-wide uppercase">
+               Sovereign Strategy & Market Gap Forensics
             </p>
          </div>
-         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl">
+         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
            {[
-             { id: 'sovereign', label: lang === 'ar' ? 'التحكم الآلي' : 'SOVEREIGN' },
-             { id: 'nexus', label: lang === 'ar' ? 'الرادار' : 'NEXUS' },
-             { id: 'strategy', label: lang === 'ar' ? 'المعايير' : 'CRITERIA' }
+             { id: 'sovereign', label: lang === 'ar' ? 'التحكم' : 'Sovereign' },
+             { id: 'nexus', label: lang === 'ar' ? 'الرادار' : 'Nexus' },
+             { id: 'strategy', label: lang === 'ar' ? 'الخطة' : 'Strategy' }
            ].map(tab => (
              <button 
                 key={tab.id}
                 onClick={() => setSubTab(tab.id as any)} 
-                className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
-                  ${subTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                className={`px-8 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all
+                  ${subTab === tab.id ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:text-white'}`}
              >
                 {tab.label}
              </button>
@@ -53,7 +51,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
          </div>
       </div>
 
-      <div className="pt-6">
+      <div className="grid grid-cols-1 gap-16">
         {subTab === 'sovereign' && (
           <div className="space-y-16">
              <AutonomousControlCenter 
@@ -63,34 +61,24 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
              />
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div className="lg:col-span-8">
-                   <MarketMomentumChart lang={lang} />
-                </div>
-                <div className="lg:col-span-4 space-y-8">
-                   <div className="glass-panel rounded-[40px] p-10 flex flex-col justify-center items-center text-center space-y-8 relative overflow-hidden group">
-                      <div className="w-24 h-24 bg-indigo-600/10 rounded-full flex items-center justify-center text-indigo-500 text-4xl shadow-[0_0_50px_rgba(79,70,229,0.1)] group-hover:scale-110 transition-transform duration-700">
-                         <i className="fas fa-brain animate-pulse"></i>
-                      </div>
-                      <div className="space-y-3">
-                         <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">{lang === 'ar' ? 'محاكاة السيناريوهات' : 'SCENARIOS'}</h3>
-                         <p className="text-slate-500 text-[11px] max-w-xs leading-relaxed font-medium">
-                            {lang === 'ar' ? 'توقع العائد المستقبلي عبر 12 متغيراً اقتصادياً.' : 'Forecast yield via 12 economic variables.'}
-                         </p>
-                      </div>
-                      <button onClick={() => setSubTab('feedback')} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
-                         {lang === 'ar' ? 'تدريب النماذج' : 'TRAIN MODELS'}
-                      </button>
-                      <i className="fas fa-network-wired absolute right-[-50px] bottom-[-50px] text-white/2 text-[200px] pointer-events-none group-hover:rotate-12 transition-transform duration-1000"></i>
+                   <div className="surface-layer-1 p-8 lg:p-12">
+                      <MarketMomentumChart lang={lang} />
                    </div>
-
-                   <div className="bg-indigo-600 p-10 rounded-[40px] text-white relative overflow-hidden shadow-2xl">
-                      <div className="relative z-10">
-                         <h4 className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-4">Network Integrity</h4>
-                         <div className="text-3xl font-black tracking-tighter">VERIFIED</div>
-                         <p className="text-[10px] text-indigo-100/60 mt-4 leading-relaxed italic">
-                           All discovery cycles are grounded in verified market data via Google Search.
-                         </p>
+                </div>
+                <div className="lg:col-span-4 flex flex-col gap-10">
+                   <div className="surface-layer-1 p-10 flex flex-col justify-between h-full relative overflow-hidden group">
+                      <div>
+                        <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 text-xl mb-8 group-hover:scale-110 transition-transform">
+                           <i className="fas fa-microchip"></i>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-4 tracking-tight">Neural Calibration</h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          Refine agent decision logic via past acquisition feedback.
+                        </p>
                       </div>
-                      <i className="fas fa-check-circle absolute right-[-20px] bottom-[-20px] text-white/10 text-[120px]"></i>
+                      <button onClick={() => setSubTab('feedback')} className="w-full py-4 surface-layer-2 text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white">
+                         Train Logic Engine
+                      </button>
                    </div>
                 </div>
              </div>

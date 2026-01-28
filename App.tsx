@@ -48,12 +48,11 @@ const AppContent: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-[#010103] text-slate-200 overflow-hidden font-sans antialiased">
-      {/* Quota Exhausted Banner */}
+    <div className="flex h-screen w-full bg-[#030305] text-[#f8fafc] overflow-hidden select-none">
+      {/* Precision Quota HUD */}
       {quotaExhausted && (
-        <div className="fixed top-0 left-0 w-full z-[1000] quota-alert py-2 text-center text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-3 shadow-lg">
-          <i className="fas fa-exclamation-triangle animate-pulse"></i>
-          {lang === 'ar' ? 'نظام الذكاء الاصطناعي في وضع الاسترداد (الحد الأقصى للطلبات)' : 'AI SYSTEM IN RECOVERY MODE (RATE LIMIT REACHED)'}
+        <div className="fixed top-0 left-0 w-full z-[1000] bg-red-600/10 border-b border-red-500/20 py-1.5 text-center text-[9px] font-bold uppercase tracking-[0.3em] text-red-500 backdrop-blur-xl">
+          <i className="fas fa-bolt mr-2"></i> System in Recovery Mode
         </div>
       )}
 
@@ -73,82 +72,72 @@ const AppContent: React.FC = () => {
         />
       )}
       
-      {/* Sovereign Sidebar - Modern Refactoring */}
-      <aside className={`fixed lg:relative h-full flex flex-col z-[300] bg-[#05060a]/95 backdrop-blur-3xl border-white/5 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1)
-        ${lang === 'ar' ? 'border-l' : 'border-r'}
-        ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 lg:w-64 -translate-x-full lg:translate-x-0'}
-        ${lang === 'ar' ? 'right-0' : 'left-0'}
-        ${quotaExhausted ? 'pt-8' : ''}
+      {/* Obsidian Sidebar */}
+      <aside className={`fixed lg:relative h-full nav-sidebar z-[300] transition-all duration-500 ease-in-out
+        ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 lg:w-[260px] -translate-x-full lg:translate-x-0'}
+        ${lang === 'ar' ? 'right-0 border-l' : 'left-0 border-r'}
       `}>
-        <div className="p-8 flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-500/20 group cursor-pointer sovereign-button" aria-hidden="true">
-            <i className="fas fa-cube text-white text-lg"></i>
+        <div className="p-10 flex flex-col items-center">
+          <div className="w-10 h-10 surface-layer-1 flex items-center justify-center mb-6">
+            <i className="fas fa-cube text-indigo-500 text-sm"></i>
           </div>
-          <span className="hidden lg:block text-xs font-black tracking-[0.4em] text-white uppercase shimmer-text">ISTHMIC PRO</span>
+          <span className="text-[10px] font-bold tracking-[0.6em] text-white/40 uppercase">ISTHMIC PRO</span>
         </div>
         
-        <nav className="flex-1 px-4 py-8 space-y-3" aria-label="القائمة الرئيسية">
+        <nav className="flex-1 py-4 space-y-1 overflow-y-auto custom-scrollbar">
           {menuItems.map(item => (
             <button 
               key={item.type} 
               onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }}
-              aria-label={item.label}
-              className={`w-full flex items-center gap-5 px-5 py-4 rounded-2xl transition-all group relative overflow-hidden sovereign-button
-                ${activeTab === item.type 
-                  ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-500/20' 
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+              className={`nav-item w-[calc(100%-24px)] mx-3 ${activeTab === item.type ? 'active' : ''}`}
             >
-              <i className={`fas ${item.icon} w-6 text-center text-sm lg:text-base group-hover:scale-110 transition-transform`} aria-hidden="true"></i>
-              <span className="hidden lg:block text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
-              {activeTab === item.type && <div className="absolute inset-y-0 left-0 w-1 bg-white"></div>}
+              <i className={`fas ${item.icon}`}></i>
+              <span className="truncate">{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <div className="p-6">
+        <div className="p-6 border-t border-white/5">
           <button 
             onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} 
-            className="w-full py-4 rounded-xl text-[9px] font-black uppercase border border-white/10 hover:bg-indigo-600 hover:text-white transition-all text-slate-300 tracking-widest bg-white/5 sovereign-button"
+            className="w-full py-3 rounded-lg text-[9px] font-bold uppercase border border-white/10 hover:border-white/20 transition-all text-white/40 tracking-widest"
           >
-            {lang === 'ar' ? 'SWITCH TO ENGLISH' : 'التحويل للعربية'}
+            {lang === 'ar' ? 'Language: EN' : 'اللغة: العربية'}
           </button>
         </div>
       </aside>
       
-      {/* Main Command Deck */}
-      <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden h-full">
-        <header className={`h-20 flex items-center justify-between px-6 lg:px-16 bg-[#010103]/80 backdrop-blur-xl sticky top-0 z-[200] border-b border-white/5 ${quotaExhausted ? 'mt-8' : ''}`}>
+      {/* Main Execution Deck */}
+      <main className="flex-1 flex flex-col relative overflow-hidden h-full">
+        {/* Top Minimal Header */}
+        <header className="h-14 flex items-center justify-between px-10 border-b border-white/5 bg-transparent backdrop-blur-sm z-[200]">
           <div className="flex items-center gap-6">
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="lg:hidden w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 hover:bg-indigo-600 hover:text-white transition-all sovereign-button"
-            >
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden text-white/40 hover:text-white">
                <i className={`fas ${isSidebarOpen ? 'fa-times' : 'fa-bars'}`}></i>
             </button>
-            <div className="flex items-center gap-6">
-               <h1 className="text-[10px] font-black tracking-[0.4em] uppercase text-indigo-400 hidden sm:block shimmer-text">{t.platformName}</h1>
-               <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
-               <div className="text-base lg:text-lg font-black text-white uppercase italic tracking-tighter">
-                 {menuItems.find(i => i.type === activeTab)?.label}
-               </div>
+            <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest">
+              Terminal / <span className="text-white">{menuItems.find(i => i.type === activeTab)?.label}</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-8">
-             <div className="hidden md:flex items-center gap-8">
+          <div className="flex items-center gap-10">
+             <div className="hidden md:flex items-center gap-6">
                 <div className="text-right">
-                   <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">{t.estimatedValue}</div>
-                   <div className="text-xl font-black text-white tabular-nums tracking-tighter">$ {stats.estimatedPortfolioValue.toLocaleString()}</div>
+                   <div className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Net Value</div>
+                   <div className="text-sm font-bold text-white tabular-nums tracking-tight">$ {stats.estimatedPortfolioValue.toLocaleString()}</div>
                 </div>
-                <div className={`w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center transition-all bg-white/5 group hover:bg-indigo-600 sovereign-button ${quotaExhausted ? 'border-red-500 animate-pulse' : ''}`}>
-                   <i className={`fas ${quotaExhausted ? 'fa-battery-empty text-red-500' : 'fa-shield-halved text-slate-400'} text-base group-hover:text-white`}></i>
+                <div className="w-px h-6 bg-white/5"></div>
+                <div className={`flex items-center gap-2 ${quotaExhausted ? 'text-red-500' : 'text-green-500'}`}>
+                   <div className={`w-1.5 h-1.5 rounded-full bg-current ${quotaExhausted ? 'animate-pulse' : ''}`}></div>
+                   <span className="text-[8px] font-bold uppercase tracking-widest">{quotaExhausted ? 'Rate Limited' : 'Sync: Live'}</span>
                 </div>
              </div>
           </div>
         </header>
         
+        {/* Scrollable Viewport */}
         <div className="flex-1 overflow-y-auto custom-scrollbar relative h-full">
-          <div className="max-w-[1600px] mx-auto p-6 lg:p-16 pb-40">
+          <div className="max-w-[1400px] mx-auto p-12 lg:p-20 pb-40">
             {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang={lang} onInitiateScan={initiateScan} isScanning={isScanning} />}
             {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
             {activeTab === AgentType.OPERATIONS && <OperationsHub domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
@@ -157,37 +146,23 @@ const AppContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Global Operational HUD - Redesigned with Glass Panel */}
-        <footer className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[400] w-full max-w-2xl px-4 pointer-events-none">
-           <div className={`glass-panel px-8 py-4 rounded-[28px] flex items-center justify-between shadow-2xl border transition-all pointer-events-auto ${quotaExhausted ? 'border-red-500/50' : 'border-white/10'}`}>
-              <div className="flex items-center gap-4 pr-6 border-r border-white/10 shrink-0">
-                 <div className={`w-2.5 h-2.5 rounded-full ${quotaExhausted ? 'bg-red-500 animate-pulse' : isScanning ? 'bg-indigo-500 animate-pulse' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]'}`}></div>
-                 <span className="text-[9px] font-black text-white uppercase tracking-[0.2em]">
-                   {quotaExhausted ? 'QUOTA_ERROR' : isScanning ? 'AI_ACTIVE' : 'READY'}
+        {/* The Obsidian HUD - Minimalist Overlay */}
+        <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
+           <div className="hud-card pointer-events-auto shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border-white/10">
+              <div className="flex items-center gap-4 border-r border-white/10 pr-6">
+                 <div className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`}></div>
+                 <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em]">
+                   {isScanning ? 'Inference active' : 'Grounding ready'}
                  </span>
               </div>
               
-              <div className="flex-1 px-6 overflow-hidden">
-                 {quotaExhausted ? (
-                    <span className="text-[8px] font-mono text-red-400 uppercase tracking-widest animate-pulse">
-                      Exceeded current quota. Please switch to a paid project or wait 60s.
-                    </span>
-                 ) : isScanning ? (
-                    <div className="flex items-center gap-4 animate-fade-in">
-                       <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden relative">
-                          <div className="h-full bg-indigo-500 w-1/3 animate-progress"></div>
-                       </div>
-                    </div>
-                 ) : (
-                    <div className="flex items-center gap-4 text-slate-500 animate-fade-in">
-                       <span className="text-[8px] font-mono tracking-widest uppercase italic truncate">Node: IST-ALPHA-01 | Status: Grounded</span>
-                    </div>
-                 )}
+              <div className="text-[8px] font-mono text-white/30 tracking-widest uppercase">
+                 Isthmic Alpha Node: 0x92f...A2
               </div>
 
-              {(isScanning || quotaExhausted) && (
-                <button onClick={() => window.location.reload()} className="bg-white/5 hover:bg-indigo-600 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shrink-0 sovereign-button">
-                  {lang === 'ar' ? 'إعادة تشغيل' : 'RESET'}
+              {isScanning && (
+                <button onClick={() => window.location.reload()} className="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-full text-[9px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all">
+                  Terminate
                 </button>
               )}
            </div>
