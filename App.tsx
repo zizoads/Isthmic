@@ -20,8 +20,8 @@ import TickerTape from './components/TickerTape';
 
 const AppContent: React.FC = () => {
   const { 
-    domains, setDomains, stats, notifications, quotaExhausted,
-    dismissNotification, addLog, connectService, strategy 
+    domains, setDomains, integrations, stats, notifications, 
+    dismissNotification, addLog, connectService, strategy, system, resetQuota
   } = useDomainContext();
   
   const [lang, setLang] = useState<'ar' | 'en'>(() => (localStorage.getItem('ist_lang') as 'ar' | 'en') || 'ar');
@@ -30,7 +30,7 @@ const AppContent: React.FC = () => {
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
 
   const { isScanning, initiateScan } = useMasterBrain(strategy, lang);
-
+  const quotaExhausted = system.status === 'degraded';
   const t = translations[lang];
 
   useEffect(() => {
@@ -51,8 +51,10 @@ const AppContent: React.FC = () => {
     <div className="flex h-screen w-full bg-[#030305] text-[#f8fafc] overflow-hidden select-none">
       {/* Precision Quota HUD */}
       {quotaExhausted && (
-        <div className="fixed top-0 left-0 w-full z-[1000] bg-red-600/10 border-b border-red-500/20 py-1.5 text-center text-[9px] font-bold uppercase tracking-[0.3em] text-red-500 backdrop-blur-xl">
-          <i className="fas fa-bolt mr-2"></i> System in Recovery Mode
+        <div className="fixed top-0 left-0 w-full z-[1000] bg-red-600/10 border-b border-red-500/20 py-1.5 text-center text-[9px] font-bold uppercase tracking-[0.3em] text-red-500 backdrop-blur-xl flex items-center justify-center gap-3">
+          <i className="fas fa-bolt animate-pulse"></i>
+          <span>{lang === 'ar' ? 'نظام الذكاء الاصطناعي في وضع الاسترداد (الحد الأقصى للطلبات)' : 'AI SYSTEM IN RECOVERY MODE (RATE LIMIT REACHED)'}</span>
+          <button onClick={resetQuota} className="bg-red-500 text-white px-2 py-0.5 rounded text-[8px] hover:bg-white hover:text-red-500 transition-colors">RESET</button>
         </div>
       )}
 
@@ -76,9 +78,10 @@ const AppContent: React.FC = () => {
       <aside className={`fixed lg:relative h-full nav-sidebar z-[300] transition-all duration-500 ease-in-out
         ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 lg:w-[260px] -translate-x-full lg:translate-x-0'}
         ${lang === 'ar' ? 'right-0 border-l' : 'left-0 border-r'}
+        ${quotaExhausted ? 'pt-8' : ''}
       `}>
         <div className="p-10 flex flex-col items-center">
-          <div className="w-10 h-10 surface-layer-1 flex items-center justify-center mb-6">
+          <div className="w-10 h-10 surface-layer-1 flex items-center justify-center mb-6 border border-white/5 shadow-xl">
             <i className="fas fa-cube text-indigo-500 text-sm"></i>
           </div>
           <span className="text-[10px] font-bold tracking-[0.6em] text-white/40 uppercase">ISTHMIC PRO</span>
@@ -110,7 +113,7 @@ const AppContent: React.FC = () => {
       {/* Main Execution Deck */}
       <main className="flex-1 flex flex-col relative overflow-hidden h-full">
         {/* Top Minimal Header */}
-        <header className="h-14 flex items-center justify-between px-10 border-b border-white/5 bg-transparent backdrop-blur-sm z-[200]">
+        <header className={`h-14 flex items-center justify-between px-10 border-b border-white/5 bg-transparent backdrop-blur-sm z-[200] ${quotaExhausted ? 'mt-8' : ''}`}>
           <div className="flex items-center gap-6">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden text-white/40 hover:text-white">
                <i className={`fas ${isSidebarOpen ? 'fa-times' : 'fa-bars'}`}></i>
@@ -142,17 +145,17 @@ const AppContent: React.FC = () => {
             {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
             {activeTab === AgentType.OPERATIONS && <OperationsHub domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
             {activeTab === AgentType.LIQUIDATION && <LiquidationEngine domains={domains} setDomains={setDomains} lang={lang} />}
-            {activeTab === AgentType.MANAGEMENT && <ExecutiveSuite domains={domains} stats={stats} integrations={[]} onConnect={connectService} lang={lang} />}
+            {activeTab === AgentType.MANAGEMENT && <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} onConnect={connectService} lang={lang} />}
           </div>
         </div>
 
         {/* The Obsidian HUD - Minimalist Overlay */}
         <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-           <div className="hud-card pointer-events-auto shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border-white/10">
+           <div className={`hud-card pointer-events-auto shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border transition-all ${quotaExhausted ? 'border-red-500/50' : 'border-white/10'}`}>
               <div className="flex items-center gap-4 border-r border-white/10 pr-6">
-                 <div className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`}></div>
+                 <div className={`w-1.5 h-1.5 rounded-full ${quotaExhausted ? 'bg-red-500 animate-pulse' : isScanning ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`}></div>
                  <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em]">
-                   {isScanning ? 'Inference active' : 'Grounding ready'}
+                   {quotaExhausted ? 'Quota Error' : isScanning ? 'Inference active' : 'Grounding ready'}
                  </span>
               </div>
               
@@ -160,9 +163,9 @@ const AppContent: React.FC = () => {
                  Isthmic Alpha Node: 0x92f...A2
               </div>
 
-              {isScanning && (
-                <button onClick={() => window.location.reload()} className="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-full text-[9px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all">
-                  Terminate
+              {(isScanning || quotaExhausted) && (
+                <button onClick={() => window.location.reload()} className="bg-white/5 text-white/40 px-4 py-1.5 rounded-full text-[9px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all">
+                  {quotaExhausted ? 'Re-Sync' : 'Terminate'}
                 </button>
               )}
            </div>

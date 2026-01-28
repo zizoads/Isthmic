@@ -11,7 +11,6 @@
   --text-dim: #94a3b8;
   --text-bright: #f8fafc;
   
-  /* Precision Shadows */
   --shadow-inner: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
   --shadow-outer: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
@@ -98,25 +97,6 @@ body {
   filter: drop-shadow(0 0 5px var(--accent-glow));
 }
 
-/* Advanced Components */
-.shimmer {
-  position: relative;
-  overflow: hidden;
-}
-
-.shimmer::after {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-  animation: shimmer-anim 2s infinite;
-}
-
-@keyframes shimmer-anim {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
 /* Global HUD Tooltip Style */
 .hud-card {
   background: rgba(0, 0, 0, 0.8);
@@ -128,15 +108,32 @@ body {
   gap: 20px;
 }
 
-/* Recharts Customization */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
-  stroke: rgba(255, 255, 255, 0.02);
-}
-
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #fff 0%, #818cf8 50%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+@keyframes textShimmer {
+  to { background-position: 200% center; }
+}
+
+.quota-alert {
+  background: linear-gradient(90deg, #7f1d1d, #ef4444, #7f1d1d);
+  background-size: 200% auto;
+  animation: quotaPulse 3s infinite linear;
+}
+
+@keyframes quotaPulse {
+  to { background-position: 200% center; }
 }

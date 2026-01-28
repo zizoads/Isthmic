@@ -61,24 +61,25 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
              />
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div className="lg:col-span-8">
-                   <div className="surface-layer-1 p-8 lg:p-12">
+                   <div className="surface-layer-1 p-8 lg:p-12 border border-white/5 shadow-2xl">
                       <MarketMomentumChart lang={lang} />
                    </div>
                 </div>
                 <div className="lg:col-span-4 flex flex-col gap-10">
-                   <div className="surface-layer-1 p-10 flex flex-col justify-between h-full relative overflow-hidden group">
+                   <div className="surface-layer-1 p-10 flex flex-col justify-between h-full relative overflow-hidden group border border-white/5 shadow-2xl">
                       <div>
                         <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 text-xl mb-8 group-hover:scale-110 transition-transform">
                            <i className="fas fa-microchip"></i>
                         </div>
                         <h3 className="text-xl font-bold text-white mb-4 tracking-tight">Neural Calibration</h3>
                         <p className="text-slate-500 text-[11px] leading-relaxed">
-                          Refine agent decision logic via past acquisition feedback.
+                          Refine agent decision logic via past acquisition feedback. Calibrate DNA extraction weights.
                         </p>
                       </div>
-                      <button onClick={() => setSubTab('feedback')} className="w-full py-4 surface-layer-2 text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white">
+                      <button onClick={() => setSubTab('feedback')} className="w-full py-4 surface-layer-2 text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white border border-white/5">
                          Train Logic Engine
                       </button>
+                      <i className="fas fa-network-wired absolute right-[-50px] bottom-[-50px] text-white/2 text-[200px] pointer-events-none group-hover:rotate-12 transition-transform duration-1000"></i>
                    </div>
                 </div>
              </div>
@@ -101,9 +102,6 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
             onInitiateScan={onInitiateScan}
             isScanning={isScanning}
           />
-        )}
-        {subTab === 'feedback' && (
-          <FeedbackDashboard domains={[]} stats={stats} />
         )}
       </div>
     </div>

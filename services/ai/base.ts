@@ -7,41 +7,34 @@ export const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-/**
- * محرك استدعاء ذكي مع معالجة متقدمة للكوتا (Error 429)
- */
-export async function safeAICall<T>(fn: () => Promise<T>, retries = 3, delay = 5000): Promise<T> {
+export async function safeAICall<T>(fn: () => Promise<T>, retries = 1, delay = 1000): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
-    const errorStatus = error.status || (error.message?.includes('429') ? 429 : 0);
-    const isQuotaError = errorStatus === 429 || error.message?.includes('RESOURCE_EXHAUSTED');
+    const errorMsg = error.message || "";
+    const status = error.status || 0;
 
-    if (isQuotaError) {
-      console.warn(`[AI Quota] Resource exhausted. Retrying in ${delay}ms... (${retries} retries left)`);
-      
-      if (retries > 0) {
-        // التراجع الأسي لإعطاء الخادم مساحة للتنفس
-        await new Promise(r => setTimeout(r, delay));
-        return safeAICall(fn, retries - 1, delay * 2);
-      }
-      
-      // إرسال حدث مخصص لإبلاغ الواجهة الأمامية بتعطل الكوتا
-      window.dispatchEvent(new CustomEvent('ai-quota-exhausted', { 
-        detail: { message: "تم الوصول للحد الأقصى للطلبات المجانية. يرجى الانتظار قليلاً أو تبديل المفتاح." } 
-      }));
+    // Handle Quota Exhausted (429) - Stop retries and notify
+    if (status === 429 || errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED')) {
+      console.error("AI_QUOTA_EXHAUSTED: Switching system to Recovery Mode.");
+      // We broadcast the error to the app context through the thrown message
+      throw new Error("QUOTA_EXHAUSTED");
     }
 
-    if (error.message?.includes('Requested entity was not found') && window.aistudio) {
+    if (errorMsg.includes('Requested entity was not found') && window.aistudio) {
       window.aistudio.openSelectKey();
     }
 
+    if (retries > 0) {
+      await new Promise(r => setTimeout(r, delay));
+      return safeAICall(fn, retries - 1, delay * 2);
+    }
     throw error;
   }
 }
 
 /**
- * المحرك الهيكلي الموحد - يضمن مخرجات JSON دقيقة مع دعم AbortSignal.
+ * المحرك الهيكلي الموحد - يضمن مخرجات JSON دقيقة مع دعم AbortSignal والأدوات.
  */
 export async function generateStructuredAI<T>(
   modelName: 'gemini-3-pro-preview' | 'gemini-3-flash-preview' | 'gemini-2.5-flash',
