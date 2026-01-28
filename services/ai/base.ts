@@ -7,24 +7,41 @@ export const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export async function safeAICall<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> {
+/**
+ * محرك استدعاء ذكي مع معالجة متقدمة للكوتا (Error 429)
+ */
+export async function safeAICall<T>(fn: () => Promise<T>, retries = 3, delay = 5000): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
-    const errorMsg = error.message || "";
-    if (errorMsg.includes('Requested entity was not found') && window.aistudio) {
+    const errorStatus = error.status || (error.message?.includes('429') ? 429 : 0);
+    const isQuotaError = errorStatus === 429 || error.message?.includes('RESOURCE_EXHAUSTED');
+
+    if (isQuotaError) {
+      console.warn(`[AI Quota] Resource exhausted. Retrying in ${delay}ms... (${retries} retries left)`);
+      
+      if (retries > 0) {
+        // التراجع الأسي لإعطاء الخادم مساحة للتنفس
+        await new Promise(r => setTimeout(r, delay));
+        return safeAICall(fn, retries - 1, delay * 2);
+      }
+      
+      // إرسال حدث مخصص لإبلاغ الواجهة الأمامية بتعطل الكوتا
+      window.dispatchEvent(new CustomEvent('ai-quota-exhausted', { 
+        detail: { message: "تم الوصول للحد الأقصى للطلبات المجانية. يرجى الانتظار قليلاً أو تبديل المفتاح." } 
+      }));
+    }
+
+    if (error.message?.includes('Requested entity was not found') && window.aistudio) {
       window.aistudio.openSelectKey();
     }
-    if (retries > 0 && (error.status === 429 || errorMsg.includes('429'))) {
-      await new Promise(r => setTimeout(r, delay));
-      return safeAICall(fn, retries - 1, delay * 2);
-    }
+
     throw error;
   }
 }
 
 /**
- * المحرك الهيكلي الموحد - يضمن مخرجات JSON دقيقة مع دعم AbortSignal والأدوات.
+ * المحرك الهيكلي الموحد - يضمن مخرجات JSON دقيقة مع دعم AbortSignal.
  */
 export async function generateStructuredAI<T>(
   modelName: 'gemini-3-pro-preview' | 'gemini-3-flash-preview' | 'gemini-2.5-flash',
