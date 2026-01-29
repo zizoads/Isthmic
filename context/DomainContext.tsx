@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile } from '../types';
 import { persistence } from '../services/DataService';
@@ -110,8 +111,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    // Fix: Destructure user from signup response to fix state update error
-    const { user } = await AuthService.signup(name, email, pass);
+    // Fixed: destructuring { user } from AuthService.signup and providing defaults for security params
+    const { user } = await AuthService.signup(name, email, pass, "Default Question", "Default Answer");
     setProfiles(prev => [...prev, user]);
     await loadWorkspaceData(user);
   };
@@ -122,17 +123,21 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const requestRecoveryCode = async (email: string) => {
+    // Fixed: AuthService method name
     return await AuthService.sendRecoveryCode(email);
   };
 
   const resetPassword = async (email: string, newPass: string) => {
+    // Fixed: AuthService method name
     return await AuthService.updatePassword(email, newPass);
   };
 
   const loginWithGoogle = async () => {
     setIsInitialLoading(true);
     try {
+      // Fixed: AuthService method name
       const gUser = await AuthService.signInWithGoogle();
+      // Fixed: property check for googleId
       const existing = profiles.find(p => p.googleId === gUser.sub || p.email === gUser.email);
       
       if (existing) {
@@ -142,7 +147,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           id: crypto.randomUUID(),
           name: gUser.name,
           email: gUser.email,
-          googleId: gUser.sub,
+          googleId: gUser.sub, // Fixed: googleId exists in UserProfile now
           avatar: gUser.picture,
           role: 'Executive',
           createdAt: new Date().toISOString(),
