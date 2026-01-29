@@ -1,10 +1,10 @@
 
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile } from '../types';
 import { persistence } from '../services/DataService';
 import { AuthService } from '../services/AuthService';
 import { SyncService } from '../services/SyncService';
+import { supabase } from '../services/SupabaseClient';
 
 interface DomainContextType {
   activeProfile: UserProfile | null;
@@ -20,11 +20,7 @@ interface DomainContextType {
   isInitialLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   signup: (name: string, email: string, pass: string) => Promise<void>;
-  requestRecoveryCode: (email: string) => Promise<string>;
-  resetPassword: (email: string, newPass: string) => Promise<boolean>;
-  loginWithGoogle: () => Promise<void>;
   logout: () => void;
-  deleteProfile: (id: string) => Promise<void>;
   addLog: (agent: string, message: string, type?: ActivityLog['type']) => void;
   syncStatus: 'idle' | 'syncing' | 'healthy' | 'error';
   lastSyncTime: string | null;
@@ -60,16 +56,32 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const boot = async () => {
       try {
         await persistence.init();
-        const savedProfiles = await persistence.loadAll('profiles');
-        setProfiles(savedProfiles);
         
-        const lastProfileId = localStorage.getItem('isthmic_active_profile');
-        if (lastProfileId) {
-          const profile = savedProfiles.find(p => p.id === lastProfileId);
-          if (profile) loadWorkspaceData(profile);
+        // التحقق من وجود "جلسة" حقيقية في Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // جلب بيانات البروفايل الحية
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          const user: UserProfile = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profileData?.name || 'Owner',
+            role: 'Executive',
+            createdAt: session.user.created_at,
+            isSyncEnabled: true,
+            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profileData?.name || 'User'}`
+          };
+          
+          await loadWorkspaceData(user);
         }
       } catch (e) {
-        console.error("Vault Failure", e);
+        console.error("Cloud Vault Connection Failed", e);
       } finally {
         setIsInitialLoading(false);
       }
@@ -80,8 +92,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const loadWorkspaceData = useCallback(async (profile: UserProfile) => {
     setIsInitialLoading(true);
     setActiveProfile(profile);
-    localStorage.setItem('isthmic_active_profile', profile.id);
     
+    // جلب البيانات المحلية المرتبطة بهذا المستخدم
     const [allDomains, allStrategies, allIntegrations] = await Promise.all([
       persistence.loadAll('domains'),
       persistence.loadAll('strategy'),
@@ -111,9 +123,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    // Fixed: destructuring { user } from AuthService.signup and providing defaults for security params
-    const { user } = await AuthService.signup(name, email, pass, "Default Question", "Default Answer");
-    setProfiles(prev => [...prev, user]);
+    const { user } = await AuthService.signup(name, email, pass, "What was your first school?", "Default");
     await loadWorkspaceData(user);
   };
 
@@ -122,76 +132,21 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     await loadWorkspaceData(user);
   };
 
-  const requestRecoveryCode = async (email: string) => {
-    // Fixed: AuthService method name
-    return await AuthService.sendRecoveryCode(email);
-  };
-
-  const resetPassword = async (email: string, newPass: string) => {
-    // Fixed: AuthService method name
-    return await AuthService.updatePassword(email, newPass);
-  };
-
-  const loginWithGoogle = async () => {
-    setIsInitialLoading(true);
-    try {
-      // Fixed: AuthService method name
-      const gUser = await AuthService.signInWithGoogle();
-      // Fixed: property check for googleId
-      const existing = profiles.find(p => p.googleId === gUser.sub || p.email === gUser.email);
-      
-      if (existing) {
-        await loadWorkspaceData(existing);
-      } else {
-        const newProfile: UserProfile = {
-          id: crypto.randomUUID(),
-          name: gUser.name,
-          email: gUser.email,
-          googleId: gUser.sub, // Fixed: googleId exists in UserProfile now
-          avatar: gUser.picture,
-          role: 'Executive',
-          createdAt: new Date().toISOString(),
-          isSyncEnabled: true
-        };
-        await persistence.save('profiles', newProfile);
-        setProfiles(prev => [...prev, newProfile]);
-        await loadWorkspaceData(newProfile);
-      }
-    } catch (e) {
-      console.error("Login Error", e);
-    } finally {
-      setIsInitialLoading(false);
-    }
-  };
-
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setActiveProfile(null);
-    localStorage.removeItem('isthmic_active_profile');
     setSyncStatus('idle');
   }, []);
-
-  const deleteProfile = async (id: string) => {
-    await persistence.delete('profiles', id);
-    setProfiles(prev => prev.filter(p => p.id !== id));
-    if (activeProfile?.id === id) logout();
-  };
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(x => x.id !== id));
   }, []);
 
-  const dispatchNotification = useCallback((n: Omit<Notification, 'id'>) => {
-    const id = crypto.randomUUID();
-    setNotifications(prev => [...prev, { ...n, id }]);
-    setTimeout(() => dismissNotification(id), 5000);
-  }, [dismissNotification]);
-
   const addLog = useCallback((agent: string, message: string, type: ActivityLog['type'] = 'info') => {
     if (!activeProfile) return;
     const log: ActivityLog = { id: crypto.randomUUID(), workspaceId: activeProfile.id, time: new Date().toLocaleTimeString(), agent, message, type };
     setActivityLogs(prev => [log, ...prev].slice(0, 100));
-    if (type !== 'info') dispatchNotification({ agent, message, type });
-  }, [activeProfile, dispatchNotification]);
+  }, [activeProfile]);
 
   const stats = useMemo(() => {
     const purchased = domains.filter(d => d.status === 'purchased');
@@ -208,7 +163,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo(() => ({
     activeProfile, profiles, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
-    login, signup, requestRecoveryCode, resetPassword, loginWithGoogle, logout, deleteProfile, addLog, dispatchNotification, dismissNotification, syncStatus, lastSyncTime,
+    login, signup, logout, addLog, dismissNotification, syncStatus, lastSyncTime,
     exportVault: async () => {
       if (!activeProfile) return;
       const backup = await persistence.exportBackup(activeProfile.id);
@@ -226,9 +181,10 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     },
     wipeLocalVault: async () => {
       if (!activeProfile) return;
-      await deleteProfile(activeProfile.id);
+      await persistence.delete('profiles', activeProfile.id);
+      logout();
     }
-  }), [activeProfile, profiles, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, login, signup, requestRecoveryCode, resetPassword, loginWithGoogle, logout, deleteProfile, addLog, dispatchNotification, dismissNotification, syncStatus, lastSyncTime]);
+  }), [activeProfile, profiles, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, login, signup, logout, addLog, dismissNotification, syncStatus, lastSyncTime]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };

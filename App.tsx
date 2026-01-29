@@ -19,23 +19,20 @@ import SonnerNotification from './components/SonnerNotification';
 import TickerTape from './components/TickerTape';
 
 const LoginScreen: React.FC = () => {
-  const { isInitialLoading, loadWorkspaceData } = useDomainContext() as any;
+  const { isInitialLoading, signup, login } = useDomainContext() as any;
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'recovery' | 'loading'>('login');
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [question, setQuestion] = useState('What was your first school?');
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [fetchedQuestion, setFetchedQuestion] = useState('');
 
   const handleSignup = async () => {
-    if (!name || !email || !password || !answer) { setError('All fields including Security Answer required'); return; }
+    if (!name || !email || !password || !answer) { setError('All fields required'); return; }
     setView('loading');
     try {
-      const user = await AuthService.signup(name, email, password, question, answer);
-      await loadWorkspaceData(user);
+      await signup(name, email, password);
     } catch (e: any) {
       setError(e.message);
       setView('signup');
@@ -43,45 +40,24 @@ const LoginScreen: React.FC = () => {
   };
 
   const handleLogin = async () => {
+    if (!email || !password) { setError('Email and Password required'); return; }
     setView('loading');
     try {
-      const user = await AuthService.login(email, password);
-      await loadWorkspaceData(user);
+      await login(email, password);
     } catch (e: any) {
       setError(e.message);
       setView('login');
-    }
-  };
-
-  const startRecovery = async () => {
-    try {
-      const q = await AuthService.getQuestion(email);
-      setFetchedQuestion(q);
-      setView('recovery');
-      setError(null);
-    } catch (e: any) {
-      setError(e.message);
-    }
-  };
-
-  const handleReset = async () => {
-    try {
-      await AuthService.recoverWithQuestion(email, answer, password);
-      setError("Success! Account recovered. Please login.");
-      setView('login');
-    } catch (e: any) {
-      setError(e.message);
     }
   };
 
   if (isInitialLoading || view === 'loading') return (
     <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a0c] gap-10">
       <div className="relative">
-        <div className="w-20 h-20 border-2 border-white/5 rounded-full"></div>
+        <div className="w-24 h-24 border-2 border-white/5 rounded-full"></div>
         <div className="absolute inset-0 border-2 border-t-[#c5a059] border-transparent rounded-full animate-spin"></div>
-        <i className="fas fa-database absolute inset-0 flex items-center justify-center text-[#c5a059] animate-pulse"></i>
+        <i className="fas fa-cloud-bolt absolute inset-0 flex items-center justify-center text-[#c5a059] text-2xl animate-pulse"></i>
       </div>
-      <div className="text-[9px] font-black text-white uppercase tracking-[0.5em] animate-pulse">Connecting to Central Registry...</div>
+      <div className="text-[10px] font-black text-white uppercase tracking-[0.6em] animate-pulse">Syncing with Sovereign Cloud...</div>
     </div>
   );
 
@@ -91,32 +67,31 @@ const LoginScreen: React.FC = () => {
         
         <div className="text-center space-y-4">
           <div className="w-20 h-20 bg-[#c5a059]/10 rounded-3xl flex items-center justify-center text-[#c5a059] mx-auto border border-[#c5a059]/20 shadow-2xl">
-             <i className={`fas ${view === 'signup' ? 'fa-id-card' : view === 'recovery' ? 'fa-user-shield' : 'fa-vault'} text-3xl`}></i>
+             <i className={`fas ${view === 'signup' ? 'fa-user-plus' : 'fa-lock-open'} text-3xl`}></i>
           </div>
           <h1 className="text-5xl prestige-heading text-white italic tracking-tighter">Isthmic Pro</h1>
-          <p className="text-slate-600 uppercase text-[8px] font-black tracking-[0.4em]">Hybrid Centralized Database</p>
+          <p className="text-slate-600 uppercase text-[8px] font-black tracking-[0.4em]">Sovereign Database Enabled</p>
         </div>
 
         <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-10 lg:p-14 shadow-3xl">
-          
           {view === 'login' && (
             <div className="space-y-6 animate-slide-up">
                <div className="space-y-4">
                   <input 
                     type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-[#c5a059]/50"
                   />
                   <input 
                     type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-[#c5a059]/50"
                   />
                   {error && <p className="text-red-500 text-[9px] font-black uppercase text-center">{error}</p>}
                   <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all">
-                    Access Private Registry
+                    Access Registry
                   </button>
-                  <div className="flex justify-between items-center px-2">
-                     <button onClick={() => setView('signup')} className="text-[#c5a059] text-[9px] font-black uppercase">New Account</button>
-                     <button onClick={() => setView('forgot')} className="text-slate-600 text-[9px] font-black uppercase">Lost Access?</button>
+                  <div className="flex justify-between items-center px-2 pt-4">
+                     <button onClick={() => setView('signup')} className="text-[#c5a059] text-[9px] font-black uppercase">Create Identity</button>
+                     <button className="text-slate-600 text-[9px] font-black uppercase">Lost Access?</button>
                   </div>
                </div>
             </div>
@@ -130,85 +105,26 @@ const LoginScreen: React.FC = () => {
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
                   />
                   <input 
-                    type="email" placeholder="Gmail Address" value={email} onChange={(e) => setEmail(e.target.value)}
+                    type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
                   />
                   <input 
-                    type="password" placeholder="Create Password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
                   />
-                  
-                  <div className="pt-4 border-t border-white/5 space-y-4">
-                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest text-center">Security Question for Recovery</p>
-                    <select value={question} onChange={(e) => setQuestion(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-xs">
-                       <option>What was your first school?</option>
-                       <option>What is your mother's maiden name?</option>
-                       <option>What was the name of your first pet?</option>
-                       <option>In what city were you born?</option>
-                    </select>
-                    <input 
-                      type="text" placeholder="Your Answer (Save this carefully)" value={answer} onChange={(e) => setAnswer(e.target.value)}
-                      className="w-full bg-black/40 border border-[#c5a059]/30 rounded-2xl px-6 py-4 text-white outline-none"
-                    />
-                  </div>
-
+                  <input 
+                    type="text" placeholder="Security Answer (First School?)" value={answer} onChange={(e) => setAnswer(e.target.value)}
+                    className="w-full bg-black/40 border border-[#c5a059]/30 rounded-2xl px-6 py-4 text-white outline-none"
+                  />
                   {error && <p className="text-red-500 text-[9px] font-black uppercase text-center">{error}</p>}
                   <button onClick={handleSignup} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                    Register Central Account
+                    Initialize Global Account
                   </button>
-                  <button onClick={() => setView('login')} className="w-full text-slate-600 text-[9px] font-black uppercase text-center py-2">Back to Login</button>
-               </div>
-            </div>
-          )}
-
-          {view === 'forgot' && (
-            <div className="space-y-6 animate-slide-up">
-               <div className="text-center space-y-2">
-                  <h3 className="text-white prestige-heading text-xl italic">Account Lookup</h3>
-                  <p className="text-slate-500 text-[9px] font-bold uppercase">Enter email to fetch security question</p>
-               </div>
-               <div className="space-y-4">
-                  <input 
-                    type="email" placeholder="Enter your registered email" value={email} onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
-                  />
-                  {error && <p className="text-red-500 text-[9px] font-black uppercase text-center">{error}</p>}
-                  <button onClick={startRecovery} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                    Verify Account
-                  </button>
-                  <button onClick={() => setView('login')} className="w-full text-slate-600 text-[9px] font-black uppercase text-center">Back</button>
-               </div>
-            </div>
-          )}
-
-          {view === 'recovery' && (
-            <div className="space-y-6 animate-slide-up">
-               <div className="text-center space-y-2">
-                  <h3 className="text-[#c5a059] prestige-heading text-xl italic">Verify Ownership</h3>
-                  <p className="text-white text-[10px] font-bold uppercase bg-white/5 p-4 rounded-xl">{fetchedQuestion}</p>
-               </div>
-               <div className="space-y-4">
-                  <input 
-                    type="text" placeholder="Your Answer" value={answer} onChange={(e) => setAnswer(e.target.value)}
-                    className="w-full bg-black/40 border border-[#c5a059]/40 rounded-2xl px-6 py-4 text-white outline-none"
-                  />
-                  <input 
-                    type="password" placeholder="Set New Password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none"
-                  />
-                  {error && <p className="text-red-500 text-[9px] font-black uppercase text-center">{error}</p>}
-                  <button onClick={handleReset} className="w-full bg-green-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                    Recover Account Now
-                  </button>
-                  <button onClick={() => setView('login')} className="w-full text-slate-600 text-[9px] font-black uppercase text-center">Cancel</button>
+                  <button onClick={() => setView('login')} className="w-full text-slate-600 text-[9px] font-black uppercase text-center py-2">Back to Access</button>
                </div>
             </div>
           )}
         </div>
-        
-        <p className="text-center text-[8px] text-slate-700 font-bold uppercase tracking-[0.3em] opacity-40">
-           Global Auth Layer • Sovereign Data Vault • Multi-Agent AI
-        </p>
       </div>
     </div>
   );
@@ -277,7 +193,7 @@ const AppContent: React.FC = () => {
                 <img src={activeProfile.avatar} className="w-10 h-10 rounded-xl" alt="Avatar" />
                 <div className="text-left">
                   <div className="text-white text-xs font-bold italic">{activeProfile.name}</div>
-                  <div className="text-[8px] text-green-500 font-black uppercase tracking-tighter italic">Cloud Auth Active</div>
+                  <div className="text-[8px] text-green-500 font-black uppercase tracking-tighter italic">Live Database</div>
                 </div>
              </div>
              <button onClick={logout} className="text-slate-500 hover:text-red-500"><i className="fas fa-power-off"></i></button>
@@ -297,8 +213,9 @@ const AppContent: React.FC = () => {
               <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Est. Portfolio Value</div>
               <div className="text-xl font-light text-white prestige-heading">$ {stats.estimatedPortfolioValue.toLocaleString()}</div>
            </div>
-           <div className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase ${syncStatus === 'healthy' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-[#c5a059]/10 text-[#c5a059] border border-[#c5a059]/20'}`}>
-              <i className="fas fa-database mr-2"></i> Registry Secured
+           <div className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-3`}>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              Cloud Database: Nominal
            </div>
         </div>
       </header>
