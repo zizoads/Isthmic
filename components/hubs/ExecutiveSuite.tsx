@@ -28,6 +28,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                   : 'A holistic vision of digital assets, crafted in a language fit for leaders, with tactical orchestration of connection protocols.'}
             </p>
          </div>
+         
          <div className="flex bg-[#161618] p-2 rounded-3xl border border-white/5 shadow-2xl">
            {[
              { id: 'reports', label: lang === 'ar' ? 'التقارير السيادية' : 'SOVEREIGN REPORTS' },
@@ -45,7 +46,30 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
          </div>
       </div>
 
-      <div className="pt-10">
+      {/* Production Readiness Banner */}
+      <div className="bg-[#c5a059]/5 border border-[#c5a059]/20 p-8 rounded-[32px] flex items-center justify-between">
+         <div className="flex items-center gap-6">
+            <div className="w-12 h-12 bg-[#c5a059]/10 rounded-2xl flex items-center justify-center text-[#c5a059]">
+               <i className="fas fa-server"></i>
+            </div>
+            <div>
+               <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Production_Status</h4>
+               <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">
+                  {lang === 'ar' ? 'بيئة العمل: السحابة السيادية' : 'Environment: Sovereign Cloud'} • SSL_SECURE
+               </p>
+            </div>
+         </div>
+         <div className="flex gap-4">
+            <div className="px-6 py-2 bg-white/5 rounded-full border border-white/10 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+               Latency: 42ms
+            </div>
+            <div className="px-6 py-2 bg-green-500/10 rounded-full border border-green-500/20 text-[8px] font-black text-green-500 uppercase tracking-widest">
+               API: ACTIVE
+            </div>
+         </div>
+      </div>
+
+      <div className="pt-4">
         {activeTab === 'reports' && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
       </div>

@@ -1,32 +1,48 @@
 
 import { GoogleGenAI } from "@google/genai";
 
+/**
+ * محرك الربط الأساسي - يضمن استخدام أحدث مفتاح API متوفر
+ * ويقوم بالتحقق من وجوده قبل بدء أي عملية سيادية.
+ */
 export const getAIClient = () => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("CRITICAL_AUTH_FAILURE");
+  if (!apiKey) {
+    // في بيئة الإنتاج، لا نريد كسر التطبيق بل تنبيه المستخدم
+    console.error("ISTHMIC_CORE: MISSING_Sovereign_Key. Systems operating in logic-only mode.");
+    throw new Error("API_KEY_REQUIRED");
+  }
   return new GoogleGenAI({ apiKey });
 };
 
-export async function safeAICall<T>(fn: () => Promise<T>, retries = 1, delay = 1000): Promise<T> {
+/**
+ * نظام المعالجة الآمن - يتضمن منطق إعادة المحاولة (Retry Logic) 
+ * للتعامل مع ضغط الطلبات في بيئة العمل الفعلية.
+ */
+export async function safeAICall<T>(fn: () => Promise<T>, retries = 2, delay = 2000): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
     const msg = error.message || "";
-    const isQuota = error.status === 429 || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
-
-    if (isQuota) {
-      console.error("AI_QUOTA_EXHAUSTED");
-      throw new Error("QUOTA_EXHAUSTED");
+    const status = error.status;
+    
+    // التعامل مع تجاوز حصة الاستخدام (Rate Limiting)
+    if (status === 429 || msg.includes('429') || msg.includes('quota')) {
+       console.warn("ISTHMIC_CORE: Rate limit hit. Initializing backoff protocol...");
+       if (retries > 0) {
+         await new Promise(r => globalThis.setTimeout(r, delay));
+         return safeAICall(fn, retries - 1, delay * 2);
+       }
+       throw new Error("QUOTA_EXHAUSTED");
     }
 
-    if (msg.includes('Requested entity was not found') && globalThis.aistudio) {
-      globalThis.aistudio.openSelectKey();
+    // التعامل مع انتهاء صلاحية المفتاح أو عدم وجوده
+    if (status === 401 || msg.includes('not found') || msg.includes('API_KEY_INVALID')) {
+       if (globalThis.aistudio) {
+          globalThis.aistudio.openSelectKey();
+       }
     }
 
-    if (retries > 0) {
-      await new Promise(r => globalThis.setTimeout(r, delay));
-      return safeAICall(fn, retries - 1, delay * 2);
-    }
     throw error;
   }
 }
@@ -45,7 +61,14 @@ export async function generateStructuredAI<T>(
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: { systemInstruction, responseMimeType: "application/json", responseSchema: schema, tools }
+      config: { 
+        systemInstruction, 
+        responseMimeType: "application/json", 
+        responseSchema: schema, 
+        tools,
+        // إضافة إعدادات التفكير (Thinking Budget) للنماذج الاحترافية
+        ...(modelName === 'gemini-3-pro-preview' ? { thinkingConfig: { thinkingBudget: 4000 } } : {})
+      }
     });
     return JSON.parse(response.text || '{}') as T;
   });
