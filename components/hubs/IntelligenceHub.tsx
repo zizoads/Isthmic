@@ -17,33 +17,38 @@ interface Props {
 }
 
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
-  const { activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
+  const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
   const t = translations[lang];
 
   return (
-    <div className="space-y-20 animate-fade-in relative">
-      {/* Precision Navigation */}
+    <div className="space-y-16 lg:space-y-24 pb-40">
+      {/* Precision Nav */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
-         <div className="space-y-2">
-            <h2 className="text-4xl lg:text-5xl heading-sovereign">
-               {lang === 'ar' ? 'مركز الاستخبارات' : 'Intelligence Hub'}
+         <div className="space-y-3">
+            <h2 className="text-4xl lg:text-7xl prestige-heading text-white italic">
+               Atelier Intelligence
             </h2>
-            <p className="text-slate-500 text-xs font-medium tracking-wide uppercase">
-               Sovereign Strategy & Market Gap Forensics
-            </p>
+            <div className="flex items-center gap-4">
+              <div className="h-[1px] w-12 bg-[#c5a059]/30"></div>
+              <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase opacity-70">
+                 Strategic Narrative & Market Synthesis
+              </p>
+            </div>
          </div>
-         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+         
+         <div className="flex bg-[#161618] p-1.5 rounded-[22px] border border-white/5 shadow-xl">
            {[
-             { id: 'sovereign', label: lang === 'ar' ? 'التحكم' : 'Sovereign' },
-             { id: 'nexus', label: lang === 'ar' ? 'الرادار' : 'Nexus' },
-             { id: 'strategy', label: lang === 'ar' ? 'الخطة' : 'Strategy' }
+             { id: 'sovereign', label: 'COMMAND' },
+             { id: 'nexus', label: 'RADAR' },
+             { id: 'strategy', label: 'THESIS' },
+             { id: 'feedback', label: 'NEURAL' }
            ].map(tab => (
              <button 
                 key={tab.id}
                 onClick={() => setSubTab(tab.id as any)} 
-                className={`px-8 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all
-                  ${subTab === tab.id ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:text-white'}`}
+                className={`px-8 lg:px-12 py-3 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all
+                  ${subTab === tab.id ? 'bg-white text-black shadow-lg scale-105' : 'text-slate-500 hover:text-white'}`}
              >
                 {tab.label}
              </button>
@@ -51,57 +56,72 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
          </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-16">
+      <div className="bento-grid">
         {subTab === 'sovereign' && (
-          <div className="space-y-16">
-             <AutonomousControlCenter 
-                strategy={strategy} 
-                onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
-                lang={lang} 
-             />
-             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div className="lg:col-span-8">
-                   <div className="surface-layer-1 p-8 lg:p-12 border border-white/5 shadow-2xl">
-                      <MarketMomentumChart lang={lang} />
-                   </div>
-                </div>
-                <div className="lg:col-span-4 flex flex-col gap-10">
-                   <div className="surface-layer-1 p-10 flex flex-col justify-between h-full relative overflow-hidden group border border-white/5 shadow-2xl">
-                      <div>
-                        <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 text-xl mb-8 group-hover:scale-110 transition-transform">
-                           <i className="fas fa-microchip"></i>
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-4 tracking-tight">Neural Calibration</h3>
-                        <p className="text-slate-500 text-[11px] leading-relaxed">
-                          Refine agent decision logic via past acquisition feedback. Calibrate DNA extraction weights.
-                        </p>
-                      </div>
-                      <button onClick={() => setSubTab('feedback')} className="w-full py-4 surface-layer-2 text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white border border-white/5">
-                         Train Logic Engine
-                      </button>
-                      <i className="fas fa-network-wired absolute right-[-50px] bottom-[-50px] text-white/2 text-[200px] pointer-events-none group-hover:rotate-12 transition-transform duration-1000"></i>
-                   </div>
-                </div>
-             </div>
+          <>
+            <div className="bento-span-12">
+               <AutonomousControlCenter 
+                  strategy={strategy} 
+                  onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
+                  lang={lang} 
+               />
+            </div>
+
+            <div className="bento-span-8 square-card p-10 lg:p-14">
+               <MarketMomentumChart lang={lang} />
+            </div>
+            
+            <div className="bento-span-4 flex flex-col gap-10">
+               <div className="square-card p-10 flex-1 flex flex-col justify-between bg-gradient-to-br from-[#161618] to-[#0a0a0c]">
+                  <div className="space-y-10">
+                    <div className="icon-box bg-[#c5a059]/10 border border-[#c5a059]/20 text-[#c5a059]">
+                       <i className="fas fa-signature text-2xl"></i>
+                    </div>
+                    <div>
+                       <h3 className="text-2xl prestige-heading text-white italic mb-3">Calibration Context</h3>
+                       <p className="text-slate-500 text-[9px] leading-relaxed font-bold uppercase tracking-tight opacity-70">
+                         Harmonizing autonomous logic with market aesthetics.
+                       </p>
+                    </div>
+                  </div>
+                  <div className="mt-12">
+                    <div className="flex justify-between items-center mb-3">
+                       <span className="text-[8px] font-black text-slate-600 uppercase">Logic_Cohesion</span>
+                       <span className="text-[10px] font-black text-[#c5a059] data-mono">0.992</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full bg-[#c5a059] w-[94%]"></div>
+                    </div>
+                  </div>
+               </div>
+            </div>
+          </>
+        )}
+        
+        {subTab === 'nexus' && (
+          <div className="bento-span-12 square-card p-10 lg:p-16">
+            <NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} />
           </div>
         )}
-        {subTab === 'nexus' && (
-          <NexusPrimeDashboard 
-            lang={lang} 
-            addLog={addLog}
-            setDomains={setDomains}
-          />
-        )}
+        
         {subTab === 'strategy' && (
-          <MasterBrainDashboard 
-            stats={stats} 
-            activityLogs={activityLogs} 
-            strategy={strategy} 
-            setStrategy={setStrategy} 
-            lang={lang} 
-            onInitiateScan={onInitiateScan}
-            isScanning={isScanning}
-          />
+          <div className="bento-span-12 square-card p-10 lg:p-16">
+            <MasterBrainDashboard 
+              stats={stats} 
+              activityLogs={activityLogs} 
+              strategy={strategy} 
+              setStrategy={setStrategy} 
+              lang={lang} 
+              onInitiateScan={onInitiateScan}
+              isScanning={isScanning}
+            />
+          </div>
+        )}
+
+        {subTab === 'feedback' && (
+          <div className="bento-span-12 square-card p-10 lg:p-16">
+            <FeedbackDashboard domains={domains} stats={stats} />
+          </div>
         )}
       </div>
     </div>

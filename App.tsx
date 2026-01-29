@@ -1,18 +1,18 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AgentType, Domain } from './types';
 import { translations } from './translations';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
 
-// Hub Dashboards
+// Optimized Hubs
 import IntelligenceHub from './components/hubs/IntelligenceHub';
 import AcquisitionDesk from './components/hubs/AcquisitionDesk';
 import OperationsHub from './components/hubs/OperationsHub';
 import LiquidationEngine from './components/hubs/LiquidationEngine';
 import ExecutiveSuite from './components/hubs/ExecutiveSuite';
 
-// UI Components
+// Core UI
 import CommandPalette from './components/CommandPalette';
 import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
@@ -21,7 +21,7 @@ import TickerTape from './components/TickerTape';
 const AppContent: React.FC = () => {
   const { 
     domains, setDomains, integrations, stats, notifications, 
-    dismissNotification, addLog, connectService, strategy, system, resetQuota
+    dismissNotification, addLog, connectService, strategy
   } = useDomainContext();
   
   const [lang, setLang] = useState<'ar' | 'en'>(() => (globalThis.localStorage?.getItem('ist_lang') as 'ar' | 'en') || 'ar');
@@ -30,7 +30,6 @@ const AppContent: React.FC = () => {
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
 
   const { isScanning, initiateScan } = useMasterBrain(strategy, lang);
-  const quotaExhausted = system.status === 'degraded';
   const t = translations[lang];
 
   useEffect(() => {
@@ -48,15 +47,7 @@ const AppContent: React.FC = () => {
   ], [t]);
 
   return (
-    <div className="flex h-screen w-full bg-[#030305] text-[#f8fafc] overflow-hidden select-none">
-      {quotaExhausted && (
-        <div role="alert" className="fixed top-0 left-0 w-full z-[1000] bg-red-600/10 border-b border-red-500/20 py-1.5 text-center text-[9px] font-bold uppercase tracking-[0.3em] text-red-500 backdrop-blur-xl flex items-center justify-center gap-3">
-          <i className="fas fa-bolt animate-pulse"></i>
-          <span>{lang === 'ar' ? 'نظام الاسترداد نشط' : 'RECOVERY MODE ACTIVE'}</span>
-          <button onClick={resetQuota} className="bg-red-500 text-white px-2 py-0.5 rounded text-[8px]">RESET</button>
-        </div>
-      )}
-
+    <div className="app-shell relative bg-[#0a0a0c] selection:bg-[#c5a059]/30">
       <CommandPalette setActiveTab={setActiveTab} onSearchDomain={(name) => {
         const d = domains.find(x => x.name === name);
         if (d) setInspectedDomain(d);
@@ -64,79 +55,111 @@ const AppContent: React.FC = () => {
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} lang={lang} onClose={() => setInspectedDomain(null)} />}
       
-      <aside className={`fixed lg:relative h-full nav-sidebar z-[300] transition-all duration-500 ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 lg:w-[260px] -translate-x-full lg:translate-x-0'} ${lang === 'ar' ? 'right-0 border-l' : 'left-0 border-r'} ${quotaExhausted ? 'pt-8' : ''}`}>
-        <div className="p-10 flex flex-col items-center">
-          <div className="w-10 h-10 surface-layer-1 flex items-center justify-center mb-6 border border-white/5 shadow-xl">
-            <i className="fas fa-cube text-indigo-500 text-sm"></i>
-          </div>
-          <span className="text-[10px] font-bold tracking-[0.6em] text-white/40 uppercase">ISTHMIC PRO</span>
-        </div>
-        
-        <nav className="flex-1 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {menuItems.map(item => (
-            <button key={item.id} onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }} className={`nav-item w-[calc(100%-24px)] mx-3 ${activeTab === item.type ? 'active' : ''}`}>
-              <i className={`fas ${item.icon}`}></i>
-              <span className="truncate">{item.label}</span>
+      {/* Precision Sidebar */}
+      <aside 
+        style={{ gridArea: 'sidebar' }}
+        className={`z-sidebar bg-[#111113] border-white/5 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]
+          ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)]' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'} 
+          fixed lg:static top-0 bottom-0 ${lang === 'ar' ? 'right-0 border-l' : 'left-0 border-r'} 
+        `}
+      >
+        <div className="p-10 lg:p-14 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-16">
+            <div className="flex items-center gap-5">
+              <div className="icon-box bg-[#c5a059]/10 border border-[#c5a059]/20 text-[#c5a059]">
+                <i className="fas fa-cube text-xl"></i>
+              </div>
+              <span className="text-[12px] font-black tracking-[0.5em] text-white uppercase italic">Isthmic</span>
+            </div>
+            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white p-2">
+              <i className="fas fa-times"></i>
             </button>
-          ))}
-        </nav>
+          </div>
+          
+          <nav className="flex-1 space-y-4">
+            {menuItems.map(item => (
+              <button 
+                key={item.id} 
+                onClick={() => { setActiveTab(item.type); setIsSidebarOpen(false); }} 
+                className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl transition-all group relative
+                  ${activeTab === item.type 
+                    ? 'bg-white/5 text-white border border-white/10' 
+                    : 'text-slate-500 hover:text-white hover:bg-white/[0.02]'}`}
+              >
+                <i className={`fas ${item.icon} text-sm ${activeTab === item.type ? 'text-[#c5a059]' : ''}`}></i>
+                <span className="text-[10px] font-black uppercase tracking-[0.15em]">{item.label}</span>
+              </button>
+            ))}
+          </nav>
 
-        <div className="p-6 border-t border-white/5">
-          <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="w-full py-3 rounded-lg text-[9px] font-bold uppercase border border-white/10 text-white/40 tracking-widest">
-            {lang === 'ar' ? 'Language: EN' : 'اللغة: العربية'}
-          </button>
+          <div className="pt-8 border-t border-white/5">
+            <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="w-full py-4 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-all">
+              {lang === 'ar' ? 'Atelier: EN' : 'أتيلييه: AR'}
+            </button>
+          </div>
         </div>
       </aside>
       
-      <main className="flex-1 flex flex-col relative overflow-hidden h-full">
-        <header className={`h-14 flex items-center justify-between px-10 border-b border-white/5 bg-transparent backdrop-blur-sm z-[200] ${quotaExhausted ? 'mt-8' : ''}`}>
-          <div className="flex items-center gap-6">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} aria-label="Toggle Menu" className="lg:hidden text-white/40">
-               <i className={`fas ${isSidebarOpen ? 'fa-times' : 'fa-bars'}`}></i>
-            </button>
-            <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest">
-              Terminal / <span className="text-white">{menuItems.find(i => i.type === activeTab)?.label}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-10">
-             <div className="hidden md:flex items-center gap-6">
-                <div className="text-right">
-                   <div className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Portfolio</div>
-                   <div className="text-sm font-bold text-white tabular-nums tracking-tight">$ {stats.estimatedPortfolioValue.toLocaleString()}</div>
-                </div>
-                <div className={`flex items-center gap-2 ${quotaExhausted ? 'text-red-500' : 'text-green-500'}`}>
-                   <div className={`w-1.5 h-1.5 rounded-full bg-current ${quotaExhausted ? 'animate-pulse' : ''}`}></div>
-                   <span className="text-[8px] font-bold uppercase tracking-widest">{quotaExhausted ? 'Limited' : 'Live'}</span>
-                </div>
-             </div>
-          </div>
-        </header>
-        
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative h-full">
-          <div className="max-w-[1400px] mx-auto p-12 lg:p-20 pb-40">
-            {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang={lang} onInitiateScan={initiateScan} isScanning={isScanning} />}
-            {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
-            {activeTab === AgentType.OPERATIONS && <OperationsHub domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
-            {activeTab === AgentType.LIQUIDATION && <LiquidationEngine domains={domains} setDomains={setDomains} lang={lang} />}
-            {activeTab === AgentType.MANAGEMENT && <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} onConnect={connectService} lang={lang} />}
+      {/* Fixed Header */}
+      <header 
+        style={{ gridArea: 'header' }}
+        className="z-header flex items-center justify-between px-10 lg:px-14 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl"
+      >
+        <div className="flex items-center gap-8">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400">
+             <i className="fas fa-bars"></i>
+          </button>
+          <div className="hidden sm:flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <span className="opacity-40">Precision_v7.2</span>
+            <i className="fas fa-chevron-right text-[8px] opacity-10"></i>
+            <span className="text-white prestige-heading text-lg">{menuItems.find(i => i.type === activeTab)?.label}</span>
           </div>
         </div>
 
-        <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-           <div className={`hud-card pointer-events-auto shadow-2xl border ${quotaExhausted ? 'border-red-500/50' : 'border-white/10'}`}>
-              <div className="flex items-center gap-4 border-r border-white/10 pr-6">
-                 <div className={`w-1.5 h-1.5 rounded-full ${quotaExhausted ? 'bg-red-500' : isScanning ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`}></div>
-                 <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em]">
-                   {quotaExhausted ? 'Quota' : isScanning ? 'Inference' : 'Ready'}
-                 </span>
-              </div>
-              <div className="text-[8px] font-mono text-white/30 tracking-widest">IST-ALPHA-0x92</div>
-              {isScanning && <button onClick={() => globalThis.location.reload()} className="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-full text-[9px] font-bold uppercase">Terminate</button>}
+        <div className="flex items-center gap-8">
+           <div className="hidden md:flex flex-col items-end">
+              <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">{t.estimatedValue}</div>
+              <div className="text-xl font-light text-white prestige-heading">$ {stats.estimatedPortfolioValue.toLocaleString()}</div>
            </div>
-        </footer>
+           <div className="icon-box bg-[#c5a059]/10 border border-[#c5a059]/20 text-[#c5a059]">
+              <i className="fas fa-user-shield"></i>
+           </div>
+        </div>
+      </header>
+      
+      {/* Scrollable Main Stage */}
+      <main 
+        style={{ gridArea: 'main' }}
+        className="content-scroller no-scrollbar"
+      >
+        <div className="max-w-[1600px] mx-auto animate-precision">
+          {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang={lang} onInitiateScan={initiateScan} isScanning={isScanning} />}
+          {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
+          {activeTab === AgentType.OPERATIONS && <OperationsHub domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang={lang} />}
+          {activeTab === AgentType.LIQUIDATION && <LiquidationEngine domains={domains} setDomains={setDomains} lang={lang} />}
+          {activeTab === AgentType.MANAGEMENT && <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} onConnect={connectService} lang={lang} />}
+        </div>
       </main>
+
+      {/* Floating Action HUD */}
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-overlay pointer-events-none w-full max-w-[90vw] md:max-w-xl">
+         <div className="pointer-events-auto bg-[#161618]/95 backdrop-blur-3xl border border-white/10 p-5 rounded-[28px] shadow-[0_30px_60px_rgba(0,0,0,0.6)] flex items-center justify-between">
+            <div className="flex items-center gap-5 border-r border-white/5 pr-6">
+               <div className={`w-2.5 h-2.5 rounded-full ${isScanning ? 'bg-[#c5a059] animate-pulse' : 'bg-green-500'}`}></div>
+               <div className="flex flex-col">
+                  <span className="text-[9px] font-black text-white uppercase tracking-widest">{isScanning ? 'SYNTHESIZING' : 'STANDBY'}</span>
+                  <span className="text-[7px] text-slate-600 font-bold uppercase data-mono">Core_Link_Active</span>
+               </div>
+            </div>
+            <button onClick={initiateScan} className="bg-white text-black px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all">
+               {isScanning ? <i className="fas fa-circle-notch fa-spin"></i> : 'INITIATE'}
+            </button>
+         </div>
+      </div>
+      
       <TickerTape lang={lang} />
       <SonnerNotification notifications={notifications} onDismiss={dismissNotification} />
+      <div className="noise-bg"></div>
     </div>
   );
 };

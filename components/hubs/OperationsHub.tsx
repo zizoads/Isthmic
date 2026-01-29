@@ -17,29 +17,70 @@ const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }
   const [view, setView] = useState<'pipeline' | 'forensic' | 'branding' | 'scaling'>('pipeline');
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      {/* Sub-Navigation: Goal-Oriented */}
-      <div className="flex bg-slate-900 p-1.5 rounded-2xl border border-white/10 w-fit mx-auto lg:mx-0 overflow-x-auto max-w-full scrollbar-hide">
-        <button onClick={() => setView('pipeline')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${view === 'pipeline' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'خط الإنتاج' : 'PIPELINE'}
-        </button>
-        <button onClick={() => setView('forensic')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${view === 'forensic' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'التدقيق الجنائي' : 'FORENSIC AUDIT'}
-        </button>
-        <button onClick={() => setView('branding')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${view === 'branding' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'هندسة الهوية' : 'BRANDING'}
-        </button>
-        <button onClick={() => setView('scaling')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${view === 'scaling' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-foreground'}`}>
-          {lang === 'ar' ? 'إثبات القيمة' : 'VALUE PROOF'}
-        </button>
+    <div className="space-y-24 animate-fade-in pb-32 relative">
+      {/* Dynamic Tab System */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12">
+         <div className="space-y-3">
+            <h2 className="text-4xl lg:text-6xl heading-industrial">
+               {lang === 'ar' ? 'إدارة العمليات' : 'Operations Hub'}
+            </h2>
+            <div className="flex items-center gap-4">
+              <span className="h-[1px] w-12 bg-indigo-500/40"></span>
+              <p className="text-slate-500 text-xs font-bold tracking-[0.2em] uppercase">
+                 Asset Engineering & Visual DNA Synthesis
+              </p>
+            </div>
+         </div>
+         
+         <div className="flex bg-[#0D0D10] p-1.5 rounded-[22px] border border-white/5 shadow-2xl overflow-x-auto max-w-full">
+           {[
+             { id: 'pipeline', label: lang === 'ar' ? 'خط الإنتاج' : 'Pipeline' },
+             { id: 'forensic', label: lang === 'ar' ? 'التدقيق' : 'Forensics' },
+             { id: 'branding', label: lang === 'ar' ? 'الهوية' : 'Branding' },
+             { id: 'scaling', label: lang === 'ar' ? 'القيمة' : 'Value' }
+           ].map(tab => (
+             <button 
+                key={tab.id}
+                onClick={() => setView(tab.id as any)} 
+                className={`px-8 py-3 rounded-[16px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
+                  ${view === tab.id ? 'bg-white text-black shadow-2xl scale-105' : 'text-slate-500 hover:text-white'}`}
+             >
+                {tab.label}
+             </button>
+           ))}
+         </div>
       </div>
 
-      <div className="pt-4">
-        {view === 'pipeline' && <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={onInspect} lang={lang} />}
-        {view === 'forensic' && <ForensicAuditGrid domains={domains} lang={lang} />}
-        {view === 'branding' && <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />}
-        {view === 'scaling' && <ValueProofDashboard domains={domains} lang={lang} />}
+      <div className="grid grid-cols-1 gap-16">
+        {view === 'pipeline' && (
+          <div className="animate-slide-up">
+            <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={onInspect} lang={lang} />
+          </div>
+        )}
+        
+        {view === 'forensic' && (
+          <div className="space-y-16 animate-slide-up">
+             <div className="square-card p-12 bg-gradient-to-br from-[#0D0D10] to-[#020204]">
+                <ForensicAuditGrid domains={domains} lang={lang} />
+             </div>
+          </div>
+        )}
+        
+        {view === 'branding' && (
+          <div className="animate-slide-up">
+            <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />
+          </div>
+        )}
+        
+        {view === 'scaling' && (
+          <div className="animate-slide-up">
+            <ValueProofDashboard domains={domains} lang={lang} />
+          </div>
+        )}
       </div>
+
+      {/* Industrial Aesthetic Detail */}
+      <i className="fas fa-layer-group absolute right-[-100px] bottom-[-100px] text-white/[0.01] text-[400px] pointer-events-none rotate-12"></i>
     </div>
   );
 };

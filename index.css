@@ -1,139 +1,119 @@
 
-/* Isthmic Pro - Obsidian Protocol v4.0 */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&family=IBM+Plex+Sans+Arabic:wght@100;300;400;600;700&display=swap');
+/* Isthmic Pro - Precision Atelier v7.2 [Surgical UI Update] */
 
 :root {
-  --obsidian-bg: #030305;
-  --obsidian-surface: rgba(13, 14, 18, 0.7);
-  --obsidian-border: rgba(255, 255, 255, 0.05);
-  --accent-primary: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.15);
-  --text-dim: #94a3b8;
-  --text-bright: #f8fafc;
+  --bg-main: #0a0a0c;
+  --bg-card: #111113;
+  --accent: #c5a059;
   
-  --shadow-inner: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-outer: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  /* Precision Spacing System */
+  --header-height: clamp(80px, 10vh, 110px);
+  --sidebar-width: clamp(280px, 20vw, 340px);
+  --safe-gap: clamp(1rem, 2.5vw, 3rem);
+  --card-radius: 32px;
 }
 
+/* Layering Strategy (Z-Index Hierarchy) */
+.z-base { z-index: 1; }
+.z-card { z-index: 10; }
+.z-header { z-index: 100; }
+.z-sidebar { z-index: 200; }
+.z-overlay { z-index: 300; }
+.z-ticker { z-index: 400; }
+
+/* Global Reset for Surgical Precision */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
+  outline: none;
 }
 
 body {
-  background-color: var(--obsidian-bg);
-  color: var(--text-bright);
-  font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', sans-serif;
-  margin: 0;
-  padding: 0;
+  background-color: var(--bg-main);
+  color: #f4f4f5;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  height: 100dvh; /* Dynamic Viewport for Mobile */
   overflow: hidden;
-  /* Dot Grid Pattern */
-  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
-/* Typography Hierarchy */
-.heading-sovereign {
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  background: linear-gradient(to bottom, #fff 40%, #94a3b8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Structural Layout Grid */
+.app-shell {
+  display: grid;
+  height: 100%;
+  grid-template-areas: 
+    "sidebar header"
+    "sidebar main"
+    "ticker ticker";
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr 48px;
 }
 
-/* Stacked Materials */
-.surface-layer-1 {
-  background: var(--obsidian-surface);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--obsidian-border);
-  box-shadow: var(--shadow-inner), var(--shadow-outer);
-  border-radius: 12px;
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-areas: 
+      "header"
+      "main"
+      "ticker";
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--header-height) 1fr 48px;
+  }
 }
 
-.surface-layer-2 {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* Bento Grid System - Editorial Version */
+.bento-grid {
+  display: grid;
+  gap: var(--safe-gap);
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(100px, auto);
 }
 
-.surface-layer-2:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(99, 102, 241, 0.4);
+.bento-span-12 { grid-column: span 12; }
+.bento-span-8 { grid-column: span 8; }
+.bento-span-4 { grid-column: span 4; }
+
+@media (max-width: 768px) {
+  .bento-span-8, .bento-span-4 { grid-column: span 12; }
 }
 
-/* Precision Sidebar */
-.nav-sidebar {
-  width: 240px;
-  border-left: 1px solid var(--obsidian-border);
-  background: rgba(5, 5, 5, 0.5);
+/* Surgical UI Elements */
+.square-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--card-radius);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.nav-item {
-  padding: 12px 20px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-  transition: all 0.2s ease;
+.icon-box {
+  width: clamp(40px, 5vw, 64px);
+  height: clamp(40px, 5vw, 64px);
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-radius: 6px;
-  margin: 4px 12px;
+  justify-content: center;
+  border-radius: 18px;
+  flex-shrink: 0;
 }
 
-.nav-item.active {
-  color: var(--text-bright);
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: var(--shadow-inner);
+/* Prevent Content Overlap on Small Screens */
+.content-scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--safe-gap);
+  scroll-behavior: smooth;
+  height: 100%;
 }
 
-.nav-item.active i {
-  color: var(--accent-primary);
-  filter: drop-shadow(0 0 5px var(--accent-glow));
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Custom Animations */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* Global HUD Tooltip Style */
-.hud-card {
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid var(--obsidian-border);
-  padding: 16px 24px;
-  border-radius: 100px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.shimmer-text {
-  background: linear-gradient(90deg, #fff 0%, #818cf8 50%, #fff 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: textShimmer 4s linear infinite;
-}
-
-@keyframes textShimmer {
-  to { background-position: 200% center; }
-}
-
-.quota-alert {
-  background: linear-gradient(90deg, #7f1d1d, #ef4444, #7f1d1d);
-  background-size: 200% auto;
-  animation: quotaPulse 3s infinite linear;
-}
-
-@keyframes quotaPulse {
-  to { background-position: 200% center; }
+.animate-precision {
+  animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

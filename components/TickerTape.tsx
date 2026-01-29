@@ -20,21 +20,19 @@ const TickerTape: React.FC<Props> = ({ lang }) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-[#05070a]/90 backdrop-blur-md border-t border-white/10 h-10 flex items-center overflow-hidden z-[1000] select-none font-mono">
-      <div className="bg-indigo-600 px-6 h-full flex items-center text-[10px] font-black uppercase tracking-widest text-white z-20 shadow-[10px_0_20px_rgba(0,0,0,0.5)] border-r border-white/10">
-        <i className="fas fa-globe-americas mr-2 animate-spin-slow"></i>
-        {lang === 'ar' ? 'نبض السوق العالمي' : 'GLOBAL MARKET PULSE'}
+    <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0c]/95 backdrop-blur-xl border-t border-white/5 h-12 flex items-center overflow-hidden z-[1000] select-none font-sans">
+      <div className="bg-[#161618] px-10 h-full flex items-center text-[9px] font-black uppercase tracking-widest text-white z-20 shadow-[10px_0_30px_rgba(0,0,0,0.8)] border-r border-white/5 italic">
+        {lang === 'ar' ? 'نبض الأصول' : 'ASSET PULSE'}
       </div>
       <div className="flex whitespace-nowrap animate-ticker items-center">
         {[...simulatedSales, ...simulatedSales].map((sale, i) => (
-          <div key={i} className="flex items-center gap-3 px-10 border-r border-white/5 group cursor-default">
-            <span className="text-slate-500 text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition-colors">{sale.name}</span>
-            <span className="text-white text-[11px] font-black tabular-nums">${sale.price}</span>
-            <span className={`flex items-center gap-1 text-[9px] font-black ${
-              sale.trend === 'up' ? 'text-green-500' : sale.trend === 'down' ? 'text-red-500' : 'text-slate-500'
+          <div key={i} className="flex items-center gap-4 px-12 border-r border-white/[0.03] group cursor-default">
+            <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest group-hover:text-white transition-colors italic">{sale.name}</span>
+            <span className="text-white text-[12px] font-light data-mono tracking-tighter">${sale.price}</span>
+            <span className={`text-[9px] font-black ${
+              sale.trend === 'up' ? 'text-[#c5a059]' : sale.trend === 'down' ? 'text-red-500/60' : 'text-slate-600'
             }`}>
-              <i className={`fas fa-caret-${sale.trend === 'up' ? 'up' : sale.trend === 'down' ? 'down' : 'right'}`}></i>
-              {sale.trend === 'up' ? '+4.2%' : sale.trend === 'down' ? '-1.8%' : '0.0%'}
+              {sale.trend === 'up' ? '▲' : sale.trend === 'down' ? '▼' : '●'}
             </span>
           </div>
         ))}
@@ -45,10 +43,7 @@ const TickerTape: React.FC<Props> = ({ lang }) => {
           100% { transform: translateX(-50%); }
         }
         .animate-ticker {
-          animation: ticker 40s linear infinite;
-        }
-        .animate-spin-slow {
-          animation: spin 10s linear infinite;
+          animation: ticker 60s linear infinite;
         }
       `}</style>
     </div>

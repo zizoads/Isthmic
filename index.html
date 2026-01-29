@@ -15,7 +15,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <!-- Humanistic Fonts: Cormorant for Prestige, Plus Jakarta for Modernity -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Plus+Jakarta+Sans:wght@200;400;600;800&family=IBM+Plex+Sans+Arabic:wght@100;300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./index.css">
     
     <script>
@@ -24,29 +25,19 @@
         theme: {
           extend: {
             colors: {
-              border: "hsl(var(--border))",
-              background: "hsl(var(--background))",
-              foreground: "hsl(var(--foreground))",
-              primary: {
-                DEFAULT: "hsl(var(--primary))",
-                foreground: "hsl(var(--primary-foreground))",
-              },
-              accent: {
-                DEFAULT: "hsl(var(--accent))",
-              },
+              border: "rgba(255,255,255,0.08)",
+              background: "#0a0a0c",
+              foreground: "#f4f4f5",
+              prestige: {
+                gold: "#d4af37",
+                ink: "#050505",
+                iris: "#818cf8",
+                sand: "#e2e2d5"
+              }
             },
             fontFamily: {
-              sans: ['IBM Plex Sans Arabic', 'Inter', 'sans-serif'],
-              display: ['Cairo', 'IBM Plex Sans Arabic', 'sans-serif'],
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.3s ease-out',
-              'slide-up': 'slideUp 0.4s ease-out',
-              'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            },
-            keyframes: {
-              fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-              slideUp: { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+              sans: ['Plus Jakarta Sans', 'IBM Plex Sans Arabic', 'sans-serif'],
+              serif: ['Cormorant Garamond', 'serif'],
             }
           }
         }
@@ -64,8 +55,10 @@
 }
 </script>
 </head>
-<body class="bg-background text-foreground selection:bg-primary/30 antialiased tracking-tight h-full">
-    <div id="root" class="h-full"></div>
+<body class="bg-[#0a0a0c] text-foreground selection:bg-indigo-500/30 antialiased tracking-tight h-full overflow-hidden">
+    <!-- Grain Overlay for Human Texture -->
+    <div class="fixed inset-0 pointer-events-none z-[9999] opacity-[0.03] mix-blend-overlay noise-bg"></div>
+    <div id="root" class="h-full relative z-10"></div>
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>

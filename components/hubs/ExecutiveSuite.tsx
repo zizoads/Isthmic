@@ -16,28 +16,28 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
   const [activeTab, setActiveTab] = useState<'reports' | 'integrations'>('reports');
 
   return (
-    <div className="space-y-12 animate-fade-in pb-24">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
-         <div className="space-y-4">
-            <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
-               {lang === 'ar' ? 'الجناح التنفيذي' : 'EXECUTIVE SUITE'}
+    <div className="space-y-16 animate-silk pb-24">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12">
+         <div className="space-y-6">
+            <h2 className="text-5xl lg:text-7xl prestige-heading text-white italic leading-none">
+               {lang === 'ar' ? 'الجناح التنفيذي النخبوي' : 'Executive Elite Atelier'}
             </h2>
-            <p className="text-slate-500 text-sm max-w-2xl font-medium leading-relaxed border-r-4 border-indigo-500/20 pr-6">
+            <p className="text-slate-500 text-sm max-w-2xl font-medium leading-relaxed border-r-2 border-[#c5a059]/40 pr-8 italic">
                {lang === 'ar' 
-                  ? 'مركز الرقابة العليا، التقارير المالية الاستباقية، وإدارة تكامل البروتوكولات الخارجية للذكاء الاصطناعي.'
-                  : 'High-level oversight, proactive financial reporting, and external AI protocol integration management.'}
+                  ? 'رؤية شاملة للأصول الرقمية، مصاغة بلغة تليق بالقادة، مع إدارة تكتيكية لبروتوكولات الاتصال.'
+                  : 'A holistic vision of digital assets, crafted in a language fit for leaders, with tactical orchestration of connection protocols.'}
             </p>
          </div>
-         <div className="flex bg-[#0b0e14]/50 backdrop-blur-md p-1.5 rounded-[24px] border border-white/10 shadow-2xl">
+         <div className="flex bg-[#161618] p-2 rounded-3xl border border-white/5 shadow-2xl">
            {[
-             { id: 'reports', label: lang === 'ar' ? 'التقارير' : 'REPORTS' },
-             { id: 'integrations', label: lang === 'ar' ? 'التكامل' : 'CONNECT' }
+             { id: 'reports', label: lang === 'ar' ? 'التقارير السيادية' : 'SOVEREIGN REPORTS' },
+             { id: 'integrations', label: lang === 'ar' ? 'بروتوكولات الربط' : 'CONNECTIVITY' }
            ].map(tab => (
              <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)} 
-                className={`px-10 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
-                  ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                className={`px-12 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
+                  ${activeTab === tab.id ? 'bg-white text-black shadow-lg' : 'text-slate-500 hover:text-white'}`}
              >
                 {tab.label}
              </button>
@@ -45,7 +45,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
          </div>
       </div>
 
-      <div className="pt-6">
+      <div className="pt-10">
         {activeTab === 'reports' && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
       </div>

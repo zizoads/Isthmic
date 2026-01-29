@@ -44,6 +44,8 @@ export interface TechnicalMetrics {
   isBlacklisted?: boolean;
   whoisPrivacy?: boolean;
   historyYears?: number;
+  scarcityScore?: number; // New: 0-100
+  marketDemand?: 'Low' | 'Medium' | 'High' | 'Extreme';
 }
 
 export interface DomainFinancials {
@@ -97,6 +99,7 @@ export interface ActivityLog {
   agent: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'critical';
+  codeSnippet?: string; // New: For Terminal view
 }
 
 export interface Notification {
@@ -140,34 +143,6 @@ export interface ThinkingStep {
   status: 'searching' | 'pending' | 'complete' | 'executing';
 }
 
-export interface NodeDefinition {
-  id: string;
-  labelAr: string;
-  labelEn: string;
-  task: (input: any) => Promise<any>;
-}
-
-export interface OutreachMessage {
-  id: string;
-  domainId: string;
-  recipient: string;
-  recipientRole: string;
-  tone: string;
-  status: 'draft' | 'sent';
-  content: string;
-}
-
-export interface NexusOpportunity {
-  id: string;
-  title: string;
-  type: string;
-  estimatedValue: string;
-  description: string;
-  aiDeduction: string;
-  probability: number;
-  marketGapScore: number;
-}
-
 export interface SystemState {
   status: 'nominal' | 'degraded';
   lastSync: string;
@@ -182,4 +157,35 @@ export interface AutonomousAction {
   timestamp: string;
   impactScore: number;
   status: 'completed' | 'pending' | 'failed';
+}
+
+// Fix: Added missing interface for MessagingDashboard
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent' | 'failed';
+  content: string;
+}
+
+// Fix: Added missing interface for NexusPrimeDashboard
+export interface NexusOpportunity {
+  id: string;
+  title: string;
+  type: string;
+  estimatedValue?: string;
+  description: string;
+  aiDeduction?: string;
+  probability?: number;
+  marketGapScore?: number;
+}
+
+// Fix: Added missing interface for Orchestrator service
+export interface NodeDefinition {
+  id: string;
+  labelAr: string;
+  labelEn: string;
+  task: (input: any) => Promise<any>;
 }
