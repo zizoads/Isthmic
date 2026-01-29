@@ -1,4 +1,22 @@
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  password?: string; // المخزن محلياً للأغراض السيادية
+  googleId?: string;
+  role: 'Executive' | 'Strategist' | 'Analyst';
+  avatar?: string;
+  createdAt: string;
+  lastSync?: string;
+  isSyncEnabled: boolean;
+}
+
+export interface WorkspaceState {
+  activeProfileId: string | null;
+  profiles: UserProfile[];
+}
+
 export enum AgentType {
   INTELLIGENCE = 'INTELLIGENCE',
   ACQUISITION = 'ACQUISITION',
@@ -44,7 +62,7 @@ export interface TechnicalMetrics {
   isBlacklisted?: boolean;
   whoisPrivacy?: boolean;
   historyYears?: number;
-  scarcityScore?: number; // New: 0-100
+  scarcityScore?: number;
   marketDemand?: 'Low' | 'Medium' | 'High' | 'Extreme';
 }
 
@@ -62,6 +80,7 @@ export interface DomainFinancials {
 
 export interface Domain {
   id: string;
+  workspaceId: string;
   name: string;
   price: number;
   status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
@@ -87,6 +106,7 @@ export interface PlatformStats {
 }
 
 export interface PlatformStrategy {
+  id: string;
   totalBudget: number;
   riskTolerance: string;
   investmentThesis: string;
@@ -95,11 +115,12 @@ export interface PlatformStrategy {
 
 export interface ActivityLog {
   id: string;
+  workspaceId: string;
   time: string;
   agent: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'critical';
-  codeSnippet?: string; // New: For Terminal view
+  codeSnippet?: string;
 }
 
 export interface Notification {
@@ -111,6 +132,7 @@ export interface Notification {
 
 export interface ServiceIntegration {
   id: string;
+  workspaceId: string;
   name: string;
   provider: string;
   status: 'connected' | 'disconnected';
@@ -159,7 +181,6 @@ export interface AutonomousAction {
   status: 'completed' | 'pending' | 'failed';
 }
 
-// Fix: Added missing interface for MessagingDashboard
 export interface OutreachMessage {
   id: string;
   domainId: string;
@@ -170,7 +191,6 @@ export interface OutreachMessage {
   content: string;
 }
 
-// Fix: Added missing interface for NexusPrimeDashboard
 export interface NexusOpportunity {
   id: string;
   title: string;
@@ -182,7 +202,6 @@ export interface NexusOpportunity {
   marketGapScore?: number;
 }
 
-// Fix: Added missing interface for Orchestrator service
 export interface NodeDefinition {
   id: string;
   labelAr: string;

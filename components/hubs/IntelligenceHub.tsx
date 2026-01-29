@@ -7,7 +7,6 @@ import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
 import { PlatformStats } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
-import { translations } from '../../translations';
 
 interface Props {
   stats: PlatformStats;
@@ -19,11 +18,9 @@ interface Props {
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
   const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
-  const t = translations[lang];
 
   return (
     <div className="space-y-16 lg:space-y-24 pb-40">
-      {/* Precision Nav */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
          <div className="space-y-3">
             <h2 className="text-4xl lg:text-7xl prestige-heading text-white italic">
@@ -63,12 +60,12 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
                <AutonomousControlCenter 
                   strategy={strategy} 
                   onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
-                  lang={lang} 
+                  lang="en" 
                />
             </div>
 
             <div className="bento-span-8 square-card p-10 lg:p-14">
-               <MarketMomentumChart lang={lang} />
+               <MarketMomentumChart lang="en" />
             </div>
             
             <div className="bento-span-4 flex flex-col gap-10">
@@ -100,7 +97,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         
         {subTab === 'nexus' && (
           <div className="bento-span-12 square-card p-10 lg:p-16">
-            <NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} />
+            <NexusPrimeDashboard lang="en" addLog={addLog} setDomains={setDomains} />
           </div>
         )}
         
@@ -111,7 +108,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
               activityLogs={activityLogs} 
               strategy={strategy} 
               setStrategy={setStrategy} 
-              lang={lang} 
+              lang="en" 
               onInitiateScan={onInitiateScan}
               isScanning={isScanning}
             />

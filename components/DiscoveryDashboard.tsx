@@ -3,6 +3,8 @@ import React, { useState, useRef } from 'react';
 import { Domain } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
 import { translations } from '../translations';
+// Added useDomainContext import
+import { useDomainContext } from '../context/DomainContext';
 
 interface Props {
   domains: Domain[];
@@ -13,6 +15,8 @@ interface Props {
 
 const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
   const t = translations[lang];
+  // Get activeProfile from context
+  const { activeProfile } = useDomainContext();
   const [prompt, setPrompt] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [scannedResults, setScannedResults] = useState<any[]>([]);
@@ -43,8 +47,12 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
   };
 
   const addAllToPipeline = () => {
+    // Check if activeProfile exists
+    if (!activeProfile) return;
     const formatted: Domain[] = scannedResults.map(r => ({
       id: globalThis.crypto.randomUUID(),
+      // Added workspaceId
+      workspaceId: activeProfile.id,
       name: r.name,
       price: r.estimatedPrice || 250,
       status: 'available',
@@ -134,7 +142,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
                         <div className="text-[11px] font-black text-indigo-400 data-mono">{Math.round(r.probability * 100)}%</div>
                       </div>
                       <button 
-                       onClick={() => setDomains(p => [{ id: globalThis.crypto.randomUUID(), ...r, status: 'available' }, ...p])} 
+                       onClick={() => activeProfile && setDomains(p => [{ id: globalThis.crypto.randomUUID(), workspaceId: activeProfile.id, ...r, status: 'available', contentStatus: 'none' }, ...p])} 
                        className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 hover:bg-white hover:text-black transition-all"
                       >
                         <i className="fas fa-plus"></i>

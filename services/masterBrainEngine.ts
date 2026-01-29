@@ -74,6 +74,8 @@ export class MasterBrainEngine {
       if (auditResult.probability > 0.65) {
         auditedDomains.push({
           id: Math.random().toString(36).substr(2, 9),
+          // Added workspaceId using strategy.id which represents the profile ID
+          workspaceId: strategy.id,
           name: opp.name,
           price: opp.estimatedPrice || 250,
           status: 'available',

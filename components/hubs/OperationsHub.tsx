@@ -18,11 +18,10 @@ const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }
 
   return (
     <div className="space-y-24 animate-fade-in pb-32 relative">
-      {/* Dynamic Tab System */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12">
          <div className="space-y-3">
             <h2 className="text-4xl lg:text-6xl heading-industrial">
-               {lang === 'ar' ? 'إدارة العمليات' : 'Operations Hub'}
+               Operations Hub
             </h2>
             <div className="flex items-center gap-4">
               <span className="h-[1px] w-12 bg-indigo-500/40"></span>
@@ -34,10 +33,10 @@ const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }
          
          <div className="flex bg-[#0D0D10] p-1.5 rounded-[22px] border border-white/5 shadow-2xl overflow-x-auto max-w-full">
            {[
-             { id: 'pipeline', label: lang === 'ar' ? 'خط الإنتاج' : 'Pipeline' },
-             { id: 'forensic', label: lang === 'ar' ? 'التدقيق' : 'Forensics' },
-             { id: 'branding', label: lang === 'ar' ? 'الهوية' : 'Branding' },
-             { id: 'scaling', label: lang === 'ar' ? 'القيمة' : 'Value' }
+             { id: 'pipeline', label: 'Pipeline' },
+             { id: 'forensic', label: 'Forensics' },
+             { id: 'branding', label: 'Branding' },
+             { id: 'scaling', label: 'Value' }
            ].map(tab => (
              <button 
                 key={tab.id}
@@ -54,32 +53,31 @@ const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }
       <div className="grid grid-cols-1 gap-16">
         {view === 'pipeline' && (
           <div className="animate-slide-up">
-            <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={onInspect} lang={lang} />
+            <PipelineDashboard domains={domains} setDomains={setDomains} onInspect={onInspect} lang="en" />
           </div>
         )}
         
         {view === 'forensic' && (
           <div className="space-y-16 animate-slide-up">
              <div className="square-card p-12 bg-gradient-to-br from-[#0D0D10] to-[#020204]">
-                <ForensicAuditGrid domains={domains} lang={lang} />
+                <ForensicAuditGrid domains={domains} lang="en" />
              </div>
           </div>
         )}
         
         {view === 'branding' && (
           <div className="animate-slide-up">
-            <PortfolioManager domains={domains} setDomains={setDomains} lang={lang} />
+            <PortfolioManager domains={domains} setDomains={setDomains} lang="en" />
           </div>
         )}
         
         {view === 'scaling' && (
           <div className="animate-slide-up">
-            <ValueProofDashboard domains={domains} lang={lang} />
+            <ValueProofDashboard domains={domains} lang="en" />
           </div>
         )}
       </div>
 
-      {/* Industrial Aesthetic Detail */}
       <i className="fas fa-layer-group absolute right-[-100px] bottom-[-100px] text-white/[0.01] text-[400px] pointer-events-none rotate-12"></i>
     </div>
   );
