@@ -5,6 +5,26 @@ import { persistence } from './DataService';
 
 export class AuthService {
   
+  /**
+   * الدخول السريع: ينشئ حساب محلي فوراً دون الحاجة لقاعدة بيانات خارجية
+   */
+  static async quickStart(): Promise<UserProfile> {
+    const guestId = `local_${crypto.randomUUID().split('-')[0]}`;
+    const guestUser: UserProfile = {
+      id: guestId,
+      name: "Commander One",
+      email: "local@isthmic.pro",
+      role: 'Executive',
+      createdAt: new Date().toISOString(),
+      isSyncEnabled: false, // الوضع المحلي لا يحتاج مزامنة سحابية
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Commander`
+    };
+
+    // حفظ البروفايل محلياً فقط
+    await persistence.save('profiles', guestUser);
+    return guestUser;
+  }
+
   static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -13,13 +33,7 @@ export class AuthService {
         options: { data: { display_name: name } }
       });
 
-      if (authError) {
-        if (authError.message.includes("API key")) {
-          throw new Error("خطأ في ربط قاعدة البيانات: المفتاح (Anon Key) المستخدم غير صالح لمشروعك.");
-        }
-        throw new Error(authError.message);
-      }
-      
+      if (authError) throw new Error(authError.message);
       if (!authData.user) throw new Error("فشل إنشاء الحساب.");
 
       const newUser: UserProfile = {
@@ -35,6 +49,7 @@ export class AuthService {
       await persistence.save('profiles', newUser);
       return { user: newUser };
     } catch (e: any) {
+      console.warn("Cloud Auth Failed, suggesting local mode.");
       throw e;
     }
   }
@@ -46,12 +61,7 @@ export class AuthService {
         password: pass,
       });
 
-      if (error) {
-        if (error.message.includes("API key")) {
-          throw new Error("عذراً، مفتاح قاعدة البيانات (Supabase Key) غير صالح. يرجى التأكد من نسخه بشكل صحيح من الإعدادات.");
-        }
-        throw new Error("بيانات الدخول غير صحيحة.");
-      }
+      if (error) throw new Error("بيانات الدخول غير صحيحة.");
 
       const user: UserProfile = {
         id: data.user.id,

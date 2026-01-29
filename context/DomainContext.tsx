@@ -8,6 +8,7 @@ import { supabase } from '../services/SupabaseClient';
 
 interface DomainContextType {
   activeProfile: UserProfile | null;
+  setActiveProfile: (profile: UserProfile | null) => void;
   profiles: UserProfile[];
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
@@ -35,7 +36,7 @@ const DomainContext = createContext<DomainContextType | undefined>(undefined);
 
 export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
+  const [activeProfile, setActiveProfileState] = useState<UserProfile | null>(null);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'healthy' | 'error'>('idle');
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
@@ -52,48 +53,10 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     investmentThesis: ''
   });
 
-  useEffect(() => {
-    const boot = async () => {
-      try {
-        await persistence.init();
-        
-        // التحقق من وجود "جلسة" حقيقية في Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          // جلب بيانات البروفايل الحية
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          const user: UserProfile = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profileData?.name || 'Owner',
-            role: 'Executive',
-            createdAt: session.user.created_at,
-            isSyncEnabled: true,
-            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profileData?.name || 'User'}`
-          };
-          
-          await loadWorkspaceData(user);
-        }
-      } catch (e) {
-        console.error("Cloud Vault Connection Failed", e);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-    boot();
-  }, []);
-
   const loadWorkspaceData = useCallback(async (profile: UserProfile) => {
     setIsInitialLoading(true);
-    setActiveProfile(profile);
+    setActiveProfileState(profile);
     
-    // جلب البيانات المحلية المرتبطة بهذا المستخدم
     const [allDomains, allStrategies, allIntegrations] = await Promise.all([
       persistence.loadAll('domains'),
       persistence.loadAll('strategy'),
@@ -111,6 +74,46 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (profile.isSyncEnabled) triggerCloudSync(profile.id);
   }, []);
 
+  const setActiveProfile = useCallback((profile: UserProfile | null) => {
+    if (profile) loadWorkspaceData(profile);
+    else setActiveProfileState(null);
+  }, [loadWorkspaceData]);
+
+  useEffect(() => {
+    const boot = async () => {
+      try {
+        await persistence.init();
+        
+        // محاولة جلب آخر بروفايل نشط من المخزن المحلي أولاً لسرعة الدخول
+        const localProfiles = await persistence.loadAll('profiles');
+        if (localProfiles.length > 0) {
+           // إذا وجدنا بروفايل محلي، ندخل به فوراً
+           await loadWorkspaceData(localProfiles[0]);
+        } else {
+           // إذا لم يوجد محلي، نتحقق من Supabase
+           const { data: { session } } = await supabase.auth.getSession();
+           if (session?.user) {
+             const user: UserProfile = {
+               id: session.user.id,
+               email: session.user.email || '',
+               name: session.user.user_metadata?.display_name || 'Owner',
+               role: 'Executive',
+               createdAt: session.user.created_at,
+               isSyncEnabled: true,
+               avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.id}`
+             };
+             await loadWorkspaceData(user);
+           }
+        }
+      } catch (e) {
+        console.error("Boot Error", e);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+    boot();
+  }, [loadWorkspaceData]);
+
   const triggerCloudSync = async (id: string) => {
     setSyncStatus('syncing');
     try {
@@ -123,7 +126,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    // Fix: AuthService.signup only expects 3 arguments (name, email, pass).
     const { user } = await AuthService.signup(name, email, pass);
     await loadWorkspaceData(user);
   };
@@ -134,10 +136,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
-    setActiveProfile(null);
+    try { await supabase.auth.signOut(); } catch(e){}
+    if (activeProfile) await persistence.delete('profiles', activeProfile.id);
+    setActiveProfileState(null);
     setSyncStatus('idle');
-  }, []);
+  }, [activeProfile]);
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(x => x.id !== id));
@@ -163,7 +166,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [domains]);
 
   const value = useMemo(() => ({
-    activeProfile, profiles, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
+    activeProfile, setActiveProfile, profiles, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
     login, signup, logout, addLog, dismissNotification, syncStatus, lastSyncTime,
     exportVault: async () => {
       if (!activeProfile) return;
@@ -185,7 +188,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await persistence.delete('profiles', activeProfile.id);
       logout();
     }
-  }), [activeProfile, profiles, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, login, signup, logout, addLog, dismissNotification, syncStatus, lastSyncTime]);
+  }), [activeProfile, setActiveProfile, profiles, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, login, signup, logout, addLog, dismissNotification, syncStatus, lastSyncTime]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };
