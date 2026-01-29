@@ -1,82 +1,68 @@
 
 import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
-import { persistence } from './DataService';
 
 export class AuthService {
   
-  /**
-   * الدخول السريع: ينشئ حساب محلي فوراً دون الحاجة لقاعدة بيانات خارجية
-   */
-  static async quickStart(): Promise<UserProfile> {
-    const guestId = `local_${crypto.randomUUID().split('-')[0]}`;
-    const guestUser: UserProfile = {
-      id: guestId,
-      name: "Commander One",
-      email: "local@isthmic.pro",
-      role: 'Executive',
+  static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password: pass,
+      options: { data: { display_name: name } }
+    });
+
+    if (authError) throw new Error(authError.message);
+    if (!authData.user) throw new Error("Authentication failed.");
+
+    // إنشاء البروفايل في جدول السحاب
+    const role = email.includes('admin@') ? 'Admin' : 'Executive';
+    const newUser: UserProfile = {
+      id: authData.user.id,
+      name,
+      email,
+      role: role as any,
       createdAt: new Date().toISOString(),
-      isSyncEnabled: false, // الوضع المحلي لا يحتاج مزامنة سحابية
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Commander`
+      isSyncEnabled: true,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
     };
 
-    // حفظ البروفايل محلياً فقط
-    await persistence.save('profiles', guestUser);
-    return guestUser;
-  }
+    const { error: dbError } = await supabase.from('profiles').upsert([{
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      created_at: newUser.createdAt
+    }]);
 
-  static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
-    try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: pass,
-        options: { data: { display_name: name } }
-      });
-
-      if (authError) throw new Error(authError.message);
-      if (!authData.user) throw new Error("فشل إنشاء الحساب.");
-
-      const newUser: UserProfile = {
-        id: authData.user.id,
-        name,
-        email,
-        role: 'Executive',
-        createdAt: new Date().toISOString(),
-        isSyncEnabled: true,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
-      };
-
-      await persistence.save('profiles', newUser);
-      return { user: newUser };
-    } catch (e: any) {
-      console.warn("Cloud Auth Failed, suggesting local mode.");
-      throw e;
-    }
+    if (dbError) console.error("Database Profile Error:", dbError);
+    return { user: newUser };
   }
 
   static async login(email: string, pass: string): Promise<UserProfile> {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pass,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: pass,
+    });
 
-      if (error) throw new Error("بيانات الدخول غير صحيحة.");
+    if (error) throw new Error("Invalid credentials or database connection failure.");
 
-      const user: UserProfile = {
-        id: data.user.id,
-        email: data.user.email || '',
-        name: data.user.user_metadata?.display_name || 'Owner',
-        role: 'Executive',
-        createdAt: data.user.created_at,
-        isSyncEnabled: true,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
-      };
+    // جلب بيانات الرتبة من جدول الـ profiles
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
 
-      await persistence.save('profiles', user);
-      return user;
-    } catch (e: any) {
-      throw e;
-    }
+    const user: UserProfile = {
+      id: data.user.id,
+      email: data.user.email || '',
+      name: profileData?.name || data.user.user_metadata?.display_name || 'Owner',
+      role: profileData?.role || 'Executive',
+      createdAt: data.user.created_at,
+      isSyncEnabled: true,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
+    };
+
+    return user;
   }
 }

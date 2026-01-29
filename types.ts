@@ -1,24 +1,14 @@
 
-
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  password?: string;
-  securityQuestion?: string;
-  securityAnswer?: string;
-  role: 'Executive' | 'Strategist' | 'Analyst';
+  role: 'Admin' | 'Executive' | 'Strategist' | 'Analyst';
   avatar?: string;
   createdAt: string;
   lastSync?: string;
   isSyncEnabled: boolean;
-  // Added googleId for social auth support
   googleId?: string;
-}
-
-export interface WorkspaceState {
-  activeProfileId: string | null;
-  profiles: UserProfile[];
 }
 
 export enum AgentType {
@@ -26,7 +16,8 @@ export enum AgentType {
   ACQUISITION = 'ACQUISITION',
   OPERATIONS = 'OPERATIONS',
   LIQUIDATION = 'LIQUIDATION',
-  MANAGEMENT = 'MANAGEMENT'
+  MANAGEMENT = 'MANAGEMENT',
+  ADMIN_PANEL = 'ADMIN_PANEL'
 }
 
 export enum AgentRole {
@@ -44,7 +35,6 @@ export interface AgentThought {
   status: 'thinking' | 'resolved' | 'rejected' | 'action_taken';
 }
 
-// Added ThinkingStep for Evaluation UI
 export interface ThinkingStep {
   id: string;
   action: string;
@@ -54,7 +44,7 @@ export interface ThinkingStep {
 
 export interface Domain {
   id: string;
-  workspaceId: string;
+  workspaceId: string; // رابط مباشر مع User ID
   name: string;
   price: number;
   status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
@@ -70,7 +60,6 @@ export interface Domain {
   agentThoughts?: AgentThought[];
 }
 
-// Added TechnicalMetrics for Forensic scanning
 export interface TechnicalMetrics {
   da?: number;
   pa?: number;
@@ -86,7 +75,6 @@ export interface TechnicalMetrics {
   liquidityScore?: number;
 }
 
-// Added NegotiationBattleCard for War Room
 export interface NegotiationBattleCard {
   buyerMotive: string;
   leveragePoints: string[];
@@ -95,7 +83,6 @@ export interface NegotiationBattleCard {
   sentimentScore: number;
 }
 
-// Added OutreachMessage for Messaging engine
 export interface OutreachMessage {
   id: string;
   domainId: string;
@@ -106,7 +93,6 @@ export interface OutreachMessage {
   content: string;
 }
 
-// Added NexusOpportunity for Nexus Prime radar
 export interface NexusOpportunity {
   id: string;
   title: string;
@@ -118,7 +104,6 @@ export interface NexusOpportunity {
   marketGapScore?: number;
 }
 
-// Added AutonomousAction for MasterBrain tracking
 export interface AutonomousAction {
   id: string;
   type: 'PURCHASE' | 'NEGOTIATION' | 'LIQUIDATION' | 'ANALYSIS';

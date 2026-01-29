@@ -2,12 +2,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 /**
- * هام جداً:
- * اذهب إلى مشروعك في Supabase -> Settings (الترس) -> API
- * انسخ 'Project URL' وضعه مكان SUPABASE_URL
- * انسخ 'anon public' وضعه مكان SUPABASE_ANON_KEY
+ * دليل الربط للمبتدئين:
+ * 1. افتح مشروعك في Supabase.
+ * 2. اذهب إلى Settings (الترس) -> API.
+ * 3. انسخ Project URL وضعه في المتغير SUPABASE_URL أدناه.
+ * 4. انسخ anon public key وضعه في المتغير SUPABASE_ANON_KEY أدناه.
  */
-const SUPABASE_URL = 'https://qssnxvnrmuyupvfeaswa.supabase.co'; // تأكد أن هذا هو رابط مشروعك
-const SUPABASE_ANON_KEY = 'YOUR_ACTUAL_ANON_KEY_HERE'; // ضع هنا المفتاح الذي يبدأ بـ eyJ...
+
+// ضع رابط المشروع هنا (يبدأ بـ https://)
+const SUPABASE_URL = 'https://qssnxvnrmuyupvfeaswa.supabase.co'; 
+
+// ضع مفتاح الـ anon هنا (سلسلة طويلة من الحروف والأرقام)
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
