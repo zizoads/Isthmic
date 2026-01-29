@@ -21,6 +21,10 @@ interface DomainContextType {
   logout: () => void;
   addLog: (agent: string, message: string, type?: ActivityLog['type']) => void;
   connectService: (id: string, provider: string) => void;
+  // Added vault management methods missing from the interface
+  exportVault: () => Promise<void>;
+  importVault: (json: string) => Promise<void>;
+  wipeLocalVault: () => Promise<void>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -100,6 +104,52 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActivityLogs(prev => [log, ...prev].slice(0, 50));
   }, [activeProfile]);
 
+  // Fixed missing exportVault implementation
+  const exportVault = useCallback(async () => {
+    if (!activeProfile) return;
+    const { data: userDomains } = await supabase.from('domains').select('*').eq('workspaceId', activeProfile.id);
+    const blob = new Blob([JSON.stringify({ domains: userDomains, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `isthmic-backup-${activeProfile.id}.json`;
+    a.click();
+    addLog('System', 'Sovereign vault exported successfully.', 'success');
+  }, [activeProfile, addLog]);
+
+  // Fixed missing importVault implementation
+  const importVault = useCallback(async (json: string) => {
+    if (!activeProfile) return;
+    try {
+      const data = JSON.parse(json);
+      if (data.domains && Array.isArray(data.domains)) {
+        const { error } = await supabase.from('domains').upsert(
+          data.domains.map((d: any) => ({ ...d, workspaceId: activeProfile.id }))
+        );
+        if (error) throw error;
+        
+        const { data: refreshed } = await supabase.from('domains').select('*').eq('workspaceId', activeProfile.id);
+        if (refreshed) setDomains(refreshed);
+        addLog('System', 'Sovereign vault restored successfully.', 'success');
+      }
+    } catch (e) {
+      console.error("Import failed", e);
+      addLog('System', 'Vault restoration failed.', 'critical');
+    }
+  }, [activeProfile, addLog]);
+
+  // Fixed missing wipeLocalVault implementation
+  const wipeLocalVault = useCallback(async () => {
+    if (!activeProfile) return;
+    const { error } = await supabase.from('domains').delete().eq('workspaceId', activeProfile.id);
+    if (error) {
+      addLog('System', 'Vault sanitization failed.', 'critical');
+    } else {
+      setDomains([]);
+      addLog('System', 'Local vault sanitized and wiped.', 'warning');
+    }
+  }, [activeProfile, addLog]);
+
   const stats = useMemo(() => ({
     totalDiscovered: domains.length,
     totalPurchased: domains.filter(d => d.status === 'purchased').length,
@@ -112,12 +162,12 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo(() => ({
     activeProfile, setActiveProfile: setActiveProfileState, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
-    login, signup, logout, addLog,
+    login, signup, logout, addLog, exportVault, importVault, wipeLocalVault,
     connectService: (id: string, provider: string) => {
       if (!activeProfile) return;
       setIntegrations(prev => [...prev, { id, workspaceId: activeProfile.id, provider, name: provider.toUpperCase(), status: 'connected', impactArea: 'Global' }]);
     }
-  }), [activeProfile, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading]);
+  }), [activeProfile, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault]);
 
   return <DomainContext.Provider value={value as any}>{children}</DomainContext.Provider>;
 };
