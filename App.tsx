@@ -108,15 +108,6 @@ const LoginScreen: React.FC = () => {
               <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة لتسجيل الدخول</button>
             </div>
           )}
-
-          {serverStatus === 'offline' && (
-            <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500 text-[9px] font-medium leading-relaxed">
-              <p className="font-black mb-2 uppercase tracking-widest">كيفية الإصلاح:</p>
-              1. اذهب إلى Supabase Dashboard.<br/>
-              2. اختر المشروع: weqtcsfynvqconvldmhw.<br/>
-              3. اضغط على زر "Restore" إذا كان المشروع خاملاً (Paused).
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -124,7 +115,7 @@ const LoginScreen: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const { activeProfile, logout, domains, setDomains, integrations, stats, notifications, dismissNotification, addLog, connectService, strategy } = useDomainContext() as any;
+  const { activeProfile, isEmailConfirmed, logout, domains, setDomains, integrations, stats, notifications, dismissNotification, addLog, connectService, strategy } = useDomainContext() as any;
   const [activeTab, setActiveTab] = useState<AgentType>(AgentType.INTELLIGENCE);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
@@ -135,7 +126,7 @@ const AppContent: React.FC = () => {
   const isAdmin = activeProfile.role === 'Admin';
 
   return (
-    <div className="app-shell relative bg-[#0a0a0c] selection:bg-[#c5a059]/30">
+    <div className="app-shell bg-[#0a0a0c] selection:bg-[#c5a059]/30 overflow-hidden">
       <CommandPalette setActiveTab={setActiveTab} onSearchDomain={(name) => {
         const d = domains.find((x: any) => x.name === name);
         if (d) setInspectedDomain(d);
@@ -143,21 +134,22 @@ const AppContent: React.FC = () => {
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} lang="en" onClose={() => setInspectedDomain(null)} />}
       
-      <aside style={{ gridArea: 'sidebar' }} className={`z-sidebar bg-[#111113] border-white/5 transition-all duration-700 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)]' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
+      {/* Sidebar - Pinned */}
+      <aside className={`z-[200] bg-[#111113] border-white/5 transition-all duration-700 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)]' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
         <div className="p-10 flex flex-col h-full">
           <div className="flex items-center gap-5 mb-16">
-            <div className="icon-box bg-[#c5a059]/10 border border-[#c5a059]/20 text-[#c5a059]"><i className="fas fa-cube text-xl"></i></div>
+            <div className="icon-box bg-[#c5a059]/10 border border-[#c5a059]/20 text-[#c5a059] shadow-2xl"><i className="fas fa-cube text-xl"></i></div>
             <span className="text-[12px] font-black tracking-[0.5em] text-white uppercase italic">Isthmic</span>
           </div>
           <nav className="flex-1 space-y-4">
             {isAdmin && (
-              <button onClick={() => {setActiveTab(AgentType.ADMIN_PANEL); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.ADMIN_PANEL ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-slate-500'}`}><i className="fas fa-shield-halved"></i> <span className="text-[10px] font-black uppercase">Admin Hub</span></button>
+              <button onClick={() => {setActiveTab(AgentType.ADMIN_PANEL); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.ADMIN_PANEL ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-shield-halved"></i> <span className="text-[10px] font-black uppercase">Admin Hub</span></button>
             )}
-            <button onClick={() => {setActiveTab(AgentType.INTELLIGENCE); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.INTELLIGENCE ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-brain"></i> <span className="text-[10px] font-black uppercase">Intelligence</span></button>
-            <button onClick={() => {setActiveTab(AgentType.ACQUISITION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.ACQUISITION ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-crosshairs"></i> <span className="text-[10px] font-black uppercase">Acquisition</span></button>
-            <button onClick={() => {setActiveTab(AgentType.OPERATIONS); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.OPERATIONS ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-layer-group"></i> <span className="text-[10px] font-black uppercase">Operations</span></button>
-            <button onClick={() => {setActiveTab(AgentType.LIQUIDATION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.LIQUIDATION ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-money-bill-wave"></i> <span className="text-[10px] font-black uppercase">Liquidation</span></button>
-            <button onClick={() => {setActiveTab(AgentType.MANAGEMENT); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.MANAGEMENT ? 'bg-[#c5a059] text-black shadow-lg' : 'text-slate-500'}`}><i className="fas fa-user-circle"></i> <span className="text-[10px] font-black uppercase">Profile & Command</span></button>
+            <button onClick={() => {setActiveTab(AgentType.INTELLIGENCE); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.INTELLIGENCE ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-brain"></i> <span className="text-[10px] font-black uppercase">Intelligence</span></button>
+            <button onClick={() => {setActiveTab(AgentType.ACQUISITION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.ACQUISITION ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-crosshairs"></i> <span className="text-[10px] font-black uppercase">Acquisition</span></button>
+            <button onClick={() => {setActiveTab(AgentType.OPERATIONS); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.OPERATIONS ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-layer-group"></i> <span className="text-[10px] font-black uppercase">Operations</span></button>
+            <button onClick={() => {setActiveTab(AgentType.LIQUIDATION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.LIQUIDATION ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-money-bill-wave"></i> <span className="text-[10px] font-black uppercase">Liquidation</span></button>
+            <button onClick={() => {setActiveTab(AgentType.MANAGEMENT); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.MANAGEMENT ? 'bg-[#c5a059] text-black shadow-2xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-user-circle"></i> <span className="text-[10px] font-black uppercase">Profile & Command</span></button>
           </nav>
           <div className="pt-8 border-t border-white/5 flex items-center justify-between">
              <div className="flex items-center gap-4">
@@ -167,24 +159,34 @@ const AppContent: React.FC = () => {
                   <div className="text-[8px] text-[#c5a059] font-black uppercase italic tracking-tighter">Sovereign Link</div>
                 </div>
              </div>
-             <button onClick={logout} className="text-slate-500 hover:text-red-500"><i className="fas fa-power-off"></i></button>
+             <button onClick={logout} className="text-slate-500 hover:text-red-500 transition-colors"><i className="fas fa-power-off"></i></button>
           </div>
         </div>
       </aside>
       
-      <header style={{ gridArea: 'header' }} className="z-header flex flex-col border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between px-10 h-[80px]">
-          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400"><i className="fas fa-bars"></i></button>
-          <div className="text-white prestige-heading text-lg">Command Console</div>
+      {/* Header - Pinned */}
+      <header className="z-[100] flex items-center justify-between px-10 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-2xl">
+        <div className="flex items-center gap-6">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400 hover:text-white transition-colors"><i className="fas fa-bars"></i></button>
+          <div className="text-white prestige-heading text-xl italic tracking-tighter">Command Console</div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          {!isEmailConfirmed && (
+            <button onClick={() => setActiveTab(AgentType.MANAGEMENT)} className="px-4 py-2 rounded-xl text-[8px] font-black uppercase bg-red-500/10 text-red-500 border border-red-500/20 flex items-center gap-2 animate-pulse">
+              <i className="fas fa-user-shield"></i> Identity Pending
+            </button>
+          )}
           <div className="px-4 py-2 rounded-xl text-[8px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-3">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            Sync: Encrypted
+            Sync: Secured
           </div>
         </div>
       </header>
       
-      <main style={{ gridArea: 'main' }} className="content-scroller no-scrollbar p-6">
-        <div className="max-w-[1600px] mx-auto">
+      {/* Main Content - SCROLLABLE */}
+      <main className="no-scrollbar">
+        <div className="max-w-[1400px] mx-auto animate-precision">
           {activeTab === AgentType.ADMIN_PANEL && <AdminHub />}
           {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang="en" onInitiateScan={initiateScan} isScanning={isScanning} />}
           {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang="en" />}
@@ -194,7 +196,9 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
+      {/* Ticker - Pinned Bottom */}
       <TickerTape lang="en" />
+      
       <SonnerNotification notifications={notifications} onDismiss={dismissNotification} />
       <div className="noise-bg"></div>
     </div>
