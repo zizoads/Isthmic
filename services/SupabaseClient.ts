@@ -1,15 +1,38 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '@supabase/supabase-js';
 
 /**
- * تم استخراج رابط المشروع والمفتاح تلقائياً بناءً على البيانات المزودة.
- * الرابط: https://weqtcsfynvqcconvldmhw.supabase.co
+ * Isthmic Pro - Sovereign Cloud Connection
+ * تم تصحيح الرابط بناءً على البيانات المكتشفة: weqtcsfynvqconvldmhw
  */
 
-// رابط المشروع الخاص بك
-const SUPABASE_URL = 'https://weqtcsfynvqcconvldmhw.supabase.co'; 
+// الرابط الصحيح (بدون حرف c الزائد)
+const SUPABASE_URL = 'https://weqtcsfynvqconvldmhw.supabase.co'.trim(); 
 
-// مفتاح الـ anon العام (JWT)
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcXRjc2Z5bnZxY29udmxkbWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MTIwNjgsImV4cCI6MjA4NTI4ODA2OH0.fzT9Svi7JfFlHrwgFPIKGGKwUNQY5afYVWKKEFh51z0'; 
+// المفتاح الجديد (sb_publishable...)
+const SUPABASE_ANON_KEY = 'sb_publishable_fTs-sBuPk0GVRtObWe01wQ_o6MxQkso'.trim(); 
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: { 'x-application-name': 'isthmic-pro' }
+  }
+});
+
+/**
+ * دالة لفحص حالة الاتصال بالخادم يدوياً مع تشخيص دقيق
+ */
+export const checkSupabaseConnection = async () => {
+  try {
+    // محاولة جلب الجلسة الحالية للتأكد من أن الخادم يستجيب
+    const { data, error } = await supabase.auth.getSession();
+    if (error && error.message.includes('fetch')) return false;
+    return true;
+  } catch (err) {
+    return false;
+  }
+};

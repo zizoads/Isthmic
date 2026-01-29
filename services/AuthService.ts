@@ -5,64 +5,82 @@ import { UserProfile } from '../types';
 export class AuthService {
   
   static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password: pass,
-      options: { data: { display_name: name } }
-    });
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: pass,
+        options: { data: { display_name: name } }
+      });
 
-    if (authError) throw new Error(authError.message);
-    if (!authData.user) throw new Error("Authentication failed.");
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("فشل إنشاء الحساب: لم يتم إرجاع بيانات.");
 
-    // إنشاء البروفايل في جدول السحاب
-    const role = email.includes('admin@') ? 'Admin' : 'Executive';
-    const newUser: UserProfile = {
-      id: authData.user.id,
-      name,
-      email,
-      role: role as any,
-      createdAt: new Date().toISOString(),
-      isSyncEnabled: true,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
-    };
+      const role = email.includes('admin@') ? 'Admin' : 'Executive';
+      
+      const { error: dbError } = await supabase.from('profiles').upsert([{
+        id: authData.user.id,
+        name: name,
+        email: email,
+        role: role,
+        created_at: new Date().toISOString()
+      }]);
 
-    const { error: dbError } = await supabase.from('profiles').upsert([{
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      created_at: newUser.createdAt
-    }]);
-
-    if (dbError) console.error("Database Profile Error:", dbError);
-    return { user: newUser };
+      if (dbError) console.error("Database Profile Error:", dbError);
+      
+      return { 
+        user: {
+          id: authData.user.id,
+          name,
+          email,
+          role: role as any,
+          createdAt: authData.user.created_at,
+          isSyncEnabled: true,
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
+        }
+      };
+    } catch (error: any) {
+      this.handleDetailedError(error, "Signup");
+      throw error;
+    }
   }
 
   static async login(email: string, pass: string): Promise<UserProfile> {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: pass,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: pass,
+      });
 
-    if (error) throw new Error("Invalid credentials or database connection failure.");
+      if (error) throw error;
 
-    // جلب بيانات الرتبة من جدول الـ profiles
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
 
-    const user: UserProfile = {
-      id: data.user.id,
-      email: data.user.email || '',
-      name: profileData?.name || data.user.user_metadata?.display_name || 'Owner',
-      role: profileData?.role || 'Executive',
-      createdAt: data.user.created_at,
-      isSyncEnabled: true,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
-    };
+      return {
+        id: data.user.id,
+        email: data.user.email || '',
+        name: profileData?.name || data.user.user_metadata?.display_name || 'User',
+        role: profileData?.role || 'Executive',
+        createdAt: data.user.created_at,
+        isSyncEnabled: true,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
+      };
+    } catch (error: any) {
+      this.handleDetailedError(error, "Login");
+      throw error;
+    }
+  }
 
-    return user;
+  private static handleDetailedError(error: any, context: string) {
+    console.error(`${context} Diagnostic:`, error);
+    
+    if (error.message?.includes('fetch') || error.name === 'TypeError') {
+      throw new Error("⚠️ لا يزال هناك فشل في الاتصال. يرجى التأكد من أن مشروعك في Supabase ليس في وضع 'Paused'. إذا كان نشطاً، فقد تكون المشكلة في جدار حماية الإنترنت لديك.");
+    }
+    
+    throw error;
   }
 }

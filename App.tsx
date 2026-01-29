@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AgentType, Domain } from './types';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
+import { checkSupabaseConnection } from './services/SupabaseClient';
 
 // Hubs
 import IntelligenceHub from './components/hubs/IntelligenceHub';
@@ -25,6 +26,15 @@ const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  useEffect(() => {
+    const check = async () => {
+      const isOnline = await checkSupabaseConnection();
+      setServerStatus(isOnline ? 'online' : 'offline');
+    };
+    check();
+  }, []);
 
   const handleSignup = async () => {
     if (!name || !email || !password) { setError('يرجى ملء جميع الحقول'); return; }
@@ -58,16 +68,26 @@ const LoginScreen: React.FC = () => {
   );
 
   return (
-    <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md space-y-8">
+    <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-6 font-sans overflow-y-auto">
+      <div className="w-full max-w-md space-y-8 my-auto">
         <div className="text-center">
           <h1 className="text-4xl font-light text-white italic tracking-tighter">Isthmic Pro</h1>
           <p className="text-[#c5a059] text-[9px] font-black uppercase tracking-[0.4em] mt-2">Strategic Asset Command</p>
         </div>
 
         <div className="bg-[#111113] border border-white/5 rounded-[32px] p-8 shadow-2xl">
+          <div className="flex justify-center mb-6">
+            <div className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-2 border ${
+              serverStatus === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+              serverStatus === 'offline' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/5'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${serverStatus === 'online' ? 'bg-green-500 animate-pulse' : serverStatus === 'offline' ? 'bg-red-500' : 'bg-slate-500'}`}></div>
+              {serverStatus === 'online' ? 'Sovereign Cloud: Connected' : serverStatus === 'offline' ? 'Sovereign Cloud: Paused/Offline' : 'Verifying Cloud...'}
+            </div>
+          </div>
+
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-bold text-center">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-bold text-center leading-relaxed whitespace-pre-wrap">
               {error}
             </div>
           )}
@@ -76,7 +96,7 @@ const LoginScreen: React.FC = () => {
             <div className="space-y-4">
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all">دخول آمن</button>
+              <button onClick={handleLogin} disabled={serverStatus === 'offline'} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50">دخول آمن</button>
               <button onClick={() => setView('signup')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">إنشاء هوية جديدة</button>
             </div>
           ) : (
@@ -84,8 +104,17 @@ const LoginScreen: React.FC = () => {
               <input type="text" placeholder="الاسم الكامل" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleSignup} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">تسجيل الهوية</button>
+              <button onClick={handleSignup} disabled={serverStatus === 'offline'} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50">تسجيل الهوية</button>
               <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة لتسجيل الدخول</button>
+            </div>
+          )}
+
+          {serverStatus === 'offline' && (
+            <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500 text-[9px] font-medium leading-relaxed">
+              <p className="font-black mb-2 uppercase tracking-widest">كيفية الإصلاح:</p>
+              1. اذهب إلى Supabase Dashboard.<br/>
+              2. اختر المشروع: weqtcsfynvqcconvldmhw.<br/>
+              3. اضغط على زر "Restore" إذا كان المشروع خاملاً (Paused).
             </div>
           )}
         </div>
