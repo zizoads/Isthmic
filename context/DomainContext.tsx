@@ -6,6 +6,7 @@ import { supabase } from '../services/SupabaseClient';
 
 interface DomainContextType {
   activeProfile: UserProfile | null;
+  isEmailConfirmed: boolean;
   setActiveProfile: (profile: UserProfile | null) => void;
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
@@ -21,7 +22,6 @@ interface DomainContextType {
   logout: () => void;
   addLog: (agent: string, message: string, type?: ActivityLog['type']) => void;
   connectService: (id: string, provider: string) => void;
-  // Added vault management methods missing from the interface
   exportVault: () => Promise<void>;
   importVault: (json: string) => Promise<void>;
   wipeLocalVault: () => Promise<void>;
@@ -32,6 +32,7 @@ const DomainContext = createContext<DomainContextType | undefined>(undefined);
 export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeProfile, setActiveProfileState] = useState<UserProfile | null>(null);
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(true);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -44,10 +45,10 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     investmentThesis: ''
   });
 
-  const loadUserData = useCallback(async (profile: UserProfile) => {
+  const loadUserData = useCallback(async (profile: UserProfile, confirmed: boolean = true) => {
     setActiveProfileState(profile);
+    setIsEmailConfirmed(confirmed);
     
-    // جلب البيانات من جداول Supabase الخاصة بهذا المستخدم فقط
     const { data: userDomains } = await supabase.from('domains').select('*').eq('workspaceId', profile.id);
     const { data: userIntegrations } = await supabase.from('integrations').select('*').eq('workspaceId', profile.id);
     const { data: userStrategy } = await supabase.from('strategies').select('*').eq('id', profile.id).single();
@@ -74,7 +75,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.id}`
         };
-        await loadUserData(user);
+        await loadUserData(user, !!session.user.email_confirmed_at);
       } else {
         setIsInitialLoading(false);
       }
@@ -84,12 +85,15 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const login = async (email: string, pass: string) => {
     const user = await AuthService.login(email, pass);
-    await loadUserData(user);
+    const { data: { user: sbUser } } = await supabase.auth.getUser();
+    await loadUserData(user, !!sbUser?.email_confirmed_at);
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    const { user } = await AuthService.signup(name, email, pass);
-    await loadUserData(user);
+    const { user, needsConfirmation } = await AuthService.signup(name, email, pass);
+    if (user) {
+      await loadUserData(user, !needsConfirmation);
+    }
   };
 
   const logout = async () => {
@@ -104,7 +108,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActivityLogs(prev => [log, ...prev].slice(0, 50));
   }, [activeProfile]);
 
-  // Fixed missing exportVault implementation
   const exportVault = useCallback(async () => {
     if (!activeProfile) return;
     const { data: userDomains } = await supabase.from('domains').select('*').eq('workspaceId', activeProfile.id);
@@ -117,7 +120,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addLog('System', 'Sovereign vault exported successfully.', 'success');
   }, [activeProfile, addLog]);
 
-  // Fixed missing importVault implementation
   const importVault = useCallback(async (json: string) => {
     if (!activeProfile) return;
     try {
@@ -127,18 +129,15 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           data.domains.map((d: any) => ({ ...d, workspaceId: activeProfile.id }))
         );
         if (error) throw error;
-        
         const { data: refreshed } = await supabase.from('domains').select('*').eq('workspaceId', activeProfile.id);
         if (refreshed) setDomains(refreshed);
         addLog('System', 'Sovereign vault restored successfully.', 'success');
       }
     } catch (e) {
-      console.error("Import failed", e);
       addLog('System', 'Vault restoration failed.', 'critical');
     }
   }, [activeProfile, addLog]);
 
-  // Fixed missing wipeLocalVault implementation
   const wipeLocalVault = useCallback(async () => {
     if (!activeProfile) return;
     const { error } = await supabase.from('domains').delete().eq('workspaceId', activeProfile.id);
@@ -161,13 +160,13 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }), [domains]);
 
   const value = useMemo(() => ({
-    activeProfile, setActiveProfile: setActiveProfileState, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
+    activeProfile, isEmailConfirmed, setActiveProfile: setActiveProfileState, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
     login, signup, logout, addLog, exportVault, importVault, wipeLocalVault,
     connectService: (id: string, provider: string) => {
       if (!activeProfile) return;
       setIntegrations(prev => [...prev, { id, workspaceId: activeProfile.id, provider, name: provider.toUpperCase(), status: 'connected', impactArea: 'Global' }]);
     }
-  }), [activeProfile, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault]);
+  }), [activeProfile, isEmailConfirmed, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault]);
 
   return <DomainContext.Provider value={value as any}>{children}</DomainContext.Provider>;
 };

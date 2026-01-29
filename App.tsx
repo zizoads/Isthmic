@@ -19,6 +19,25 @@ import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
 import TickerTape from './components/TickerTape';
 
+const VerificationBanner: React.FC = () => {
+  const { isEmailConfirmed } = useDomainContext();
+  if (isEmailConfirmed) return null;
+
+  return (
+    <div className="bg-[#c5a059]/10 border-y border-[#c5a059]/30 py-2.5 px-10 flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
+      <div className="flex items-center gap-3">
+        <i className="fas fa-exclamation-triangle text-[#c5a059] text-xs"></i>
+        <p className="text-[10px] text-white font-black uppercase tracking-widest leading-none">
+          هويتك الرقمية قيد الانتظار. يرجى تأكيد البريد لتجنب تقييد الوصول مستقبلاً.
+        </p>
+      </div>
+      <p className="text-[9px] text-[#c5a059] font-bold italic">
+        * ملاحظة: قد تصل الرسالة إلى صندوق البريد العشوائي (Spam/Junk).
+      </p>
+    </div>
+  );
+};
+
 const LoginScreen: React.FC = () => {
   const { isInitialLoading, signup, login } = useDomainContext() as any;
   const [view, setView] = useState<'login' | 'signup' | 'loading'>('login');
@@ -82,7 +101,7 @@ const LoginScreen: React.FC = () => {
               serverStatus === 'offline' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/5'
             }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${serverStatus === 'online' ? 'bg-green-500 animate-pulse' : serverStatus === 'offline' ? 'bg-red-500' : 'bg-slate-500'}`}></div>
-              {serverStatus === 'online' ? 'Sovereign Cloud: Connected' : serverStatus === 'offline' ? 'Sovereign Cloud: Paused/Offline' : 'Verifying Cloud...'}
+              {serverStatus === 'online' ? 'Sovereign Cloud: Online' : serverStatus === 'offline' ? 'Sovereign Cloud: Offline' : 'Verifying Cloud...'}
             </div>
           </div>
 
@@ -113,7 +132,7 @@ const LoginScreen: React.FC = () => {
             <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500 text-[9px] font-medium leading-relaxed">
               <p className="font-black mb-2 uppercase tracking-widest">كيفية الإصلاح:</p>
               1. اذهب إلى Supabase Dashboard.<br/>
-              2. اختر المشروع: weqtcsfynvqcconvldmhw.<br/>
+              2. اختر المشروع: weqtcsfynvqconvldmhw.<br/>
               3. اضغط على زر "Restore" إذا كان المشروع خاملاً (Paused).
             </div>
           )}
@@ -172,13 +191,16 @@ const AppContent: React.FC = () => {
         </div>
       </aside>
       
-      <header style={{ gridArea: 'header' }} className="z-header flex items-center justify-between px-10 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl">
-        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400"><i className="fas fa-bars"></i></button>
-        <div className="text-white prestige-heading text-lg">Command Console</div>
-        <div className="px-4 py-2 rounded-xl text-[8px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-3">
-          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-          Sync: Encrypted
+      <header style={{ gridArea: 'header' }} className="z-header flex flex-col border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-10 h-[80px]">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400"><i className="fas fa-bars"></i></button>
+          <div className="text-white prestige-heading text-lg">Command Console</div>
+          <div className="px-4 py-2 rounded-xl text-[8px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-3">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+            Sync: Encrypted
+          </div>
         </div>
+        <VerificationBanner />
       </header>
       
       <main style={{ gridArea: 'main' }} className="content-scroller no-scrollbar p-6">

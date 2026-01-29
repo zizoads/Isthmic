@@ -4,7 +4,7 @@ import { UserProfile } from '../types';
 
 export class AuthService {
   
-  static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
+  static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -17,7 +17,8 @@ export class AuthService {
 
       const role = email.includes('admin@') ? 'Admin' : 'Executive';
       
-      const { error: dbError } = await supabase.from('profiles').upsert([{
+      // إنشاء البروفايل فوراً
+      await supabase.from('profiles').upsert([{
         id: authData.user.id,
         name: name,
         email: email,
@@ -25,9 +26,10 @@ export class AuthService {
         created_at: new Date().toISOString()
       }]);
 
-      if (dbError) console.error("Database Profile Error:", dbError);
-      
+      const needsConfirmation = !authData.session && !authData.user.email_confirmed_at;
+
       return { 
+        needsConfirmation,
         user: {
           id: authData.user.id,
           name,
@@ -51,7 +53,13 @@ export class AuthService {
         password: pass,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+           // إذا كان الخيار مفعلاً في سوبا بيس ويمنع الدخول تماماً
+           throw new Error("⚠️ البريد الإلكتروني غير مؤكد. يرجى تفعيل حسابك من الرابط المرسل إليك (افحص الـ Spam).");
+        }
+        throw error;
+      }
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -76,11 +84,8 @@ export class AuthService {
 
   private static handleDetailedError(error: any, context: string) {
     console.error(`${context} Diagnostic:`, error);
-    
-    if (error.message?.includes('fetch') || error.name === 'TypeError') {
-      throw new Error("⚠️ لا يزال هناك فشل في الاتصال. يرجى التأكد من أن مشروعك في Supabase ليس في وضع 'Paused'. إذا كان نشطاً، فقد تكون المشكلة في جدار حماية الإنترنت لديك.");
-    }
-    
+    if (error.message?.includes('fetch')) throw new Error("⚠️ خطأ في الاتصال بالسحابة السيادية.");
+    if (error.message?.includes("Invalid login credentials")) throw new Error("❌ البيانات المدخلة غير صحيحة.");
     throw error;
   }
 }
