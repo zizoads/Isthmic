@@ -3,6 +3,9 @@ import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
 
 export class AuthService {
+  // This email is now only a "Bootstrap" key for the very first login.
+  // After that, the 'Admin' role in the database is the source of absolute truth.
+  private static BOOTSTRAP_OWNER = 'azeddinebeldjilali9@gmail.com';
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
     try {
@@ -13,11 +16,11 @@ export class AuthService {
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error("فشل إنشاء الحساب: لم يتم إرجاع بيانات.");
+      if (!authData.user) throw new Error("Failed to create identity.");
 
-      const role = email.includes('admin@') ? 'Admin' : 'Executive';
+      // Initial Bootstrap Logic
+      const role = (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase()) ? 'Admin' : 'Executive';
       
-      // إنشاء البروفايل فوراً
       await supabase.from('profiles').upsert([{
         id: authData.user.id,
         name: name,
@@ -41,7 +44,6 @@ export class AuthService {
         }
       };
     } catch (error: any) {
-      this.handleDetailedError(error, "Signup");
       throw error;
     }
   }
@@ -53,13 +55,7 @@ export class AuthService {
         password: pass,
       });
 
-      if (error) {
-        if (error.message.includes("Email not confirmed")) {
-           // إذا كان الخيار مفعلاً في سوبا بيس ويمنع الدخول تماماً
-           throw new Error("⚠️ البريد الإلكتروني غير مؤكد. يرجى تفعيل حسابك من الرابط المرسل إليك (افحص الـ Spam).");
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -67,25 +63,21 @@ export class AuthService {
         .eq('id', data.user.id)
         .single();
 
+      // Priority 1: Use Database Role. 
+      // Priority 2: Fallback to Admin if it's the bootstrap owner.
+      const finalRole = profileData?.role || (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
+
       return {
         id: data.user.id,
         email: data.user.email || '',
         name: profileData?.name || data.user.user_metadata?.display_name || 'User',
-        role: profileData?.role || 'Executive',
+        role: finalRole as any,
         createdAt: data.user.created_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
       };
     } catch (error: any) {
-      this.handleDetailedError(error, "Login");
       throw error;
     }
-  }
-
-  private static handleDetailedError(error: any, context: string) {
-    console.error(`${context} Diagnostic:`, error);
-    if (error.message?.includes('fetch')) throw new Error("⚠️ خطأ في الاتصال بالسحابة السيادية.");
-    if (error.message?.includes("Invalid login credentials")) throw new Error("❌ البيانات المدخلة غير صحيحة.");
-    throw error;
   }
 }
