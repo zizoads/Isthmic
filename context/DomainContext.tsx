@@ -123,7 +123,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    const { user } = await AuthService.signup(name, email, pass, "What was your first school?", "Default");
+    // Fix: AuthService.signup only expects 3 arguments (name, email, pass).
+    const { user } = await AuthService.signup(name, email, pass);
     await loadWorkspaceData(user);
   };
 

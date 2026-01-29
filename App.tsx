@@ -4,7 +4,7 @@ import { AgentType, Domain } from './types';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
 
-// Optimized Hubs
+// Hubs
 import IntelligenceHub from './components/hubs/IntelligenceHub';
 import AcquisitionDesk from './components/hubs/AcquisitionDesk';
 import OperationsHub from './components/hubs/OperationsHub';
@@ -20,80 +20,77 @@ import TickerTape from './components/TickerTape';
 const LoginScreen: React.FC = () => {
   const { isInitialLoading, signup, login } = useDomainContext() as any;
   const [view, setView] = useState<'login' | 'signup' | 'loading'>('login');
-  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleSignup = async () => {
-    if (!name || !email || !password) { setError('Please fill all fields'); return; }
+    if (!name || !email || !password) { setError('يرجى ملء جميع الحقول'); return; }
     setError(null);
     setView('loading');
     try {
       await signup(name, email, password);
     } catch (e: any) {
-      setError(e.message || "Signup failed");
+      setError(e.message);
       setView('signup');
     }
   };
 
   const handleLogin = async () => {
-    if (!email || !password) { setError('Email and Password required'); return; }
+    if (!email || !password) { setError('الإيميل وكلمة السر مطلوبان'); return; }
     setError(null);
     setView('loading');
     try {
       await login(email, password);
     } catch (e: any) {
-      setError(e.message || "Invalid credentials");
+      setError(e.message);
       setView('login');
     }
   };
 
   if (isInitialLoading || view === 'loading') return (
-    <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a0c] gap-10">
-      <div className="relative">
-        <div className="w-24 h-24 border-2 border-white/5 rounded-full"></div>
-        <div className="absolute inset-0 border-2 border-t-[#c5a059] border-transparent rounded-full animate-spin"></div>
-        <i className="fas fa-cloud-bolt absolute inset-0 flex items-center justify-center text-[#c5a059] text-2xl animate-pulse"></i>
-      </div>
-      <div className="text-[10px] font-black text-white uppercase tracking-[0.6em] animate-pulse">Connecting to Sovereign Cloud...</div>
+    <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a0c]">
+      <div className="w-16 h-16 border-4 border-t-[#c5a059] border-white/10 rounded-full animate-spin mb-6"></div>
+      <div className="text-[10px] text-white font-black tracking-widest animate-pulse uppercase">Verifying Identity...</div>
     </div>
   );
 
   return (
-    <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="z-10 w-full max-w-xl space-y-10">
-        
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl prestige-heading text-white italic tracking-tighter">Isthmic Pro</h1>
-          <p className="text-slate-600 uppercase text-[8px] font-black tracking-[0.4em]">Real-Time Database Auth</p>
+    <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-light text-white italic tracking-tighter">Isthmic Pro</h1>
+          <p className="text-[#c5a059] text-[9px] font-black uppercase tracking-[0.4em] mt-2">Sovereign Gateway</p>
         </div>
 
-        <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-10 shadow-3xl">
+        <div className="bg-[#111113] border border-white/5 rounded-[32px] p-8 shadow-2xl">
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
-              <i className="fas fa-exclamation-circle mr-2"></i> {error}
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold leading-relaxed text-center">
+              <i className="fas fa-info-circle mb-2 block text-lg"></i>
+              {error}
             </div>
           )}
 
           {view === 'login' ? (
-            <div className="space-y-6">
-               <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-[#c5a059]/50" />
-               <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-[#c5a059]/50" />
-               <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all">Enter Console</button>
-               <button onClick={() => setView('signup')} className="w-full text-[#c5a059] text-[9px] font-black uppercase">Create New Identity</button>
+            <div className="space-y-5">
+              <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all">دخول المنصة</button>
+              <button onClick={() => setView('signup')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2">إنشاء هوية جديدة</button>
             </div>
           ) : (
-            <div className="space-y-6">
-               <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white outline-none" />
-               <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white outline-none" />
-               <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white outline-none" />
-               <button onClick={handleSignup} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">Register Asset</button>
-               <button onClick={() => setView('login')} className="w-full text-slate-600 text-[9px] font-black uppercase">Back to Login</button>
+            <div className="space-y-5">
+              <input type="text" placeholder="الاسم الكامل" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <button onClick={handleSignup} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">تسجيل الهوية</button>
+              <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2">العودة لتسجيل الدخول</button>
             </div>
           )}
         </div>
+        
+        <p className="text-[9px] text-slate-700 text-center uppercase tracking-widest">Client-Side Encryption Active</p>
       </div>
     </div>
   );

@@ -5,60 +5,42 @@ import { persistence } from './DataService';
 
 export class AuthService {
   
-  static async signup(name: string, email: string, pass: string, question: string, answer: string): Promise<{ user: UserProfile }> {
-    // 1. محاولة إنشاء الحساب في Supabase Auth
+  static async signup(name: string, email: string, pass: string): Promise<{ user: UserProfile }> {
+    // 1. محاولة إنشاء الحساب في Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: pass,
       options: {
-        data: {
-          display_name: name
-        }
+        data: { display_name: name }
       }
     });
 
     if (authError) {
-      if (authError.message.includes("already registered")) {
-        throw new Error("هذا الحساب موجود بالفعل، جرب تسجيل الدخول.");
+      console.error("Supabase Auth Error:", authError);
+      // تخصيص رسالة الخطأ لتكون مفهومة
+      if (authError.message.includes("Email confirmation")) {
+        throw new Error("يجب عليك تعطيل خاصية 'Confirm Email' من لوحة تحكم Supabase لتتمكن من الدخول فوراً.");
       }
-      // التحقق من حالة طلب التأكيد
-      if (authError.message.toLowerCase().includes("confirmation") || authError.status === 422) {
-        throw new Error("تنبيه: يجب إغلاق خيار 'Confirm sign up' في إعدادات Supabase (Authentication -> Confirm sign up).");
-      }
-      throw new Error("خطأ في التسجيل: " + authError.message);
+      throw new Error(authError.message);
     }
     
-    // إذا نجح الـ Auth ولكن الجلسة فارغة، فهذا يعني أن التأكيد لا يزال مطلوباً في الإعدادات
-    if (!authData.user || (!authData.session && authData.user.identities?.length === 0)) {
-       throw new Error("الحساب يحتاج تأكيد. يرجى إيقاف خيار 'Confirm sign up' في Supabase ثم المحاولة بإيميل جديد.");
-    }
+    if (!authData.user) throw new Error("فشلت عملية إنشاء المستخدم.");
 
+    // 2. إنشاء بيانات البروفايل محلياً وسحابياً
     const newUser: UserProfile = {
       id: authData.user.id,
       name,
       email,
-      securityQuestion: question,
-      securityAnswer: answer.toLowerCase().trim(),
       role: 'Executive',
       createdAt: new Date().toISOString(),
       isSyncEnabled: true,
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
     };
 
-    // 2. محاولة حفظ البيانات في جدول profiles
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({ 
-        id: newUser.id, 
-        name: newUser.name, 
-        email: newUser.email,
-        security_question: question,
-        security_answer: newUser.securityAnswer
-      });
-
-    if (profileError) {
-      console.warn("Profile Sync Note:", profileError.message);
-    }
+    // محاولة الحفظ في الجدول (إذا كان موجوداً)
+    await supabase.from('profiles').insert([
+      { id: newUser.id, name: newUser.name, email: newUser.email }
+    ]);
 
     await persistence.save('profiles', newUser);
     return { user: newUser };
@@ -71,12 +53,13 @@ export class AuthService {
     });
 
     if (error) {
-      if (error.message.toLowerCase().includes("email not confirmed")) {
-        throw new Error("البريد غير مؤكد. يرجى تعطيل 'Confirm sign up' في Supabase.");
+      if (error.message.includes("Email not confirmed")) {
+        throw new Error("تم إنشاء الحساب، لكنه يتطلب تفعيل الإيميل. اذهب للإعدادات في Supabase وعطل 'Confirm Email'.");
       }
-      throw new Error("خطأ: " + error.message);
+      throw new Error("خطأ في البيانات: تأكد من الإيميل وكلمة السر.");
     }
 
+    // جلب البيانات الإضافية
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -87,8 +70,6 @@ export class AuthService {
       id: data.user.id,
       email: data.user.email || '',
       name: profileData?.name || data.user.user_metadata?.display_name || 'Owner',
-      securityQuestion: profileData?.security_question,
-      securityAnswer: profileData?.security_answer,
       role: 'Executive',
       createdAt: data.user.created_at,
       isSyncEnabled: true,
