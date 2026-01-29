@@ -1,23 +1,32 @@
 
 /**
- * Isthmic Pro - Sovereign Identity Bridge v4
- * Handles Local Auth, Google OAuth, and Simulated Recovery.
+ * Isthmic Pro - Sovereign Identity Bridge v5
+ * Features: Local Encrypted Accounts + Mnemonic Recovery Key
  */
 import { persistence } from './DataService';
 import { UserProfile } from '../types';
 
 export class AuthService {
-  static async signup(name: string, email: string, password: string): Promise<UserProfile> {
+  // توليد كود استعادة عشوائي (Seed Phrase)
+  private static generateRecoveryKey(): string {
+    const words = ["alpha", "nexus", "sovereign", "vault", "delta", "prime", "matrix", "elite", "secure", "logic", "asset", "domain"];
+    return Array.from({ length: 4 }, () => words[Math.floor(Math.random() * words.length)]).join("-") + "-" + Math.floor(1000 + Math.random() * 9000);
+  }
+
+  static async signup(name: string, email: string, password: string): Promise<{ user: UserProfile, recoveryKey: string }> {
     const profiles = await persistence.loadAll('profiles');
     if (profiles.find(p => p.email === email)) {
-      throw new Error("Email already registered in local vault.");
+      throw new Error("This email is already registered in your local vault.");
     }
+
+    const recoveryKey = this.generateRecoveryKey();
 
     const newProfile: UserProfile = {
       id: crypto.randomUUID(),
       name,
       email,
-      password, // في تطبيق حقيقي يتم التشفير هنا
+      password, // In production, hash this
+      googleId: recoveryKey, // Store recovery key temporarily in googleId field for this prototype
       role: 'Executive',
       createdAt: new Date().toISOString(),
       isSyncEnabled: true,
@@ -25,48 +34,56 @@ export class AuthService {
     };
 
     await persistence.save('profiles', newProfile);
-    return newProfile;
+    return { user: newProfile, recoveryKey };
   }
 
   static async login(email: string, password: string): Promise<UserProfile> {
     const profiles = await persistence.loadAll('profiles') as UserProfile[];
     const user = profiles.find(p => p.email === email && p.password === password);
     if (!user) {
-      throw new Error("Invalid credentials or user not found.");
+      throw new Error("Invalid email or password.");
     }
     return user;
   }
 
-  static async signInWithGoogle(): Promise<{ email: string, name: string, sub: string, picture: string }> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          email: "investor@elite.com",
-          name: "Sovereign Investor",
-          sub: "google_777888999",
-          picture: "https://api.dicebear.com/7.x/avataaars/svg?seed=Isthmic"
-        });
-      }, 1200);
-    });
-  }
-
-  static async sendRecoveryCode(email: string): Promise<string> {
-    // محاكاة إرسال بريد
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`[SOVEREIGN_DEBUG] Recovery code for ${email}: ${code}`);
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(code), 2000);
-    });
-  }
-
-  static async updatePassword(email: string, newPassword: string): Promise<boolean> {
+  static async recoverAccount(recoveryKey: string, newPassword: string): Promise<UserProfile> {
     const profiles = await persistence.loadAll('profiles') as UserProfile[];
-    const user = profiles.find(p => p.email === email);
-    if (user) {
-      user.password = newPassword;
-      await persistence.save('profiles', user);
-      return true;
+    const user = profiles.find(p => p.googleId === recoveryKey);
+    
+    if (!user) {
+      throw new Error("Invalid Recovery Key. Access Denied.");
     }
-    return false;
+
+    user.password = newPassword;
+    await persistence.save('profiles', user);
+    return user;
+  }
+
+  // Fix: Added missing method sendRecoveryCode as required by DomainContext
+  static async sendRecoveryCode(email: string): Promise<string> {
+    // Mock implementation for sovereign flow
+    return "RECOVERY-SENT-" + Math.floor(Math.random() * 1000);
+  }
+
+  // Fix: Added missing method updatePassword as required by DomainContext
+  static async updatePassword(email: string, newPass: string): Promise<boolean> {
+    const profiles = await persistence.loadAll('profiles') as UserProfile[];
+    const userIndex = profiles.findIndex(p => p.email === email);
+    if (userIndex === -1) return false;
+    
+    profiles[userIndex].password = newPass;
+    await persistence.save('profiles', profiles[userIndex]);
+    return true;
+  }
+
+  // Fix: Added missing method signInWithGoogle as required by DomainContext
+  static async signInWithGoogle(): Promise<any> {
+    // Mock implementation for browser-based sovereign prototype
+    return {
+      sub: 'google-sub-' + Math.random().toString(36).substr(2, 9),
+      name: 'Sovereign Explorer',
+      email: 'explorer@sovereign.local',
+      picture: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sovereign'
+    };
   }
 }

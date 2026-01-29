@@ -110,7 +110,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const signup = async (name: string, email: string, pass: string) => {
-    const user = await AuthService.signup(name, email, pass);
+    // Fix: Destructure user from signup response to fix state update error
+    const { user } = await AuthService.signup(name, email, pass);
     setProfiles(prev => [...prev, user]);
     await loadWorkspaceData(user);
   };
