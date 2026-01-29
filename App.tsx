@@ -19,25 +19,6 @@ import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
 import TickerTape from './components/TickerTape';
 
-const VerificationBanner: React.FC = () => {
-  const { isEmailConfirmed } = useDomainContext();
-  if (isEmailConfirmed) return null;
-
-  return (
-    <div className="bg-[#c5a059]/10 border-y border-[#c5a059]/30 py-2.5 px-10 flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
-      <div className="flex items-center gap-3">
-        <i className="fas fa-exclamation-triangle text-[#c5a059] text-xs"></i>
-        <p className="text-[10px] text-white font-black uppercase tracking-widest leading-none">
-          هويتك الرقمية قيد الانتظار. يرجى تأكيد البريد لتجنب تقييد الوصول مستقبلاً.
-        </p>
-      </div>
-      <p className="text-[9px] text-[#c5a059] font-bold italic">
-        * ملاحظة: قد تصل الرسالة إلى صندوق البريد العشوائي (Spam/Junk).
-      </p>
-    </div>
-  );
-};
-
 const LoginScreen: React.FC = () => {
   const { isInitialLoading, signup, login } = useDomainContext() as any;
   const [view, setView] = useState<'login' | 'signup' | 'loading'>('login');
@@ -176,7 +157,7 @@ const AppContent: React.FC = () => {
             <button onClick={() => {setActiveTab(AgentType.ACQUISITION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.ACQUISITION ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-crosshairs"></i> <span className="text-[10px] font-black uppercase">Acquisition</span></button>
             <button onClick={() => {setActiveTab(AgentType.OPERATIONS); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.OPERATIONS ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-layer-group"></i> <span className="text-[10px] font-black uppercase">Operations</span></button>
             <button onClick={() => {setActiveTab(AgentType.LIQUIDATION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.LIQUIDATION ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-money-bill-wave"></i> <span className="text-[10px] font-black uppercase">Liquidation</span></button>
-            <button onClick={() => {setActiveTab(AgentType.MANAGEMENT); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.MANAGEMENT ? 'bg-white/5 text-white' : 'text-slate-500'}`}><i className="fas fa-file-signature"></i> <span className="text-[10px] font-black uppercase">Management</span></button>
+            <button onClick={() => {setActiveTab(AgentType.MANAGEMENT); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-6 px-8 py-4.5 rounded-2xl ${activeTab === AgentType.MANAGEMENT ? 'bg-[#c5a059] text-black shadow-lg' : 'text-slate-500'}`}><i className="fas fa-user-circle"></i> <span className="text-[10px] font-black uppercase">Profile & Command</span></button>
           </nav>
           <div className="pt-8 border-t border-white/5 flex items-center justify-between">
              <div className="flex items-center gap-4">
@@ -200,7 +181,6 @@ const AppContent: React.FC = () => {
             Sync: Encrypted
           </div>
         </div>
-        <VerificationBanner />
       </header>
       
       <main style={{ gridArea: 'main' }} className="content-scroller no-scrollbar p-6">
