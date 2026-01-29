@@ -2,47 +2,34 @@
 import { GoogleGenAI } from "@google/genai";
 
 /**
- * محرك الربط الأساسي - يضمن استخدام أحدث مفتاح API متوفر
- * ويقوم بالتحقق من وجوده قبل بدء أي عملية سيادية.
+ * نتحقق من المفتاح فقط عند محاولة تنفيذ عملية ذكاء اصطناعي
  */
 export const getAIClient = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    // في بيئة الإنتاج، لا نريد كسر التطبيق بل تنبيه المستخدم
-    console.error("ISTHMIC_CORE: MISSING_Sovereign_Key. Systems operating in logic-only mode.");
-    throw new Error("API_KEY_REQUIRED");
+    // لا نلقي خطأ هنا لكي لا تنهار الواجهة عند الدخول
+    return null; 
   }
   return new GoogleGenAI({ apiKey });
 };
 
-/**
- * نظام المعالجة الآمن - يتضمن منطق إعادة المحاولة (Retry Logic) 
- * للتعامل مع ضغط الطلبات في بيئة العمل الفعلية.
- */
 export async function safeAICall<T>(fn: () => Promise<T>, retries = 2, delay = 2000): Promise<T> {
+  const ai = getAIClient();
+  if (!ai) {
+    throw new Error("يرجى تفعيل مفتاح الذكاء الاصطناعي من الإعدادات لاستخدام هذه الميزة.");
+  }
+
   try {
     return await fn();
   } catch (error: any) {
     const msg = error.message || "";
-    const status = error.status;
-    
-    // التعامل مع تجاوز حصة الاستخدام (Rate Limiting)
-    if (status === 429 || msg.includes('429') || msg.includes('quota')) {
-       console.warn("ISTHMIC_CORE: Rate limit hit. Initializing backoff protocol...");
+    if (msg.includes('429') || msg.includes('quota')) {
        if (retries > 0) {
          await new Promise(r => globalThis.setTimeout(r, delay));
          return safeAICall(fn, retries - 1, delay * 2);
        }
-       throw new Error("QUOTA_EXHAUSTED");
+       throw new Error("انتهت حصة الاستخدام المجانية للمفتاح الحالي.");
     }
-
-    // التعامل مع انتهاء صلاحية المفتاح أو عدم وجوده
-    if (status === 401 || msg.includes('not found') || msg.includes('API_KEY_INVALID')) {
-       if (globalThis.aistudio) {
-          globalThis.aistudio.openSelectKey();
-       }
-    }
-
     throw error;
   }
 }
@@ -55,9 +42,12 @@ export async function generateStructuredAI<T>(
   tools?: any[],
   signal?: AbortSignal
 ): Promise<T> {
+  if (signal?.aborted) throw new Error("Aborted");
+  
   return safeAICall(async () => {
-    if (signal?.aborted) throw new Error("Aborted");
     const ai = getAIClient();
+    if (!ai) throw new Error("AI_KEY_MISSING");
+    
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
@@ -66,7 +56,6 @@ export async function generateStructuredAI<T>(
         responseMimeType: "application/json", 
         responseSchema: schema, 
         tools,
-        // إضافة إعدادات التفكير (Thinking Budget) للنماذج الاحترافية
         ...(modelName === 'gemini-3-pro-preview' ? { thinkingConfig: { thinkingBudget: 4000 } } : {})
       }
     });
