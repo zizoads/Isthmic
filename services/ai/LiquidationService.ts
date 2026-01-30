@@ -1,6 +1,7 @@
 
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
+import { LeadProspect } from "../../types";
 
 export const optimizeAfternicListingAI = async (domainName: string, sector: string) => {
   return generateStructuredAI<any>(
@@ -26,11 +27,17 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
   );
 };
 
-export const harvestBulkLeadsAI = async (domainName: string, sector: string) => {
-  return generateStructuredAI<any[]>(
+/**
+ * Corporate Prospecting Engine (Enhanced with Apollo/Hunter logic)
+ */
+export const harvestBulkLeadsAI = async (domainName: string, sector: string): Promise<LeadProspect[]> => {
+  return generateStructuredAI<LeadProspect[]>(
     'gemini-3-flash-preview',
-    "Corporate prospecting engine.",
-    `Harvest leads for ${domainName} in ${sector}. Identify key strategic decision makers.`,
+    `Corporate prospecting engine. 
+     Mission: Identify high-ticket acquirers and their key decision makers.
+     Context: Using integrated datasets from LinkedIn/Apollo.`,
+    `Harvest 5 key strategic leads for ${domainName} in the ${sector} industry. 
+     Include: Decision maker names, job titles, and LinkedIn-ready synergy logic.`,
     {
       type: Type.ARRAY,
       items: {
@@ -39,7 +46,11 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string) => 
           companyName: { type: Type.STRING },
           estimatedValuation: { type: Type.STRING },
           currentDomain: { type: Type.STRING },
-          synergyReason: { type: Type.STRING }
+          synergyReason: { type: Type.STRING },
+          decisionMaker: { type: Type.STRING },
+          jobTitle: { type: Type.STRING },
+          linkedinUrl: { type: Type.STRING },
+          contactEmail: { type: Type.STRING }
         }
       }
     },
@@ -88,11 +99,13 @@ export const generateLeadGenBlueprintAI = async (domainName: string, sector: str
   );
 };
 
-export const generatePersonaPitchAI = async (domainName: string, company: any, persona: string) => {
+export const generatePersonaPitchAI = async (domainName: string, company: LeadProspect, persona: string) => {
   return generateStructuredAI<string>(
     'gemini-3-flash-preview',
     "High-conversion sales writer.",
-    `Draft pitch for ${domainName} to ${persona} at ${company.companyName}. Synergy: ${company.synergyReason}.`,
+    `Draft pitch for ${domainName} targeting ${persona} at ${company.companyName}. 
+     Synergy: ${company.synergyReason}. Profile context: ${company.jobTitle}. 
+     Format as a short, punchy LinkedIn Message or cold email.`,
     { type: Type.STRING }
   );
 };

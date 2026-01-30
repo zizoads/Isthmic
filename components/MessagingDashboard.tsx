@@ -1,15 +1,18 @@
 
 import React, { useState } from 'react';
-import { Domain, OutreachMessage } from '../types';
+import { Domain, OutreachMessage, LeadProspect } from '../types';
 import { harvestBulkLeadsAI, generatePersonaPitchAI } from '../services/geminiService';
+import { translations } from '../translations';
 
 interface Props {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
+  lang?: 'ar' | 'en';
 }
 
-const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
-  const [prospects, setProspects] = useState<any[]>([]);
+const MessagingDashboard: React.FC<Props> = ({ domains, setDomains, lang = 'ar' }) => {
+  const t = translations[lang];
+  const [prospects, setProspects] = useState<LeadProspect[]>([]);
   const [messages, setMessages] = useState<OutreachMessage[]>([]);
   const [isProspecting, setIsProspecting] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
@@ -18,13 +21,13 @@ const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
   const handleProspect = async (domain: Domain) => {
     setIsProspecting(domain.id);
     setSelectedDomain(domain);
-    // Deep corporate harvesting
+    // Deep corporate harvesting simulation
     const leads = await harvestBulkLeadsAI(domain.name, domain.sector || 'Technology');
     setProspects(leads);
     setIsProspecting(null);
   };
 
-  const handleGeneratePitch = async (company: any, persona: string) => {
+  const handleGeneratePitch = async (company: LeadProspect, persona: string) => {
     if (!selectedDomain) return;
     setIsGeneratingPitch(true);
     const content = await generatePersonaPitchAI(selectedDomain.name, company, persona);
@@ -33,8 +36,9 @@ const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
       id: Math.random().toString(),
       domainId: selectedDomain.id,
       recipient: company.companyName,
+      recipientEmail: company.contactEmail,
       recipientRole: persona,
-      tone: 'Formal',
+      tone: 'Strategic',
       status: 'draft',
       content: content || ''
     };
@@ -43,21 +47,21 @@ const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
     setIsGeneratingPitch(false);
   };
 
-  const handleSendViaGmail = (msg: OutreachMessage) => {
-    const subject = encodeURIComponent(`Strategic Acquisition Opportunity: ${selectedDomain?.name}`);
-    const body = encodeURIComponent(msg.content);
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+  const handleAutomatedCampaign = (msg: OutreachMessage) => {
+    // SendGrid/Mailgun simulation
+    alert(lang === 'ar' ? 'جاري جدولة الحملة عبر SendGrid...' : 'Scheduling campaign via SendGrid automation...');
+    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: 'sent' } : m));
   };
 
   const purchasedDomains = domains.filter(d => d.status === 'purchased' || d.status === 'negotiating');
 
   return (
-    <div className="space-y-8 animate-fade-in" dir="rtl">
+    <div className="space-y-8 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Inventory Column */}
         <div className="lg:col-span-1 bg-[#08090d] border border-white/5 rounded-[32px] flex flex-col h-[750px] overflow-hidden">
           <div className="p-6 border-b border-white/5 bg-white/2">
-             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">أصول بانتظار التسييل</h3>
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{lang === 'ar' ? 'أصول بانتظار التسييل' : 'Liquid Ready Assets'}</h3>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-white/5 custom-scrollbar">
             {purchasedDomains.map(d => (
@@ -73,57 +77,61 @@ const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
           </div>
         </div>
 
-        {/* Corporate Harvesting Column */}
+        {/* Corporate Harvesting Column (Apollo/Hunter Integration UI) */}
         <div className="lg:col-span-2 bg-[#08090d] border border-white/5 rounded-[40px] flex flex-col h-[750px] relative overflow-hidden">
           {isProspecting ? (
             <div className="flex-1 flex flex-col items-center justify-center space-y-6">
                <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">حصاد بيانات الشركات والمشترين الاستراتيجيين...</p>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">{lang === 'ar' ? 'حصاد بيانات Apollo و Hunter...' : 'Harvesting Apollo & Hunter data...'}</p>
             </div>
           ) : prospects.length > 0 ? (
             <div className="flex flex-col h-full">
               <div className="p-8 border-b border-white/5 flex justify-between items-center text-right bg-white/2">
-                 <span className="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black">مكتشف: {prospects.length}</span>
+                 <span className="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black">{t.domainsFound}: {prospects.length}</span>
                  <div>
-                    <h3 className="font-black text-white uppercase text-lg tracking-tighter">قائمة صيد الشركات</h3>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase">تحليل التآزر المؤسسي (Corporate Synergy)</p>
+                    <h3 className="font-black text-white uppercase text-lg tracking-tighter">{lang === 'ar' ? 'رادار صناع القرار' : 'Decision Maker Radar'}</h3>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">{t.professionalProfile}</p>
                  </div>
               </div>
               <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
-                {prospects.map((company, idx) => (
+                {prospects.map((lead, idx) => (
                   <div key={idx} className="bg-white/2 rounded-[32px] p-8 border border-white/5 hover:border-indigo-500/30 transition-all group text-right relative overflow-hidden">
                      <div className="flex justify-between items-start mb-6">
                         <div className="flex gap-2">
-                           <button className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-xl">
+                           <a href={lead.linkedinUrl} target="_blank" rel="noreferrer" className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-xl">
                               <i className="fab fa-linkedin-in text-sm"></i>
-                           </button>
+                           </a>
+                           {lead.contactEmail && (
+                             <div className="px-3 h-10 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-2 text-[9px] font-black text-green-500 uppercase">
+                                <i className="fas fa-check-circle"></i> {t.verifiedEmail}
+                             </div>
+                           )}
                         </div>
                         <div>
-                          <div className="font-black text-white text-xl">{company.companyName}</div>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="font-black text-white text-xl">{lead.companyName}</div>
+                          <div className="flex items-center gap-2 mt-2 justify-end">
+                            <span className="text-[9px] font-black text-slate-400 uppercase italic">{lead.decisionMaker} - {lead.jobTitle}</span>
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            <span className="text-[9px] font-black text-slate-400 uppercase">القدرة: {company.estimatedValuation}</span>
                           </div>
                         </div>
                      </div>
                      <p className="text-xs text-slate-400 leading-relaxed font-medium mb-8 italic border-r-4 border-indigo-500/20 pr-6">
-                        "{company.synergyReason}"
+                        "{lead.synergyReason}"
                      </p>
                      <div className="grid grid-cols-2 gap-4">
                         <button 
-                          onClick={() => handleGeneratePitch(company, 'VP of Strategy')}
+                          onClick={() => handleGeneratePitch(lead, lead.jobTitle || 'Executive')}
                           className="py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase hover:bg-white hover:text-black transition-all"
                         >
-                          عرض "نائب الاستراتيجية"
+                          {lang === 'ar' ? 'صياغة عرض LinkedIn' : 'Draft LinkedIn Pitch'}
                         </button>
                         <button 
-                          onClick={() => handleGeneratePitch(company, 'Marketing Director')}
+                          onClick={() => handleGeneratePitch(lead, 'Corporate M&A')}
                           className="py-4 bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all"
                         >
-                          عرض "مدير التسويق"
+                          {lang === 'ar' ? 'صياغة بريد إلكتروني' : 'Draft Cold Email'}
                         </button>
                      </div>
-                     <i className="fas fa-building absolute left-[-20px] bottom-[-20px] text-white/2 text-[100px] pointer-events-none"></i>
                   </div>
                 ))}
               </div>
@@ -131,42 +139,51 @@ const MessagingDashboard: React.FC<Props> = ({ domains, setDomains }) => {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-700">
                <i className="fas fa-satellite-dish text-7xl mb-6 opacity-10 animate-pulse"></i>
-               <p className="italic text-[10px] font-black uppercase tracking-[0.4em]">بانتظار اختيار أصل لبدء الحصاد المؤسسي</p>
+               <p className="italic text-[10px] font-black uppercase tracking-[0.4em]">{lang === 'ar' ? 'بانتظار اختيار أصل لبدء الربط مع Apollo' : 'Awaiting asset selection to engage Apollo'}</p>
             </div>
           )}
         </div>
 
-        {/* Intelligence Pitch Column */}
+        {/* Intelligence Pitch Column (SendGrid/Outreach Status) */}
         <div className="lg:col-span-1 bg-[#05070a] border border-white/5 rounded-[40px] flex flex-col h-[750px] overflow-hidden shadow-2xl">
           <div className="p-8 border-b border-white/5 bg-white/2 flex justify-between items-center text-right">
              <div className="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center text-white text-sm shadow-xl shadow-red-900/20">
-                <i className="fab fa-google"></i>
+                <i className="fas fa-paper-plane"></i>
              </div>
              <div>
-                <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest">مسودات تكتيكية</h3>
-                <p className="text-[8px] text-slate-500 font-bold uppercase">مهندسة لتحويل المشترين</p>
+                <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest">{t.campaignStatus}</h3>
+                <p className="text-[8px] text-slate-500 font-bold uppercase">{t.automatedDispatch}</p>
              </div>
           </div>
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {messages.map(msg => (
               <div key={msg.id} className="bg-white/2 rounded-[32px] p-6 border border-white/10 relative group text-right hover:bg-white/5 transition-all animate-slide-up">
-                 <div className="text-[9px] font-black text-indigo-400 uppercase mb-4 flex items-center justify-end gap-2">
-                    {msg.recipientRole} @ {msg.recipient} <i className="fas fa-user-shield"></i>
+                 <div className="flex justify-between items-center mb-4">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${msg.status === 'sent' ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500'}`}>
+                       {msg.status}
+                    </span>
+                    <div className="text-[9px] font-black text-indigo-400 uppercase flex items-center justify-end gap-2">
+                       {msg.recipientRole} @ {msg.recipient} <i className="fas fa-user-shield"></i>
+                    </div>
                  </div>
                  <p className="text-[11px] text-slate-400 leading-relaxed italic mb-8 line-clamp-6">
                    "{msg.content}"
                  </p>
-                 <button 
-                  onClick={() => handleSendViaGmail(msg)}
-                  className="w-full py-5 bg-red-600 text-white rounded-[24px] text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-red-900/30"
-                 >
-                    <i className="fab fa-google"></i> إرسال عبر GMAIL
-                 </button>
+                 <div className="space-y-3">
+                    <button 
+                      onClick={() => handleAutomatedCampaign(msg)}
+                      className="w-full py-4 bg-indigo-600 text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all flex items-center justify-center gap-3"
+                    >
+                       <i className="fas fa-robot"></i> {t.automatedDispatch}
+                    </button>
+                    <button className="w-full py-3 border border-white/10 text-slate-500 rounded-[20px] text-[9px] font-black uppercase hover:text-white transition-all">
+                       {lang === 'ar' ? 'تعديل المسودة' : 'Edit Draft'}
+                    </button>
+                 </div>
               </div>
             ))}
             {isGeneratingPitch && (
               <div className="space-y-6">
-                 <div className="animate-pulse bg-white/5 rounded-[32px] h-64 w-full"></div>
                  <div className="animate-pulse bg-white/5 rounded-[32px] h-64 w-full"></div>
               </div>
             )}

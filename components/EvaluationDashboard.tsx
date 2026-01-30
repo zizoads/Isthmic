@@ -29,8 +29,9 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
 
     setLiveSteps([
       { id: '1', action: t.groundedSearch, finding: lang === 'ar' ? 'الاتصال بمحركات السوق...' : 'Connecting to Market APIs...', status: 'searching' },
-      { id: '2', action: t.scanningRegistrars, finding: lang === 'ar' ? 'فحص بصمات الأرشيف...' : 'Scanning Archive.org fingerprints...', status: 'pending' },
-      { id: '3', action: t.riskAssessment, finding: lang === 'ar' ? 'تحليل عوامل خطر العلامة التجارية...' : 'Analyzing trademark risk factors...', status: 'pending' }
+      { id: '2', action: t.historyAudit, finding: lang === 'ar' ? 'تحليل بصمات Wayback Machine...' : 'Analyzing Wayback Machine fingerprints...', status: 'pending' },
+      { id: '3', action: t.blacklistCheck, finding: lang === 'ar' ? 'فحص قواعد بيانات VirusTotal...' : 'Checking VirusTotal databases...', status: 'pending' },
+      { id: '4', action: t.riskAssessment, finding: lang === 'ar' ? 'تحليل عوامل خطر العلامة التجارية...' : 'Analyzing trademark risk factors...', status: 'pending' }
     ]);
 
     try {

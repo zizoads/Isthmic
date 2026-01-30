@@ -66,7 +66,8 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
         {mode === 'osint' && <OsintIntelligencePanel lang={lang} />}
         {mode === 'maps' && <MapsTargeter lang={lang} />}
         {mode === 'sniper' && <DropSniperDashboard lang={lang} />}
-        {mode === 'checkout' && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
+        {/* Pass lang to PurchaseDashboard */}
+        {mode === 'checkout' && <PurchaseDashboard domains={domains} setDomains={setDomains} lang={lang} />}
       </div>
     </div>
   );

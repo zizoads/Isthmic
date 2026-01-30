@@ -101,6 +101,11 @@ export interface Domain {
 export interface TechnicalMetrics {
   da?: number;
   pa?: number;
+  mozDa?: number;
+  mozPa?: number;
+  ahrefsRank?: number;
+  organicTraffic?: number;
+  topKeywordsCount?: number;
   spamScore?: number;
   backlinks?: string | number;
   securityRating?: string;
@@ -111,6 +116,22 @@ export interface TechnicalMetrics {
   dnaForensics?: string;
   trademarkRisk?: string;
   liquidityScore?: number;
+  isGscConnected?: boolean;
+  historicalCategory?: string;
+  virusTotalStatus?: 'Clean' | 'Malicious' | 'Suspicious' | 'Untested';
+  reputationScore?: number; // 0-100
+}
+
+export interface LeadProspect {
+  companyName: string;
+  estimatedValuation: string;
+  currentDomain: string;
+  synergyReason: string;
+  contactEmail?: string;
+  isEmailVerified?: boolean;
+  decisionMaker?: string;
+  linkedinUrl?: string;
+  jobTitle?: string;
 }
 
 export interface NegotiationBattleCard {
@@ -125,9 +146,10 @@ export interface OutreachMessage {
   id: string;
   domainId: string;
   recipient: string;
+  recipientEmail?: string;
   recipientRole: string;
   tone: string;
-  status: 'draft' | 'sent' | 'failed';
+  status: 'draft' | 'sent' | 'opened' | 'failed';
   content: string;
 }
 

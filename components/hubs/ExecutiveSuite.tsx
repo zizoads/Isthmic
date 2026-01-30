@@ -46,6 +46,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
   };
 
   const currentPlan = monetization.plans[activeProfile.subscriptionTier];
+  const connectedCount = integrations.filter(i => i.status === 'connected').length;
 
   return (
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -73,11 +74,11 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                 Access: {activeProfile.subscriptionTier} Tier
               </button>
               <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${
-                isEmailConfirmed 
-                ? 'bg-green-500/10 text-green-500 border-green-500/20' 
-                : 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse'
+                connectedCount >= 3 
+                ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' 
+                : 'bg-white/5 text-slate-500'
               }`}>
-                {isEmailConfirmed ? 'Identity Verified' : 'Unverified Identity'}
+                {connectedCount} Gateways Active
               </span>
             </div>
           </div>
@@ -184,6 +185,13 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                       UPGRADE ACCESS
                     </button>
                   </div>
+               </div>
+               
+               <div className="square-card p-10 border-indigo-500/20 bg-indigo-500/[0.02]">
+                  <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Integrations Pulse</h3>
+                  <p className="text-[10px] text-slate-500 italic leading-relaxed uppercase">
+                    Connect more gateways to unlock deep-dive historical forensics and automated liquidation execution.
+                  </p>
                </div>
             </div>
           </div>

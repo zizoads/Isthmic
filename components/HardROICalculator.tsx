@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Domain } from '../types';
+import { translations } from '../translations';
 
 interface Props {
   domain: Domain;
@@ -9,13 +10,19 @@ interface Props {
 }
 
 const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) => {
+  const t = translations[lang];
   const acq = domain.price || 0;
+  const metrics = domain.technicalMetrics || {};
   
-  // Calculate Market Multiplier based on Heat Score
-  const heatMultiplier = 1 + (marketHeat / 200); // Heat of 100 adds 50% value boost
+  // Calculate Market Multiplier based on Heat Score + SEO Performance
+  const baseHeatFactor = marketHeat / 200;
+  const trafficBonus = (metrics.organicTraffic || 0) > 500 ? 0.2 : 0;
+  const authorityBonus = (metrics.da || 0) > 30 ? 0.3 : 0;
+  
+  const totalMultiplier = 1 + baseHeatFactor + trafficBonus + authorityBonus;
   
   const baseTarget = domain.financials?.targetExitPrice || acq * 10;
-  const target = Math.round(baseTarget * heatMultiplier);
+  const target = Math.round(baseTarget * totalMultiplier);
   
   const escrow = target * 0.0325; // Standard Escrow.com fees
   const platform = target * 0.15; // Standard Afternic/Sedo fees
@@ -29,9 +36,16 @@ const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) =
         <h3 className="text-indigo-400 font-black uppercase tracking-widest">
           {lang === 'ar' ? 'الجدوى الاقتصادية الديناميكية' : 'DYNAMIC ECONOMIC REPORT'}
         </h3>
-        <span className={`text-[8px] font-black px-2 py-0.5 rounded ${marketHeat > 70 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/10 text-slate-400'}`}>
-           HEAT: {marketHeat}%
-        </span>
+        <div className="flex gap-2">
+           {metrics.isGscConnected && (
+              <span className="text-[8px] font-black px-2 py-0.5 rounded bg-green-500 text-black">
+                 {t.searchConsoleCalibrated}
+              </span>
+           )}
+           <span className={`text-[8px] font-black px-2 py-0.5 rounded ${marketHeat > 70 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/10 text-slate-400'}`}>
+              HEAT: {marketHeat}%
+           </span>
+        </div>
       </div>
       
       <div className="space-y-3">
@@ -40,7 +54,7 @@ const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) =
           <span className="font-bold text-slate-300">${acq.toLocaleString()}</span>
         </div>
         <div className="flex justify-between border-b border-white/5 pb-1">
-          <span className="text-slate-500 uppercase">{lang === 'ar' ? 'سعر البيع المعدل (زخم)' : 'ADJUSTED EXIT PRICE'}</span>
+          <span className="text-slate-500 uppercase">{lang === 'ar' ? 'سعر البيع المعدل (الذكاء المحيط)' : 'ADJUSTED EXIT PRICE'}</span>
           <span className="font-bold text-green-400">${target.toLocaleString()}</span>
         </div>
         
@@ -60,7 +74,11 @@ const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) =
       
       <div className="mt-4 flex items-center gap-2 text-[8px] text-slate-600 italic">
         <i className="fas fa-microchip"></i>
-        <span>{lang === 'ar' ? 'تم ضبط السعر بناءً على إشارات السوق اللحظية.' : 'Price calibrated via real-time market signals.'}</span>
+        <span>
+           {metrics.isGscConnected 
+             ? (lang === 'ar' ? 'تمت المعايرة بناءً على بيانات البحث العضوية الحقيقية.' : 'Calibrated based on actual organic search performance.')
+             : (lang === 'ar' ? 'تم ضبط السعر بناءً على إشارات السوق التقديرية.' : 'Price calibrated via market estimation signals.')}
+        </span>
       </div>
       <i className="fas fa-percentage absolute right-[-10px] bottom-[-10px] text-white/2 text-6xl pointer-events-none"></i>
     </div>

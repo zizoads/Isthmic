@@ -35,10 +35,14 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
   if (cached) return { data: cached, cached: true };
 
   // استخدام Flash للتدقيق الأولي لزيادة سقف العمليات المسموح به قبل الوصول لـ Quota Exceeded
+  // تم تحسين البرومبت ليشمل فحص السمعة التاريخية (Archive) والأمان (VirusTotal)
   const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
-    `You are a forensic domain auditor. Language: ${lang}. Analyze SEO, brand potential, and exit velocity.`,
-    `Audit: ${domainName}. Ground research in live data.`,
+    `You are a forensic domain auditor. Language: ${lang}. 
+     Specialties: SEO, brand potential, exit velocity, and HISTORICAL REPUTATION.
+     Instruction: Check if the domain has a dark past (spam, adult, malicious) via historical signals.`,
+    `Audit: ${domainName}. Ground research in live data using search tools. 
+     Specifically evaluate history via Archive.org patterns and security blacklists.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -51,7 +55,10 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
             da: { type: Type.NUMBER },
             pa: { type: Type.NUMBER },
             spamScore: { type: Type.NUMBER },
-            backlinks: { type: Type.NUMBER }
+            backlinks: { type: Type.NUMBER },
+            historicalCategory: { type: Type.STRING, description: "Previous content type (e.g. Corporate, Parking, Spam, etc.)" },
+            virusTotalStatus: { type: Type.STRING, enum: ['Clean', 'Malicious', 'Suspicious'] },
+            reputationScore: { type: Type.NUMBER, description: "Overall reputation percentage 0-100" }
           }
         }
       }
@@ -71,7 +78,7 @@ export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'e
   return generateStructuredAI<any>(
     'gemini-3-pro-preview', // الحفاظ على Pro للمناظرات المعقدة فقط
     `Multi-agent debate engine between Aggressive VC and Risk Auditor. Language: ${lang}`,
-    `Debate acquisition strategy for: ${domainName}`,
+    `Debate acquisition strategy for: ${domainName}. Consider both financial upside and historical reputation risk.`,
     {
       type: Type.OBJECT,
       properties: {

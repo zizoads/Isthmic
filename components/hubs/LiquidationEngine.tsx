@@ -40,8 +40,9 @@ const LiquidationEngine: React.FC<Props> = ({ domains, setDomains, lang }) => {
 
       <div className="pt-4">
         {tool === 'negotiation' && <NegotiationDashboard domains={domains} setDomains={setDomains} lang={lang} />}
-        {tool === 'outreach' && <MessagingDashboard domains={domains} setDomains={setDomains} />}
-        {tool === 'marketplace' && <MarketplaceDashboard domains={domains} />}
+        {tool === 'outreach' && <MessagingDashboard domains={domains} setDomains={setDomains} lang={lang} />}
+        {/* Added lang prop to MarketplaceDashboard */}
+        {tool === 'marketplace' && <MarketplaceDashboard domains={domains} lang={lang} />}
         {tool === 'radar' && <AuctionWatchDashboard domains={domains} />}
         {tool === 'war-room' && (
           <div className="space-y-12">

@@ -10,7 +10,7 @@ import { Domain } from '../types';
 interface Props {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
-  addLog: (agent: string, message: string, type?: any) => void;
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical') => void;
   lang: 'ar' | 'en';
 }
 
@@ -42,7 +42,8 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
         {mode === 'audit' && <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
         {mode === 'maps' && <MapsTargeter lang={lang} />}
         {mode === 'sniper' && <DropSniperDashboard lang={lang} />}
-        {mode === 'checkout' && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
+        {/* Pass lang to PurchaseDashboard */}
+        {mode === 'checkout' && <PurchaseDashboard domains={domains} setDomains={setDomains} lang={lang} />}
       </div>
     </div>
   );
