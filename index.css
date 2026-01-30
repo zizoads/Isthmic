@@ -1,21 +1,18 @@
 
-/* Isthmic Pro - Sovereign Prestige System (Classic Elegance v5.0) */
+/* Isthmic Pro - Sovereign Prestige System (The Sovereign Reference) */
 
 :root {
   --primary: #d4af37; /* Prestige Gold */
   --primary-glow: rgba(212, 175, 55, 0.15);
-  --bg: #0a0a0c; /* Deep Ink */
-  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg: #0a0a0c; /* Deep Ink - This is the standard black background */
+  --bg-card: rgba(255, 255, 255, 0.02);
   --text: #f4f4f5;
   --border-color: rgba(255, 255, 255, 0.08);
   --font-serif: 'Cormorant Garamond', serif;
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   
-  /* Refined Spacing for Beauty & Comfort */
   --radius-lg: 32px;
   --radius-md: 20px;
-  --space-md: 1.5rem;
-  --space-lg: 2.5rem;
 }
 
 * {
@@ -25,41 +22,40 @@
 }
 
 body {
-  background-color: var(--bg);
+  background-color: var(--bg) !important;
   color: var(--text);
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   background-image: 
-    radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 30%),
-    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05) 0%, transparent 30%);
+    radial-gradient(circle at 20% 0%, rgba(212, 175, 55, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 100%, rgba(212, 175, 55, 0.03) 0%, transparent 40%) !important;
+  overflow: hidden;
 }
 
-/* Background Patterns */
 .bg-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0);
   background-size: 40px 40px;
   position: fixed;
   inset: 0;
   z-index: 0;
 }
 
-/* Glass Components (The Core Aesthetic) */
-.glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+/* Glassmorphism Cards - NO YELLOW BACKGROUNDS */
+.glass-panel, .square-card, .glass-card {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-panel:hover {
-  border-color: rgba(212, 175, 55, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+.glass-panel:hover, .square-card:hover {
+  border-color: rgba(212, 175, 55, 0.2) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
-/* Premium Buttons (Reverting to original styles) */
+/* Restore discrete accents */
 .prestige-btn {
   display: inline-flex;
   align-items: center;
@@ -70,11 +66,9 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .prestige-btn-gold {
@@ -83,94 +77,71 @@ body {
   box-shadow: 0 10px 20px -5px var(--primary-glow);
 }
 
-.prestige-btn-gold:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 30px -5px var(--primary-glow);
-  background: #e5c05b;
-}
-
-.prestige-btn-outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border-color);
-}
-
-.prestige-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--primary);
-}
-
-/* Typography Extensions */
 .prestige-title {
   font-family: var(--font-serif);
   font-weight: 300;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
-
-.heading-xl { font-size: 4.5rem; line-height: 1; }
-.heading-lg { font-size: 3rem; line-height: 1.1; }
-
-@media (max-width: 768px) {
-  .heading-xl { font-size: 2.5rem; }
-  .heading-lg { font-size: 2rem; }
-}
-
-/* Layout Shell */
-.system-shell {
-  display: grid;
-  grid-template-areas: 
-    "header header"
-    "sidebar main";
-  grid-template-columns: 280px 1fr;
-  grid-template-rows: 90px 1fr;
-  height: 100vh;
-}
-
-@media (max-width: 1024px) {
-  .system-shell {
-    grid-template-areas: "header" "main";
-    grid-template-columns: 1fr;
-  }
-  .sidebar { display: none; }
-}
-
-.header {
-  grid-area: header;
-  background: rgba(10, 10, 12, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 var(--space-lg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 100;
-}
-
-.sidebar {
-  grid-area: sidebar;
-  border-right: 1px solid var(--border-color);
-  padding: var(--space-md);
-  background: linear-gradient(to bottom, rgba(10, 10, 12, 0.5), transparent);
-}
-
-.main {
-  grid-area: main;
-  padding: var(--space-lg);
-  overflow-y: auto;
-  position: relative;
-}
-
-/* Scrollbar Refinement */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 .noise-bg {
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
+  opacity: 0.015;
   pointer-events: none;
   z-index: 1;
+}
+
+.system-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+}
+
+.header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  background: rgba(10, 10, 12, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  padding: 40px 24px;
+  background: rgba(10, 10, 12, 0.4);
+  border-right: 1px solid var(--border-color);
+  z-index: 40;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 40px 100px;
+  scroll-behavior: smooth;
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
 }

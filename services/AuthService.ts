@@ -3,8 +3,6 @@ import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
 
 export class AuthService {
-  // This email is now only a "Bootstrap" key for the very first login.
-  // After that, the 'Admin' role in the database is the source of absolute truth.
   private static BOOTSTRAP_OWNER = 'azeddinebeldjilali9@gmail.com';
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
@@ -18,9 +16,9 @@ export class AuthService {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Failed to create identity.");
 
-      // Initial Bootstrap Logic
       const role = (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase()) ? 'Admin' : 'Executive';
       
+      // Attempt to create profile
       await supabase.from('profiles').upsert([{
         id: authData.user.id,
         name: name,
@@ -33,7 +31,6 @@ export class AuthService {
 
       const needsConfirmation = !authData.session && !authData.user.email_confirmed_at;
 
-      // Fixed: Add preferences property to UserProfile initialization
       return { 
         needsConfirmation,
         user: {
@@ -61,25 +58,44 @@ export class AuthService {
         password: pass,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide more granular error feedback
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error("IDENTITY_NOT_VERIFIED: Please check your email for the confirmation link.");
+        }
+        throw error;
+      }
 
-      const { data: profileData } = await supabase
+      // Profile Recovery Logic: If auth succeeds but profile is missing
+      let { data: profileData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      const finalRole = profileData?.role || (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
+      if (!profileData) {
+        const fallbackRole = (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
+        const newProfile = {
+          id: data.user.id,
+          name: data.user.user_metadata?.display_name || 'Sovereign User',
+          email: email,
+          role: fallbackRole,
+          subscription_tier: 'Free',
+          usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('profiles').insert([newProfile]);
+        profileData = newProfile;
+      }
 
-      // Fixed: Add preferences property to UserProfile initialization
       return {
         id: data.user.id,
         email: data.user.email || '',
-        name: profileData?.name || data.user.user_metadata?.display_name || 'User',
-        role: finalRole as any,
-        subscriptionTier: profileData?.subscription_tier || 'Free',
-        usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
-        preferences: profileData?.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
+        name: profileData.name,
+        role: profileData.role as any,
+        subscriptionTier: profileData.subscription_tier as any,
+        usageStats: profileData.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
+        preferences: profileData.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
         createdAt: data.user.created_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`

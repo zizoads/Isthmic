@@ -9,18 +9,42 @@ const AuthForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // وظيفة اللصق الذكية من الحافظة
+  const handlePaste = async (target: 'email' | 'password' | 'name') => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (target === 'email') setEmail(text);
+      if (target === 'password') setPassword(text);
+      if (target === 'name') setName(text);
+      addLog('System', `Data pasted into ${target} field.`, 'info');
+    } catch (err) {
+      addLog('System', 'Clipboard access denied.', 'warning');
+    }
+  };
+
+  const quickFill = (e: string, p: string) => {
+    setEmail(e);
+    setPassword(p);
+    addLog('Auth', 'Identity credentials pre-filled from ledger.', 'info');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       if (isLogin) {
         await login(email, password);
       } else {
         await signup(name, email, password);
+        setErrorMessage("PROTOCOL_INITIATED: Please check your email to verify your identity.");
       }
     } catch (error: any) {
-      addLog('Auth', 'Protocol Access Denied', 'critical');
+      const msg = error.message || "Access Protocol Denied";
+      setErrorMessage(msg);
+      addLog('Auth', msg, 'critical');
     } finally {
       setIsLoading(false);
     }
@@ -31,12 +55,11 @@ const AuthForm: React.FC = () => {
       <div className="bg-grid"></div>
       <div className="noise-bg"></div>
       
-      {/* Decorative Glows */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
 
       <div className="w-full max-w-xl relative z-10">
-        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center">
+        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10">
           <div className="space-y-6">
             <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Industrial Grade AI Suite</span>
             <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic Pro.</h1>
@@ -45,52 +68,106 @@ const AuthForm: React.FC = () => {
             </p>
           </div>
 
+          {errorMessage && (
+            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up ${
+              errorMessage.includes('verified') || errorMessage.includes('check') 
+              ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' 
+              : 'bg-red-500/10 border-red-500/20 text-red-500'
+            }`}>
+              <i className="fas fa-shield-halved mr-2"></i> {errorMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
-              <input 
-                type="text" 
-                required 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
-                placeholder="Full Legal Name"
-              />
+              <div className="relative group">
+                <input 
+                  type="text" 
+                  required 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+                  placeholder="Full Legal Name"
+                />
+                <button 
+                  type="button"
+                  onClick={() => handlePaste('name')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
+                  title="Paste from clipboard"
+                >
+                  <i className="fas fa-paste text-xs"></i>
+                </button>
+              </div>
             )}
-            <input 
-              type="email" 
-              required 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
-              placeholder="Sovereign Email Address"
-            />
-            <input 
-              type="password" 
-              required 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
-              placeholder="Security Keyphrase"
-            />
+            
+            <div className="relative group">
+              <input 
+                type="email" 
+                required 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+                placeholder="Sovereign Email Address"
+              />
+              <button 
+                type="button"
+                onClick={() => handlePaste('email')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
+                title="Paste from clipboard"
+              >
+                <i className="fas fa-paste text-xs"></i>
+              </button>
+            </div>
+
+            <div className="relative group">
+              <input 
+                type="password" 
+                required 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+                placeholder="Security Keyphrase"
+              />
+              <button 
+                type="button"
+                onClick={() => handlePaste('password')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
+                title="Paste from clipboard"
+              >
+                <i className="fas fa-paste text-xs"></i>
+              </button>
+            </div>
 
             <button 
               type="submit" 
               disabled={isLoading}
               className="prestige-btn prestige-btn-gold w-full mt-4"
             >
-              {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-link"></i>}
+              {isLoading ? <i className="fas fa-spinner fa-spin mr-3"></i> : <i className="fas fa-link mr-3"></i>}
               <span>{isLogin ? 'ESTABLISH LINK' : 'INITIATE PROTOCOL'}</span>
             </button>
           </form>
 
-          <div className="pt-10 border-t border-white/5 space-y-6">
+          <div className="pt-8 border-t border-white/5">
+             <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Identity Ledger // Quick Fill</div>
+             <div className="flex flex-wrap justify-center gap-3">
+                <button 
+                  onClick={() => quickFill('azeddinebeldjilali9@gmail.com', 'admin123')}
+                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-all"
+                >
+                  <i className="fas fa-user-shield mr-2"></i> Sovereign Admin
+                </button>
+             </div>
+          </div>
+
+          <div className="pt-6 space-y-6">
             <button 
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin); setErrorMessage(null); }}
               className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
             >
               {isLogin ? "Generate New Command Identity?" : "Return to Master Login?"}
             </button>
-            <div className="flex justify-center gap-8 opacity-20">
+            <div className="flex justify-center gap-8 opacity-10">
                <i className="fas fa-shield-halved text-xl"></i>
                <i className="fas fa-fingerprint text-xl"></i>
                <i className="fas fa-microchip text-xl"></i>

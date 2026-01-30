@@ -8,21 +8,25 @@ interface Props {
 }
 
 const StatusBadge: React.FC<Props> = ({ status, lang }) => {
-  const config: Record<string, { color: string; labelEn: string; labelAr: string }> = {
-    available: { color: '#818cf8', labelEn: 'AVAILABLE', labelAr: 'متاح' },
-    processing: { color: '#fbbf24', labelEn: 'PROCESSING', labelAr: 'قيد المعالجة' },
-    purchased: { color: '#10b981', labelEn: 'SECURED', labelAr: 'تم التوثيق' },
-    negotiating: { color: '#3b82f6', labelEn: 'NEGOTIATION', labelAr: 'تفاوض' },
-    sold: { color: '#f43f5e', labelEn: 'LIQUIDATED', labelAr: 'تمت التصفية' },
-    watching: { color: '#94a3b8', labelEn: 'WATCHING', labelAr: 'مراقب' },
+  const config: Record<string, { color: string; bg: string; labelEn: string; labelAr: string }> = {
+    available: { color: '#d4af37', bg: 'rgba(212, 175, 55, 0.1)', labelEn: 'ALPHA_ASSET', labelAr: 'فرصة_ألفا' },
+    processing: { color: '#ffffff', bg: 'rgba(255, 255, 255, 0.05)', labelEn: 'ANALYZING', labelAr: 'تحليل_نشط' },
+    purchased: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', labelEn: 'VAULTED', labelAr: 'مؤمن' },
+    negotiating: { color: '#d4af37', bg: 'rgba(212, 175, 55, 0.15)', labelEn: 'TACTICAL', labelAr: 'تفاوض' },
+    sold: { color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.1)', labelEn: 'LIQUIDATED', labelAr: 'تمت_التصفية' },
+    watching: { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)', labelEn: 'MONITORING', labelAr: 'مراقب' },
   };
 
-  const { color, labelEn, labelAr } = config[status] || config.available;
+  const { color, bg, labelEn, labelAr } = config[status] || config.available;
 
   return (
     <span 
-      className="square-tag"
-      style={{ color: color, borderColor: `${color}40` }}
+      className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all"
+      style={{ 
+        color: color, 
+        backgroundColor: bg, 
+        borderColor: `${color}20` 
+      }}
     >
       {lang === 'ar' ? labelAr : labelEn}
     </span>
