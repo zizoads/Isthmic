@@ -9,7 +9,6 @@
   /* Fluid Spacing System */
   --header-height: 70px;
   --sidebar-width: clamp(260px, 18vw, 300px);
-  --ticker-height: 48px;
   --safe-gap: clamp(1rem, 4vw, 3rem);
   --card-radius: clamp(1.5rem, 3vw, 3rem);
 }
@@ -42,27 +41,25 @@ body, html {
   width: 100%;
 }
 
-/* Structural Layout Grid - Fixed & Reliable */
+/* Structural Layout Grid - Unified Without Ticker */
 .app-shell {
   display: grid;
   height: 100vh;
   width: 100vw;
   grid-template-areas: 
     "header"
-    "main"
-    "ticker";
+    "main";
   grid-template-columns: 1fr;
-  grid-template-rows: var(--header-height) 1fr var(--ticker-height);
+  grid-template-rows: var(--header-height) 1fr;
 }
 
 @media (min-width: 1024px) {
   .app-shell {
     grid-template-areas: 
       "sidebar header"
-      "sidebar main"
-      "ticker ticker";
+      "sidebar main";
     grid-template-columns: var(--sidebar-width) 1fr;
-    grid-template-rows: var(--header-height) 1fr var(--ticker-height);
+    grid-template-rows: var(--header-height) 1fr;
   }
 }
 
@@ -70,7 +67,6 @@ body, html {
 .sidebar-area { grid-area: sidebar; }
 .header-area { grid-area: header; }
 .main-area { grid-area: main; }
-.ticker-area { grid-area: ticker; }
 
 /* Main Content Area */
 main {

@@ -4,7 +4,6 @@ import { Domain } from '../types';
 import { generateBrandIdentityAI, getMarketSignalsAI } from '../services/geminiService';
 import { translations } from '../translations';
 import StatusBadge from './ui/StatusBadge';
-import PromoVideoViewer from './PromoVideoViewer';
 import HardROICalculator from './HardROICalculator';
 
 interface Props {
@@ -116,8 +115,8 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <PromoVideoViewer domain={selectedDomain} onUpdate={handleUpdateDomain} lang={lang} />
+            <div className="grid grid-cols-1 gap-8">
+               {/* ROI Calculator now spans full width after removing video component */}
                <HardROICalculator domain={selectedDomain} lang={lang} marketHeat={marketSignal?.momentumScore} />
             </div>
           </div>
