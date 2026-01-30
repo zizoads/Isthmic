@@ -18,7 +18,6 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
   const [isRunning, setIsRunning] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-Recovery Logic
   useEffect(() => {
     const activeLoop = activeJobs.find(j => j.type === 'SOVEREIGN_LOOP' && j.status === 'running');
     if (activeLoop) {
@@ -52,7 +51,6 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
         setThoughts(updatedThoughts);
         await saveJob({ ...initialJob, thoughts: updatedThoughts });
       },
-      () => {}, // No external action callback needed for internal loops
       jobId
     );
     
@@ -69,62 +67,88 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
   };
 
   return (
-    <div className="space-y-10 animate-precision">
-      <div className="square-card p-1">
-        <div className="bg-[#121214] rounded-[31px] p-10 lg:p-14 relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10">
-            <div className="space-y-3">
-              <h2 className="text-3xl lg:text-5xl prestige-heading text-white italic">
-                Sovereign Logic Narrative
-              </h2>
-              {activeJobs.some(j => j.status === 'running') && (
-                <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-lg border border-indigo-500/20 animate-pulse">
-                   {t.resumingSession}
-                </div>
-              )}
-            </div>
-            
-            <button 
-              onClick={runSystem}
-              disabled={isRunning}
-              className={`px-12 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all
-                ${isRunning 
-                ? 'bg-white/5 text-slate-700' 
-                : 'bg-white text-black hover:bg-[#c5a059] hover:text-white shadow-2xl'
-              }`}
-            >
-              {isRunning ? 'CALIBRATING' : 'ENGAGE CORE'}
-            </button>
+    <div className="space-y-12">
+      <div className="flex flex-col lg:flex-row justify-between items-end gap-10 border-b-2 border-white/10 pb-12">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="w-3 h-3 bg-[#c5a059]"></div>
+             <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core</span>
           </div>
+          <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative</h2>
         </div>
+        
+        <button 
+          onClick={runSystem}
+          disabled={isRunning}
+          className="square-button bg-white text-black text-xs font-black"
+        >
+          {isRunning ? (
+            <><i className="fas fa-sync fa-spin"></i> CALIBRATING_LOGIC</>
+          ) : (
+            <><i className="fas fa-bolt"></i> ENGAGE_CORE_PROTOCOL</>
+          )}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:h-[650px]">
-        <div className="lg:col-span-8 square-card flex flex-col bg-[#161618]">
-          <div className="flex-1 overflow-y-auto p-10 lg:p-14 space-y-12 no-scrollbar">
+      <div className="grid grid-cols-12 gap-0 border-2 border-white/10">
+        {/* Terminal Section */}
+        <div className="col-span-12 lg:col-span-8 h-[600px] flex flex-col bg-[#050505] border-r-2 border-white/10">
+          <div className="p-4 border-b-2 border-white/10 bg-white/5 flex justify-between items-center">
+            <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">System_Output_Stream</span>
+            <div className="flex gap-2">
+              <div className="w-2 h-2 bg-red-500"></div>
+              <div className="w-2 h-2 bg-amber-500"></div>
+              <div className="w-2 h-2 bg-green-500"></div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-10 space-y-10 font-mono custom-scrollbar">
             {thoughts.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center opacity-10">
-                <i className="fas fa-feather text-4xl mb-6 text-[#c5a059]"></i>
-                <p className="prestige-heading text-xl">The canvas awaits a stroke of logic.</p>
+                <i className="fas fa-terminal text-6xl mb-6"></i>
+                <p className="text-sm tracking-[0.5em] uppercase">Awaiting_Sovereign_Engagement</p>
               </div>
             ) : thoughts.map((thought, i) => (
-              <div key={i} className="flex gap-8 group animate-precision border-b border-white/[0.02] pb-10 last:border-0">
-                <div className={`icon-box rounded-2xl flex items-center justify-center text-sm border transition-all duration-1000
-                  ${thought.status === 'thinking' ? 'bg-[#c5a059]/10 border-[#c5a059]/30 text-[#c5a059]' : 'bg-white/5 border-white/10 text-slate-600'}`}>
-                  <i className={`fas ${thought.role === AgentRole.STRATEGIST ? 'fa-chess-rook' : 'fa-compass'}`}></i>
-                </div>
+              <div key={i} className="flex gap-8 group animate-precision border-l-2 border-white/10 pl-8 py-2 hover:border-[#c5a059] transition-all">
                 <div className="flex-1 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-[#c5a059] uppercase tracking-widest">{thought.role}</span>
-                    <span className="text-[8px] text-slate-700 data-mono">{thought.timestamp}</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${thought.status === 'thinking' ? 'text-[#c5a059] animate-pulse' : 'text-slate-500'}`}>
+                      {thought.role} // {thought.status === 'thinking' ? 'PROCESSING' : 'RESOLVED'}
+                    </span>
+                    <span className="text-[9px] text-slate-700 font-mono">[{thought.timestamp}]</span>
                   </div>
-                  <p className={`text-lg leading-relaxed prestige-heading italic ${thought.status === 'thinking' ? 'text-white' : 'text-slate-400'}`}>
-                    {thought.message}
+                  <p className="text-lg leading-relaxed prestige-heading italic text-white/90">
+                    "{thought.message}"
                   </p>
                 </div>
               </div>
             ))}
             <div ref={terminalEndRef} />
+          </div>
+        </div>
+
+        {/* Sidebar Info */}
+        <div className="col-span-12 lg:col-span-4 p-10 bg-white/2 space-y-10">
+          <div className="space-y-6">
+            <h4 className="text-[11px] font-black text-[#c5a059] uppercase tracking-widest">Core Calibration</h4>
+            <div className="space-y-6">
+              {[
+                { label: 'Neural Accuracy', val: '0.998' },
+                { label: 'Market Alignment', val: '0.942' },
+                { label: 'Risk Barrier', val: 'Stable' }
+              ].map((m, i) => (
+                <div key={i} className="flex justify-between items-center border-b border-white/5 pb-4">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">{m.label}</span>
+                  <span className="text-xs font-mono text-white">{m.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-8 border-2 border-indigo-500/20 bg-indigo-500/5">
+            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Pulse Status</h4>
+            <p className="text-xs text-slate-400 leading-relaxed font-mono">
+              The engine is monitoring real-time liquidity signals while executing the loop.
+            </p>
           </div>
         </div>
       </div>

@@ -13,58 +13,56 @@ interface Props {
 
 const PipelineDashboard: React.FC<Props> = ({ domains, setDomains, onInspect, lang }) => {
   const t = translations[lang];
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   const columns = [
-    { id: 'available', label: t.status_available, icon: 'fa-search', color: 'indigo' },
-    { id: 'processing', label: t.status_processing, icon: 'fa-microchip', color: 'amber' },
-    { id: 'purchased', label: t.status_purchased, icon: 'fa-vault', color: 'green' },
-    { id: 'negotiating', label: t.status_negotiating, icon: 'fa-handshake', color: 'blue' }
+    { id: 'available', label: t.status_available, icon: 'fa-search', color: '#c5a059' },
+    { id: 'processing', label: t.status_processing, icon: 'fa-microchip', color: '#6366f1' },
+    { id: 'purchased', label: t.status_purchased, icon: 'fa-vault', color: '#10b981' },
+    { id: 'negotiating', label: t.status_negotiating, icon: 'fa-handshake', color: '#3b82f6' }
   ];
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
   return (
-    <div className="flex gap-4 lg:gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex overflow-x-auto pb-10 border-2 border-white/10 bg-[#050505] divide-x-2 divide-white/10" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {columns.map(col => (
-        <div key={col.id} className="flex-shrink-0 w-72 flex flex-col gap-3 snap-start">
-          <div className="flex justify-between items-center px-4 py-2 border-b border-white/5 mb-2">
-            <span className="text-[10px] font-black text-white uppercase tracking-widest">{col.label}</span>
-            <span className="text-[10px] font-mono text-slate-500">{domains.filter(d => d.status === col.id).length}</span>
+        <div key={col.id} className="min-w-[320px] flex-shrink-0 flex flex-col">
+          <div className="p-8 border-b-2 border-white/10 bg-white/2 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-3 h-3" style={{ backgroundColor: col.color }}></div>
+              <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">{col.label}</span>
+            </div>
+            <span className="text-xs font-mono text-slate-500">[{domains.filter(d => d.status === col.id).length}]</span>
           </div>
 
-          <div className="flex-1 space-y-3 min-h-[400px]">
+          <div className="p-6 space-y-6 flex-1 bg-black/40">
             {domains.filter(d => d.status === col.id).map(domain => (
               <div 
                 key={domain.id}
                 onClick={() => onInspect(domain)}
-                className={`glass-card p-4 rounded-xl cursor-pointer group ${selectedIds.includes(domain.id) ? 'ring-1 ring-indigo-500 bg-indigo-500/5' : ''}`}
+                className="square-card p-6 border-2 border-white/5 bg-[#0a0a0a] group cursor-pointer hover:border-[#c5a059]"
               >
-                <div className="flex justify-between items-start mb-3">
-                   <div className="text-xs font-black text-white truncate max-w-[140px] tracking-tight">{domain.name}</div>
-                   <div className="text-[9px] font-mono text-indigo-400 font-bold">${domain.price}</div>
+                <div className="flex justify-between items-start mb-4">
+                   <div className="text-base font-black text-white group-hover:text-[#c5a059] transition-colors truncate max-w-[180px]">{domain.name}</div>
+                   <div className="text-xs font-mono text-indigo-400 font-bold">${domain.price}</div>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                   <div className="text-[8px] font-bold text-slate-500 uppercase">{domain.sector || 'Uncategorized'}</div>
-                   <div className="flex gap-1 items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <i className="fas fa-chevron-right text-[8px] text-slate-600"></i>
+                <div className="flex justify-between items-center mb-6">
+                   <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{domain.sector || 'N/A'}</div>
+                   <div className={`transition-all ${lang === 'ar' ? 'group-hover:-translate-x-2' : 'group-hover:translate-x-2'}`}>
+                      <i className={`fas ${lang === 'ar' ? 'fa-arrow-left' : 'fa-arrow-right'} text-[10px] text-[#c5a059]`}></i>
                    </div>
                 </div>
 
                 {domain.probability && (
-                  <div className="mt-3 w-full h-0.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500/40" style={{ width: `${domain.probability * 100}%` }}></div>
+                  <div className="w-full h-1 bg-white/5 overflow-hidden">
+                    <div className="h-full bg-indigo-500" style={{ width: `${domain.probability * 100}%` }}></div>
                   </div>
                 )}
               </div>
             ))}
-            
             {domains.filter(d => d.status === col.id).length === 0 && (
-              <div className="h-24 border border-dashed border-white/5 rounded-xl flex items-center justify-center text-[9px] font-black text-slate-700 uppercase tracking-widest">
-                Empty
+              <div className="py-20 text-center opacity-10 border-2 border-dashed border-white/5">
+                <i className="fas fa-inbox text-4xl mb-4"></i>
+                <p className="text-[9px] uppercase tracking-widest">Empty_Pipeline</p>
               </div>
             )}
           </div>

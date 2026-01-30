@@ -1,81 +1,88 @@
 
+/**
+ * Isthmic Pro - Sovereign Type Definitions v11.5
+ * التنظيم المعياري للأصول والذكاء الاصطناعي والهوية
+ */
 
+// --- USER & AUTH ---
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
   role: 'Admin' | 'Executive' | 'Strategist' | 'Analyst';
   subscriptionTier: 'Free' | 'Pro' | 'Sovereign';
-  usageStats: {
-    scansThisMonth: number;
-    auditsThisMonth: number;
-  };
-  preferences: {
-    emailAlerts: boolean;
-    sniperNotifications: boolean;
-    reportReadiness: boolean;
-  };
+  usageStats: UsageStats;
+  preferences: UserPreferences;
   avatar?: string;
   createdAt: string;
-  lastSync?: string;
   isSyncEnabled: boolean;
-  googleId?: string;
 }
 
-export interface ActiveJob {
-  id: string;
-  workspaceId: string;
-  type: string;
-  status: 'running' | 'paused' | 'failed' | 'completed';
-  payload: any;
-  thoughts: AgentThought[];
-  lastUpdate: string;
+export interface UsageStats {
+  scansThisMonth: number;
+  auditsThisMonth: number;
 }
 
+export interface UserPreferences {
+  emailAlerts: boolean;
+  sniperNotifications: boolean;
+  reportReadiness: boolean;
+}
+
+// --- CORE ASSETS ---
 export interface Domain {
   id: string;
   workspaceId: string; 
   name: string;
   price: number;
-  status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
+  status: DomainStatus;
   contentStatus: 'none' | 'parking' | 'active';
   sector?: string;
   probability?: number;
+  integrityScore?: number;
   justification?: string;
-  brandAssets?: any;
-  financials?: any;
+  brandAssets?: BrandAssets;
+  financials?: FinancialMetrics;
   technicalMetrics?: TechnicalMetrics;
   battleCard?: NegotiationBattleCard;
   lastChecked?: string;
   agentThoughts?: AgentThought[];
-  integrityScore?: number; // New: 0-100 data reliability
 }
 
+export type DomainStatus = 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';
+
+export interface BrandAssets {
+  tagline?: string;
+  logoUrl?: string;
+  colors?: string[];
+}
+
+export interface FinancialMetrics {
+  targetExitPrice?: number;
+  liquidityScore?: number;
+  projectedROI?: number;
+  netProfit?: number;
+}
+
+// Added missing fields to TechnicalMetrics
 export interface TechnicalMetrics {
   da?: number;
   pa?: number;
   mozDa?: number;
-  mozPa?: number;
   ahrefsRank?: number;
-  organicTraffic?: number;
-  topKeywordsCount?: number;
   spamScore?: number;
-  backlinks?: string | number;
-  securityRating?: string;
-  isBlacklisted?: boolean;
-  whoisPrivacy?: boolean;
-  mxRecordsFound?: boolean;
-  historyYears?: number;
-  dnaForensics?: string;
-  trademarkRisk?: string;
-  liquidityScore?: number;
-  isGscConnected?: boolean;
+  backlinks?: number;
   historicalCategory?: string;
   virusTotalStatus?: 'Clean' | 'Malicious' | 'Suspicious' | 'Untested';
-  reputationScore?: number; 
   verificationStatus: 'AI_INFERRED' | 'REGISTRY_VERIFIED' | 'CROSS_REFERENCED';
+  trademarkRisk?: string;
+  organicTraffic?: number;
+  isGscConnected?: boolean;
+  whoisPrivacy?: boolean;
+  dnaForensics?: string;
 }
 
+// --- AGENT LOGIC ---
 export enum AgentRole {
   ANALYZER = 'ANALYZER',
   EXECUTOR = 'EXECUTOR',
@@ -84,9 +91,7 @@ export enum AgentRole {
   LIQUIDATOR = 'LIQUIDATOR'
 }
 
-/**
- * Main application navigation agent types
- */
+// Added AgentType used in App.tsx
 export enum AgentType {
   INTELLIGENCE = 'INTELLIGENCE',
   ACQUISITION = 'ACQUISITION',
@@ -103,6 +108,7 @@ export interface AgentThought {
   status: 'thinking' | 'resolved' | 'rejected' | 'action_taken';
 }
 
+// Added ThinkingStep used in EvaluationDashboard
 export interface ThinkingStep {
   id: string;
   action: string;
@@ -110,76 +116,32 @@ export interface ThinkingStep {
   status: 'pending' | 'searching' | 'complete';
 }
 
+// Added OutreachMessage and LeadProspect
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientEmail: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent' | 'failed';
+  content: string;
+}
+
 export interface LeadProspect {
   companyName: string;
   estimatedValuation: string;
   currentDomain: string;
   synergyReason: string;
-  contactEmail?: string;
-  isEmailVerified?: boolean;
-  decisionMaker?: string;
-  linkedinUrl?: string;
-  jobTitle?: string;
+  decisionMaker: string;
+  jobTitle: string;
+  linkedinUrl: string;
+  contactEmail: string;
 }
 
-export interface NegotiationBattleCard {
-  buyerMotive: string;
-  leveragePoints: string[];
-  suggestedCounter: number;
-  closingProbability: number;
-  sentimentScore: number;
-}
+// --- SYSTEM & WORKFLOW ---
 
-export interface OutreachMessage {
-  id: string;
-  domainId: string;
-  recipient: string;
-  recipientEmail?: string;
-  recipientRole: string;
-  tone: string;
-  status: 'draft' | 'sent' | 'opened' | 'failed';
-  content: string;
-}
-
-export interface NexusOpportunity {
-  id: string;
-  title: string;
-  type: string;
-  description: string;
-  estimatedValue?: string;
-  aiDeduction?: string;
-  probability?: number;
-  marketGapScore?: number;
-}
-
-export interface AutonomousAction {
-  id: string;
-  type: 'PURCHASE' | 'NEGOTIATION' | 'LIQUIDATION' | 'ANALYSIS';
-  domainName: string;
-  description: string;
-  timestamp: string;
-  impactScore: number;
-  status: 'completed' | 'failed';
-}
-
-export interface PlatformStats {
-  totalDiscovered: number;
-  totalPurchased: number;
-  messagesSent: number;
-  openRate: number;
-  avgProfit: number;
-  estimatedPortfolioValue: number;
-  systemResilienceStatus: 'nominal' | 'degraded';
-}
-
-export interface PlatformStrategy {
-  id: string;
-  totalBudget: number;
-  riskTolerance: string;
-  investmentThesis: string;
-  autoPilot: boolean;
-}
-
+// Added ActivityLog used in MasterBrainDashboard
 export interface ActivityLog {
   id: string;
   workspaceId: string;
@@ -189,31 +151,8 @@ export interface ActivityLog {
   type: 'info' | 'success' | 'warning' | 'critical';
 }
 
-export interface Notification {
-  id: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'critical';
-  agent: string;
-}
-
-export interface ServiceIntegration {
-  id: string;
-  workspaceId: string;
-  name: string;
-  provider: string;
-  status: 'connected' | 'disconnected';
-  impactArea: string;
-}
-
+// Added Workflow types
 export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed';
-
-export interface WorkflowNode {
-  id: string;
-  labelAr: string;
-  labelEn: string;
-  status: NodeStatus;
-  output?: any;
-}
 
 export interface NodeDefinition {
   id: string;
@@ -226,14 +165,81 @@ export interface WorkflowState {
   id: string;
   nameAr: string;
   nameEn: string;
-  nodes: WorkflowNode[];
+  nodes: {
+    id: string;
+    labelAr: string;
+    labelEn: string;
+    status: NodeStatus;
+    output?: any;
+  }[];
   progress: number;
   isComplete: boolean;
 }
 
-/**
- * Personnel and security audit log entry
- */
+export interface ActiveJob {
+  id: string;
+  workspaceId: string;
+  type: 'SOVEREIGN_LOOP' | 'FORENSIC_SWEEP' | 'MARKET_SYNC';
+  status: 'running' | 'paused' | 'failed' | 'completed';
+  payload: any;
+  thoughts: AgentThought[];
+  lastUpdate: string;
+}
+
+export interface PlatformStats {
+  totalDiscovered: number;
+  totalPurchased: number;
+  messagesSent: number;
+  openRate: number;
+  avgProfit: number;
+  estimatedPortfolioValue: number;
+  systemResilienceStatus: 'nominal' | 'degraded' | 'critical';
+}
+
+export interface PlatformStrategy {
+  id: string;
+  totalBudget: number;
+  riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
+  autoPilot: boolean;
+  investmentThesis: string;
+}
+
+export interface NegotiationBattleCard {
+  buyerMotive: string;
+  leveragePoints: string[];
+  suggestedCounter: number;
+  closingProbability: number;
+  sentimentScore: number;
+}
+
+export interface ServiceIntegration {
+  id: string;
+  workspaceId: string;
+  provider: 'google' | 'wayback' | 'virustotal' | 'registrar_api' | 'drop_api' | 'market_api' | 'gsc' | 'hunter';
+  status: 'connected' | 'disconnected';
+  apiKey?: string;
+}
+
+// Added NexusOpportunity used in NexusPrimeDashboard
+export interface NexusOpportunity {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  estimatedValue: string;
+  aiDeduction: string;
+  probability: number;
+  marketGapScore: number;
+}
+
+// Added AutonomousAction used in services/masterBrainEngine.ts
+export interface AutonomousAction {
+  type: 'ACQUISITION' | 'LIQUIDATION' | 'ANALYSIS';
+  description: string;
+  timestamp: string;
+}
+
+// Added Audit types
 export interface AuditLogEntry {
   id: string;
   timestamp: string;
@@ -245,9 +251,7 @@ export interface AuditLogEntry {
   severity: 'info' | 'warning' | 'critical';
 }
 
-/**
- * Subscription plan details
- */
+// Added Monetization types
 export interface PlanDetails {
   price: number;
   maxScans: number;
@@ -255,12 +259,8 @@ export interface PlanDetails {
   features: string[];
 }
 
-/**
- * Platform-wide monetization settings
- */
 export interface PlatformMonetizationSettings {
   isMonetizationActive: boolean;
-  currency: string;
   plans: {
     Free: PlanDetails;
     Pro: PlanDetails;

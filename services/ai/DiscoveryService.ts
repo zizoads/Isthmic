@@ -124,7 +124,17 @@ export const registrarInquiryAI = async (domainName: string) => {
   );
 };
 
+// Fixed: Correctly implemented toolConfig for Maps grounding to provide user coordinates to the model.
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
+  const toolConfig = lat && lng ? {
+    retrievalConfig: {
+      latLng: {
+        latitude: lat,
+        longitude: lng
+      }
+    }
+  } : undefined;
+
   return generateStructuredAI<any>(
     'gemini-2.5-flash',
     "Geographic market specialist.",
@@ -136,6 +146,8 @@ export const findLocalBuyersAI = async (query: string, lat?: number, lng?: numbe
         sources: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { maps: { type: Type.OBJECT, properties: { uri: { type: Type.STRING }, title: { type: Type.STRING } } } } } }
       }
     },
-    [{ googleMaps: {} }]
+    [{ googleMaps: {} }],
+    undefined,
+    toolConfig
   );
 };

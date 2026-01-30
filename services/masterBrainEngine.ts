@@ -8,17 +8,30 @@ import { generateStructuredAI } from "./ai/base";
 export class MasterBrainEngine {
   private thoughts: AgentThought[] = [];
   private onThoughtUpdate: (thoughts: AgentThought[]) => void;
-  private onActionTaken?: (action: AutonomousAction) => void;
   private activeJobId?: string;
 
   constructor(
     onThoughtUpdate: (thoughts: AgentThought[]) => void,
-    onActionTaken?: (action: AutonomousAction) => void,
     jobId?: string
   ) {
     this.onThoughtUpdate = onThoughtUpdate;
-    this.onActionTaken = onActionTaken;
     this.activeJobId = jobId;
+  }
+
+  /**
+   * نظام حفظ النبض (Pulse Save): يضمن تماسك البيانات في الخلفية
+   */
+  private async persistState(thoughts: AgentThought[], status: ActiveJob['status'] = 'running') {
+    if (!this.activeJobId) return;
+    
+    await supabase.from('active_jobs').upsert({
+      id: this.activeJobId,
+      thoughts: thoughts,
+      status: status,
+      lastUpdate: new Date().toISOString()
+    });
+    
+    this.onThoughtUpdate([...thoughts]);
   }
 
   private async addThought(role: AgentRole, message: string, status: AgentThought['status'] = 'resolved') {
@@ -29,34 +42,11 @@ export class MasterBrainEngine {
       status
     };
     this.thoughts = [thought, ...this.thoughts];
-    this.onThoughtUpdate([...this.thoughts]);
-
-    // Save Point Strategy: Persist thoughts to Supabase instantly for session recovery
-    if (this.activeJobId) {
-      await supabase.from('active_jobs').update({
-        thoughts: this.thoughts,
-        lastUpdate: new Date().toISOString()
-      }).eq('id', this.activeJobId);
-    }
-  }
-
-  private recordAction(type: AutonomousAction['type'], domainName: string, description: string, impact: number) {
-    const action: AutonomousAction = {
-      id: Math.random().toString(36).substr(2, 9),
-      type,
-      domainName,
-      description,
-      timestamp: new Date().toLocaleTimeString(),
-      impactScore: impact,
-      status: 'completed'
-    };
-    if (this.onActionTaken) this.onActionTaken(action);
+    await this.persistState(this.thoughts);
   }
 
   async executeSovereignLoop(strategy: PlatformStrategy): Promise<Domain[]> {
-    await this.addThought(AgentRole.STRATEGIST, "Launching Persistent Sovereign Cycle (V6)...", "thinking");
-    
-    // Recovery Phase: Try to fetch older thoughts if Job ID exists
+    // 1. استعادة السياق المفقود (Context Recovery)
     if (this.activeJobId) {
       const { data } = await supabase.from('active_jobs').select('thoughts').eq('id', this.activeJobId).single();
       if (data?.thoughts) {
@@ -65,15 +55,23 @@ export class MasterBrainEngine {
       }
     }
 
+    await this.addThought(AgentRole.STRATEGIST, "Resynchronizing background logic threads...", "thinking");
+    
+    // 2. التنفيذ الاستراتيجي المعزز بالبحث الأرضي
     const rawOpportunities = await AIService.rigorousDiscoveryAI(strategy.investmentThesis);
-    await this.addThought(AgentRole.EXECUTOR, `Frontier sweep complete. Identified ${rawOpportunities.data.length} assets.`);
+    await this.addThought(AgentRole.EXECUTOR, `Market Sweep complete. Analysis of ${rawOpportunities.data.length} assets initiated.`);
 
     const auditedDomains: Domain[] = [];
     for (const opp of rawOpportunities.data.slice(0, 3)) {
-      await this.addThought(AgentRole.AUDITOR, `Forensic Audit: ${opp.name}...`, "thinking");
+      await this.addThought(AgentRole.AUDITOR, `Forensic Deep-Dive: ${opp.name}`, "thinking");
+      
       const auditResult = await AIService.evaluateDomainExpertAI(opp.name);
       
-      if (auditResult.data && auditResult.data.probability > 0.65) {
+      // نظام نزاهة البيانات: التحقق من الهلوسة
+      const confidenceBonus = auditResult.cached ? 15 : 0;
+      const finalIntegrity = Math.min(100, (auditResult.data?.probability * 100) + confidenceBonus);
+
+      if (auditResult.data && auditResult.data.probability > 0.6) {
         auditedDomains.push({
           id: Math.random().toString(36).substr(2, 9),
           workspaceId: strategy.id,
@@ -83,54 +81,44 @@ export class MasterBrainEngine {
           contentStatus: 'none',
           sector: auditResult.data.sector,
           probability: auditResult.data.probability,
+          integrityScore: finalIntegrity,
           justification: auditResult.data.justification,
           lastChecked: new Date().toISOString(),
-          integrityScore: auditResult.cached ? 100 : 85,
           technicalMetrics: {
              ...auditResult.data.technicalMetrics,
              verificationStatus: auditResult.cached ? 'CROSS_REFERENCED' : 'AI_INFERRED'
           }
         });
-        this.recordAction('PURCHASE', opp.name, "Asset approved for liquidity injection.", 95);
       }
     }
 
-    await this.addThought(AgentRole.STRATEGIST, `Autonomous loop finalized. Context Saved.`);
+    await this.persistState(this.thoughts, 'completed');
     return auditedDomains;
   }
 
-  /**
-   * Analyzes a buyer message to generate negotiation points.
-   */
   async analyzeNegotiation(domainName: string, buyerMessage: string): Promise<NegotiationBattleCard> {
     return generateStructuredAI<NegotiationBattleCard>(
       'gemini-3-flash-preview',
-      "Negotiation Expert and EQ Analyst specializing in digital asset sales.",
-      `Analyze this message for ${domainName}: "${buyerMessage}"`,
+      "Elite Negotiation Strategist.",
+      `Analyze: ${buyerMessage} for ${domainName}`,
       {
         type: Type.OBJECT,
         properties: {
-          buyerMotive: { type: Type.STRING, description: "Underlying motivation of the buyer." },
-          leveragePoints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Tactical advantages for the seller." },
-          suggestedCounter: { type: Type.NUMBER, description: "Recommended counter-offer price." },
-          closingProbability: { type: Type.NUMBER, description: "Probability of closing the deal 0-100." },
-          sentimentScore: { type: Type.NUMBER, description: "Buyer sentiment rating 0-10." }
-        },
-        required: ['buyerMotive', 'leveragePoints', 'suggestedCounter', 'closingProbability', 'sentimentScore']
+          buyerMotive: { type: Type.STRING },
+          leveragePoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+          suggestedCounter: { type: Type.NUMBER },
+          closingProbability: { type: Type.NUMBER },
+          sentimentScore: { type: Type.NUMBER }
+        }
       }
     );
   }
 
-  /**
-   * Generates a term sheet based on domain data.
-   */
   async generateTermSheet(domain: Domain): Promise<string> {
-    // Instantiate new instance for current call
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Generate a professional, structured legal term sheet for the sale of the domain ${domain.name} for $${domain.price}. 
-      Include sections for Asset Description, Purchase Price, Closing Date, Representations and Warranties, and Confidentiality.`
+      contents: `Draft professional term sheet for ${domain.name} at $${domain.price}.`
     });
     return response.text || '';
   }

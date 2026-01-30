@@ -25,96 +25,83 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   const { activeWorkflow: localActiveWorkflow } = useMasterBrain(strategy, lang);
   const currentWorkflow = propsActiveWorkflow !== undefined ? propsActiveWorkflow : localActiveWorkflow;
 
+  const tabs = [
+    { id: 'sovereign', label: 'Command', icon: 'fa-terminal' },
+    { id: 'nexus', label: 'Radar', icon: 'fa-satellite-dish' },
+    { id: 'strategy', label: 'Thesis', icon: 'fa-scroll' },
+    { id: 'feedback', label: 'Neural', icon: 'fa-brain' }
+  ];
+
   return (
-    <div className="space-y-10 lg:space-y-16 pb-20">
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
-         <div className="space-y-2">
-            <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] prestige-heading text-white italic leading-tight">
-               Atelier Intelligence
-            </h2>
-            <div className="flex items-center gap-4">
-              <div className="h-[1px] w-8 lg:w-12 bg-[#c5a059]/30"></div>
-              <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase opacity-70">
-                 Strategic Narrative & Market Synthesis
-              </p>
-            </div>
-         </div>
-         
-         <div className="flex bg-[#161618] p-1 rounded-[18px] border border-white/5 shadow-xl w-full xl:w-auto overflow-x-auto no-scrollbar">
-           {[
-             { id: 'sovereign', label: 'COMMAND' },
-             { id: 'nexus', label: 'RADAR' },
-             { id: 'strategy', label: 'THESIS' },
-             { id: 'feedback', label: 'NEURAL' }
-           ].map(tab => (
-             <button 
-                key={tab.id}
-                onClick={() => setSubTab(tab.id as any)} 
-                className={`flex-1 xl:flex-none px-6 lg:px-10 py-2.5 rounded-[14px] text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap
-                  ${subTab === tab.id ? 'bg-white text-black shadow-lg' : 'text-slate-500 hover:text-white'}`}
-             >
-                {tab.label}
-             </button>
-           ))}
-         </div>
+    <div className="stack-md" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Precision Tab Bar */}
+      <div className="flex bg-[#111113] border border-white/5 shadow-[3px_3px_0px_0px_#000]">
+        {tabs.map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setSubTab(tab.id as any)} 
+            className={`flex-1 px-4 py-3 text-[9px] font-black uppercase tracking-widest border-r border-white/5 last:border-r-0 transition-all flex items-center justify-center gap-2
+              ${subTab === tab.id ? 'bg-[#d4af37] text-black' : 'text-slate-500 hover:text-white'}`}
+          >
+            <i className={`fas ${tab.icon} text-[11px]`}></i>
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
       </div>
 
       {currentWorkflow && (
-        <div className="max-w-3xl mx-auto">
+        <div className="square-box !p-4 !bg-[#d4af37]/5 border-[#d4af37]/20">
            <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
         </div>
       )}
 
-      <div className="bento-grid">
+      <div className="stack-md animate-fade-in">
         {subTab === 'sovereign' && (
-          <>
-            <div className="bento-span-12">
-               <AutonomousControlCenter 
-                  strategy={strategy} 
-                  onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
-                  lang={lang} 
-               />
-            </div>
-
-            <div className="bento-span-8 square-card">
-               <MarketMomentumChart lang={lang} />
-            </div>
-            
-            <div className="bento-span-4 flex flex-col gap-6 lg:gap-10">
-               <div className="square-card flex-1 flex flex-col justify-between bg-gradient-to-br from-[#161618] to-[#0a0a0c]">
-                  <div className="space-y-8">
-                    <div className="w-12 h-12 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-2xl flex items-center justify-center text-[#c5a059]">
-                       <i className="fas fa-signature text-xl"></i>
-                    </div>
-                    <div>
-                       <h3 className="text-xl lg:text-2xl prestige-heading text-white italic mb-2">Calibration Context</h3>
-                       <p className="text-slate-500 text-[9px] font-black tracking-tight uppercase opacity-70">
-                         Harmonizing autonomous logic with market aesthetics.
-                       </p>
-                    </div>
-                  </div>
-                  <div className="mt-8">
-                    <div className="flex justify-between items-center mb-3">
-                       <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Logic_Cohesion</span>
-                       <span className="text-[10px] font-black text-[#c5a059] data-mono">0.992</span>
-                    </div>
-                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                       <div className="h-full bg-[#c5a059] w-[94%]"></div>
-                    </div>
-                  </div>
+          <div className="stack-md">
+            <div className="square-box !p-0 overflow-hidden">
+               <div className="bg-white/5 px-4 py-2 text-mute text-gold">autonomous_v4</div>
+               <div className="p-6">
+                  <AutonomousControlCenter 
+                      strategy={strategy} 
+                      onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
+                      lang={lang} 
+                  />
                </div>
             </div>
-          </>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 square-box !p-6 bg-black">
+                <MarketMomentumChart lang={lang} />
+              </div>
+              <div className="square-box !p-6 bg-black">
+                <h3 className="prestige-title text-xl text-[#d4af37] italic mb-6">Pulse.</h3>
+                <div className="space-y-4 font-mono text-[10px]">
+                  <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-slate-500">NET_STATUS</span>
+                    <span className="text-green-500 font-bold">STABLE</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-slate-500">LATENCY</span>
+                    <span className="text-white">12ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">SEC_LEVEL</span>
+                    <span className="text-[#d4af37] font-black">AES-512</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         
         {subTab === 'nexus' && (
-          <div className="bento-span-12 square-card">
+          <div className="square-box !p-6">
             <NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} />
           </div>
         )}
         
         {subTab === 'strategy' && (
-          <div className="bento-span-12 square-card">
+          <div className="square-box !p-6">
             <MasterBrainDashboard 
               stats={stats} 
               activityLogs={activityLogs} 
@@ -128,7 +115,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         )}
 
         {subTab === 'feedback' && (
-          <div className="bento-span-12 square-card">
+          <div className="square-box !p-6">
             <FeedbackDashboard domains={domains} stats={stats} />
           </div>
         )}

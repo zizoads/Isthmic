@@ -12,13 +12,11 @@ interface Props {
   onInitiateScan?: () => void;
   onCancelScan?: () => void;
   isScanning?: boolean;
-  onKeyUpdate?: () => void;
   lang: 'ar' | 'en';
 }
 
 const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, setStrategy, onInitiateScan, onCancelScan, isScanning, lang }) => {
   const t = translations[lang];
-  const isFirstRun = stats.totalDiscovered === 0;
   const [isKeyConnected, setIsKeyConnected] = useState(false);
   const [quotaWarning, setQuotaWarning] = useState(false);
 
@@ -49,141 +47,71 @@ const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, 
     }
   };
 
-  const updateStrategy = (key: keyof PlatformStrategy, value: any) => {
-    setStrategy(prev => ({ ...prev, [key]: value }));
-  };
-
   return (
     <div className="space-y-8 lg:space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <section className={`p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border transition-all duration-700 shadow-2xl relative overflow-hidden ${
         quotaWarning ? 'bg-red-900/20 border-red-500/30' : 'bg-gradient-to-r from-[#111113] to-[#0a0a0c] border-white/5'
       }`}>
-         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
+         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
-               <button 
-                  onClick={handleOpenKeyDialog}
-                  className={`w-20 h-20 rounded-[24px] lg:rounded-[28px] flex items-center justify-center text-2xl shadow-2xl transition-all duration-700
-                  ${quotaWarning ? 'bg-red-600 text-white animate-pulse' : isKeyConnected ? 'bg-[#c5a059] text-black scale-105' : 'bg-white/5 text-slate-500 hover:bg-white hover:text-black hover:scale-110'
-               }`}>
+               <button onClick={handleOpenKeyDialog} className={`w-20 h-20 rounded-[24px] flex items-center justify-center text-2xl transition-all duration-700 ${quotaWarning ? 'bg-red-600 text-white animate-pulse' : isKeyConnected ? 'bg-[#c5a059] text-black scale-105' : 'bg-white/5 text-slate-500 hover:bg-white hover:text-black'}`}>
                   <i className={`fas ${quotaWarning ? 'fa-exclamation-triangle' : isKeyConnected ? 'fa-bolt' : 'fa-key'}`}></i>
                </button>
                <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
                   <h4 className={`prestige-heading text-2xl lg:text-3xl italic mb-1 ${quotaWarning ? 'text-red-500' : 'text-white'}`}>
-                    {quotaWarning 
-                      ? (lang === 'ar' ? 'تم استنفاد حصة المفتاح' : 'Key Quota Exhausted')
-                      : (lang === 'ar' ? 'التحكم في المفتاح السيادي' : 'Sovereign Key Control')
-                    }
+                    {quotaWarning ? (lang === 'ar' ? 'تم استنفاد حصة المفتاح' : 'Key Quota Exhausted') : (lang === 'ar' ? 'التحكم في المفتاح السيادي' : 'Sovereign Key Control')}
                   </h4>
-                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
-                    <span className={`text-[9px] font-black uppercase tracking-widest ${quotaWarning ? 'text-red-400' : isKeyConnected ? 'text-[#c5a059]' : 'text-slate-600'}`}>
-                      {quotaWarning 
-                        ? (lang === 'ar' ? 'يرجى تبديل المفتاح أو الانتظار' : 'Please switch key or wait for reset')
-                        : isKeyConnected 
-                          ? (lang === 'ar' ? 'النظام مدعوم بمفتاحك الخاص' : 'System Powered by your Private Key') 
-                          : (lang === 'ar' ? 'بانتظار الإشارة' : 'Awaiting Signal')
-                      }
-                    </span>
-                    <div className="hidden sm:block h-1 w-1 bg-slate-700 rounded-full"></div>
-                    <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-[9px] font-black uppercase text-indigo-400 hover:underline tracking-widest">
-                      {lang === 'ar' ? 'إدارة الفوترة' : 'Manage Billing'}
-                    </a>
-                  </div>
                </div>
             </div>
-            
-            <button 
-              onClick={handleOpenKeyDialog}
-              className="px-6 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-black transition-all"
-            >
+            <button onClick={handleOpenKeyDialog} className="px-6 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-black transition-all">
               {lang === 'ar' ? 'تبديل المفتاح' : 'Switch Key'}
             </button>
          </div>
-         <i className={`fas ${quotaWarning ? 'fa-skull-crossbones' : 'fa-fingerprint'} absolute right-[-40px] bottom-[-40px] text-white/[0.02] text-[200px] pointer-events-none`}></i>
       </section>
 
       <section className="square-card !p-8 lg:!p-12">
          <div className="max-w-full">
             <div className={`flex items-center gap-4 mb-8 ${lang === 'ar' ? 'flex-row' : 'flex-row-reverse justify-end'}`}>
-               <div className="w-10 lg:w-12 h-1 bg-[#c5a059] rounded-full"></div>
+               <div className="w-10 h-1 bg-[#c5a059] rounded-full"></div>
                <h3 className="text-2xl lg:text-3xl prestige-heading text-white italic">{t.commanderIntent}</h3>
             </div>
             
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-               <div className="xl:col-span-8 space-y-6">
+               <div className="xl:col-span-8">
                   <textarea 
                     value={strategy.investmentThesis || ''}
-                    onChange={(e) => updateStrategy('investmentThesis', e.target.value)}
-                    className={`w-full bg-[#0a0a0c] border border-white/5 rounded-[24px] px-6 py-6 text-sm lg:text-base font-medium focus:ring-1 focus:ring-[#c5a059]/30 text-white shadow-inner h-40 lg:h-48 placeholder:text-slate-700 leading-relaxed ${lang === 'ar' ? 'text-right' : 'text-left'}`}
+                    onChange={(e) => setStrategy(prev => ({ ...prev, investmentThesis: e.target.value }))}
+                    className={`w-full bg-[#0a0a0c] border border-white/5 rounded-[24px] px-6 py-6 text-sm lg:text-base font-medium focus:ring-1 focus:ring-[#c5a059]/50 text-white shadow-inner h-40 lg:h-48 placeholder:text-slate-500/60 leading-relaxed ${lang === 'ar' ? 'text-right' : 'text-left'}`}
                     placeholder={t.thesisPlaceholder}
                   />
                </div>
                
-               <div className="xl:col-span-4 flex flex-col gap-4 lg:gap-6">
-                  <div className="p-6 bg-white/[0.02] rounded-[24px] border border-white/5 relative overflow-hidden group">
+               <div className="xl:col-span-4 flex flex-col gap-4">
+                  <div className="p-6 bg-white/[0.02] rounded-[24px] border border-white/5">
                      <label className={`text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.allocatedCapital}</label>
                      <div className={`flex items-baseline gap-2 text-2xl lg:text-3xl font-light prestige-heading text-white ${lang === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                        <input 
-                           type="number" 
-                           value={strategy.totalBudget}
-                           onChange={(e) => updateStrategy('totalBudget', Number(e.target.value))}
-                           className={`bg-transparent border-none w-full focus:ring-0 p-0 text-white prestige-heading font-light ${lang === 'ar' ? 'text-right' : 'text-left'}`}
-                        />
+                        <input type="number" value={strategy.totalBudget} onChange={(e) => setStrategy(prev => ({...prev, totalBudget: Number(e.target.value)}))} className="bg-transparent border-none w-full focus:ring-0 p-0 text-white prestige-heading font-light" />
                         <span className="text-[#c5a059]">$</span>
                      </div>
-                  </div>
-
-                  <div className="p-6 bg-white/[0.02] rounded-[24px] border border-white/5">
-                     <label className={`text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.attackPattern}</label>
-                     <select 
-                        value={strategy.riskTolerance}
-                        onChange={(e) => updateStrategy('riskTolerance', e.target.value)}
-                        className={`w-full bg-transparent border-none font-black text-white text-[10px] uppercase tracking-widest focus:ring-0 appearance-none cursor-pointer ${lang === 'ar' ? 'text-right' : 'text-left'}`}
-                     >
-                        <option value="Conservative" className="bg-[#111113]">{t.conservative}</option>
-                        <option value="Balanced" className="bg-[#111113]">{t.balanced}</option>
-                        <option value="Aggressive" className="bg-[#111113]">{t.aggressive}</option>
-                     </select>
                   </div>
                </div>
             </div>
 
-            <div className={`mt-10 flex flex-col sm:flex-row gap-4 border-t border-white/5 pt-8 ${lang === 'ar' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`mt-10 flex gap-4 border-t border-white/5 pt-8 ${lang === 'ar' ? 'justify-end' : 'justify-start'}`}>
                {isScanning ? (
-                 <button onClick={onCancelScan} className="w-full sm:w-auto bg-red-500/10 text-red-500 px-10 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                 <button onClick={onCancelScan} className="bg-red-500/10 text-red-500 px-10 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                    {t.cancelMission}
                  </button>
                ) : (
-                 <button onClick={onInitiateScan} className="w-full sm:w-auto bg-white text-black px-12 lg:px-16 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4">
+                 <button onClick={onInitiateScan} className="bg-white text-black px-12 lg:px-16 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4">
                    <i className="fas fa-bolt"></i> {t.activateSniper}
                  </button>
                )}
             </div>
          </div>
       </section>
-
-      {!isFirstRun && (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-           <div className="xl:col-span-8">
-              <AnalyticsDashboard stats={stats} lang={lang} />
-           </div>
-           <div className="xl:col-span-4 square-card flex flex-col overflow-hidden h-[500px]">
-              <div className={`p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.01] ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-                 <h3 className="font-black text-white uppercase text-base tracking-tighter italic">{t.opsLog}</h3>
-              </div>
-              <div className={`flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-                 {activityLogs.map(log => (
-                    <div key={log.id} className={`flex gap-4 border-b border-white/5 pb-6 ${lang === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                       <p className={`text-[10px] text-slate-400 font-medium leading-relaxed italic ${lang === 'ar' ? 'order-1' : 'order-2'}`}>
-                          {log.message}
-                          <span className={`font-black uppercase tracking-widest ${lang === 'ar' ? 'ml-3' : 'mr-3'} ${log.type === 'critical' ? 'text-red-500' : 'text-[#c5a059]'}`}>:{log.agent}</span>
-                       </p>
-                       <span className={`text-[8px] font-mono text-slate-600 shrink-0 ${lang === 'ar' ? 'order-2' : 'order-1'}`}>{log.time}</span>
-                    </div>
-                 ))}
-              </div>
-           </div>
-        </div>
-      )}
+      
+      {stats.totalDiscovered > 0 && <AnalyticsDashboard stats={stats} lang={lang} />}
     </div>
   );
 };
