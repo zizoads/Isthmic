@@ -1,4 +1,5 @@
 
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -21,63 +22,14 @@ export interface UserProfile {
   googleId?: string;
 }
 
-export interface AuditLogEntry {
+export interface ActiveJob {
   id: string;
-  timestamp: string;
-  actorId: string;
-  actorName: string;
-  actionType: 'USER_UPDATE' | 'PLAN_UPDATE' | 'SYSTEM_CONFIG' | 'SECURITY_BREACH' | 'VAULT_WIPE';
-  description: string;
-  targetIdentity: string;
-  severity: 'info' | 'warning' | 'critical';
-}
-
-export interface PlatformMonetizationSettings {
-  isMonetizationActive: boolean;
-  currency: string;
-  plans: {
-    Free: PlanDetails;
-    Pro: PlanDetails;
-    Sovereign: PlanDetails;
-  };
-}
-
-export interface PlanDetails {
-  price: number;
-  maxScans: number;
-  maxAudits: number;
-  features: string[];
-}
-
-export enum AgentType {
-  INTELLIGENCE = 'INTELLIGENCE',
-  ACQUISITION = 'ACQUISITION',
-  OPERATIONS = 'OPERATIONS',
-  LIQUIDATION = 'LIQUIDATION',
-  MANAGEMENT = 'MANAGEMENT',
-  ADMIN_PANEL = 'ADMIN_PANEL'
-}
-
-export enum AgentRole {
-  ANALYZER = 'ANALYZER',
-  EXECUTOR = 'EXECUTOR',
-  AUDITOR = 'AUDITOR',
-  STRATEGIST = 'STRATEGIST',
-  LIQUIDATOR = 'LIQUIDATOR'
-}
-
-export interface AgentThought {
-  role: AgentRole;
-  message: string;
-  timestamp: string;
-  status: 'thinking' | 'resolved' | 'rejected' | 'action_taken';
-}
-
-export interface ThinkingStep {
-  id: string;
-  action: string;
-  finding: string;
-  status: 'pending' | 'searching' | 'complete';
+  workspaceId: string;
+  type: string;
+  status: 'running' | 'paused' | 'failed' | 'completed';
+  payload: any;
+  thoughts: AgentThought[];
+  lastUpdate: string;
 }
 
 export interface Domain {
@@ -96,6 +48,7 @@ export interface Domain {
   battleCard?: NegotiationBattleCard;
   lastChecked?: string;
   agentThoughts?: AgentThought[];
+  integrityScore?: number; // New: 0-100 data reliability
 }
 
 export interface TechnicalMetrics {
@@ -119,7 +72,42 @@ export interface TechnicalMetrics {
   isGscConnected?: boolean;
   historicalCategory?: string;
   virusTotalStatus?: 'Clean' | 'Malicious' | 'Suspicious' | 'Untested';
-  reputationScore?: number; // 0-100
+  reputationScore?: number; 
+  verificationStatus: 'AI_INFERRED' | 'REGISTRY_VERIFIED' | 'CROSS_REFERENCED';
+}
+
+export enum AgentRole {
+  ANALYZER = 'ANALYZER',
+  EXECUTOR = 'EXECUTOR',
+  AUDITOR = 'AUDITOR',
+  STRATEGIST = 'STRATEGIST',
+  LIQUIDATOR = 'LIQUIDATOR'
+}
+
+/**
+ * Main application navigation agent types
+ */
+export enum AgentType {
+  INTELLIGENCE = 'INTELLIGENCE',
+  ACQUISITION = 'ACQUISITION',
+  OPERATIONS = 'OPERATIONS',
+  LIQUIDATION = 'LIQUIDATION',
+  MANAGEMENT = 'MANAGEMENT',
+  ADMIN_PANEL = 'ADMIN_PANEL'
+}
+
+export interface AgentThought {
+  role: AgentRole;
+  message: string;
+  timestamp: string;
+  status: 'thinking' | 'resolved' | 'rejected' | 'action_taken';
+}
+
+export interface ThinkingStep {
+  id: string;
+  action: string;
+  finding: string;
+  status: 'pending' | 'searching' | 'complete';
 }
 
 export interface LeadProspect {
@@ -241,4 +229,41 @@ export interface WorkflowState {
   nodes: WorkflowNode[];
   progress: number;
   isComplete: boolean;
+}
+
+/**
+ * Personnel and security audit log entry
+ */
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  actionType: string;
+  description: string;
+  targetIdentity: string;
+  severity: 'info' | 'warning' | 'critical';
+}
+
+/**
+ * Subscription plan details
+ */
+export interface PlanDetails {
+  price: number;
+  maxScans: number;
+  maxAudits: number;
+  features: string[];
+}
+
+/**
+ * Platform-wide monetization settings
+ */
+export interface PlatformMonetizationSettings {
+  isMonetizationActive: boolean;
+  currency: string;
+  plans: {
+    Free: PlanDetails;
+    Pro: PlanDetails;
+    Sovereign: PlanDetails;
+  };
 }

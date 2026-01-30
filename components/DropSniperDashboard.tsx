@@ -11,16 +11,13 @@ interface Props {
 
 const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
   const t = translations[lang];
-  const { activeProfile, addLog, integrations } = useDomainContext();
+  const { activeProfile, addLog } = useDomainContext();
   const [sector, setSector] = useState('Artificial Intelligence');
   const [snipes, setSnipes] = useState<any[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [selectedSnipe, setSelectedSnipe] = useState<any>(null);
   const [deepAnalysis, setDeepAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isBackordering, setIsBackordering] = useState<string | null>(null);
-
-  const isDropApiConnected = integrations.some(i => i.provider === 'drop_api' && i.status === 'connected');
 
   const handleScan = async () => {
     setIsScanning(true);
@@ -29,12 +26,10 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
     setIsScanning(false);
   };
 
-  const handleBackorder = async (snipe: any) => {
-    setIsBackordering(snipe.domain);
-    // Simulated API call to Dynadot/DropCatch
-    await new Promise(r => setTimeout(r, 2000));
-    addLog('Sniper', `Backorder protocol armed for ${snipe.domain}. Monitoring release milliseconds.`, 'success');
-    setIsBackordering(null);
+  const handleExternalBackorder = (snipe: any) => {
+    addLog('Redirector', `Redirecting to Dynadot Backorder for ${snipe.domain}...`, 'info');
+    const url = `https://www.dynadot.com/domain/backorder?domain=${encodeURIComponent(snipe.domain)}`;
+    window.open(url, '_blank');
   };
 
   const handleDeepAnalysis = async (snipe: any) => {
@@ -61,7 +56,7 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
           <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">{t.dropSniper}</h2>
           <p className="text-xs text-red-500 font-black uppercase tracking-widest mt-1 flex items-center gap-3">
             <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span> 
-            {isDropApiConnected ? (lang === 'ar' ? 'بروتوكول الحجز الآلي مسلح.' : 'Backorder API armed.') : (lang === 'ar' ? 'وضع المراقبة فقط.' : 'Monitor-only mode.')}
+            {lang === 'ar' ? 'نظام التوجيه الخارجي نشط.' : 'External redirection mode active.'}
           </p>
         </div>
         <div className="flex gap-4 w-full md:w-auto">
@@ -99,9 +94,6 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
                        <span className="text-[9px] font-black text-red-500 uppercase bg-red-500/10 border border-red-500/20 px-4 py-1.5 rounded-full">
                          {t.dropDate}: {snipe.dropDate}
                        </span>
-                       <span className="text-[9px] font-black text-slate-500 uppercase bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
-                         {t.authority}: {snipe.estimatedAuthority}/100
-                       </span>
                     </div>
                  </div>
                  <div className={lang === 'ar' ? 'text-left' : 'text-right'}>
@@ -119,19 +111,10 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
                     <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-red-500 text-xs shadow-xl"><i className="fas fa-bolt"></i></div>
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway: <span className="text-white">{snipe.backorderPlatform}</span></span>
                  </div>
-                 <button className="text-[9px] font-black text-red-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all flex items-center gap-3">
-                    {t.auditAction} <i className={`fas ${lang === 'ar' ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
-                 </button>
               </div>
               <i className="fas fa-crosshairs absolute right-[-40px] bottom-[-40px] text-white/2 text-[200px] pointer-events-none group-hover:scale-110 transition-transform"></i>
             </div>
           ))}
-          {snipes.length === 0 && !isScanning && (
-            <div className="h-80 bg-[#08090d] border-2 border-dashed border-white/5 rounded-[50px] flex flex-col items-center justify-center text-slate-700 space-y-6">
-               <i className="fas fa-binoculars text-7xl opacity-20"></i>
-               <p className="text-[10px] font-black uppercase tracking-[0.4em] italic">{t.awaitingSignal}</p>
-            </div>
-          )}
         </div>
 
         <div className="lg:col-span-1">
@@ -162,13 +145,6 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
                     </div>
 
                     <div className="space-y-8">
-                       <div className={`p-8 bg-white/2 rounded-[32px] border border-white/5 ${lang === 'ar' ? 'text-right border-r-4 border-red-500/20' : 'text-left border-l-4 border-red-500/20'}`}>
-                          <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 italic">{t.historySummary}</h5>
-                          <p className="text-sm text-slate-300 leading-relaxed font-medium italic">
-                             "{deepAnalysis.historySummary}"
-                          </p>
-                       </div>
-
                        <div className="grid grid-cols-2 gap-6">
                           <div className="p-6 bg-white/2 rounded-3xl border border-white/5 text-center group hover:bg-red-500/5 transition-colors">
                              <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">{t.flipProb}</div>
@@ -179,35 +155,18 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
                              <div className="text-3xl font-black text-white">${deepAnalysis.maxBackorderBid}</div>
                           </div>
                        </div>
-
-                       <div className={`p-8 bg-red-950/20 rounded-[32px] border border-red-500/10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-                          <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-4 flex items-center gap-3">
-                             <i className="fas fa-triangle-exclamation"></i> {t.trademarkAlert}
-                          </h5>
-                          <p className="text-xs text-red-200/70 font-bold leading-relaxed">
-                             {deepAnalysis.trademarkAlert}
-                          </p>
-                       </div>
                     </div>
 
                     <div className="pt-10 border-t border-white/10">
-                       {isDropApiConnected ? (
-                         <button 
-                          onClick={() => handleBackorder(selectedSnipe)}
-                          disabled={isBackordering === selectedSnipe.domain}
-                          className="w-full py-6 bg-red-600 text-white rounded-[28px] text-sm font-black uppercase tracking-widest hover:bg-red-500 shadow-2xl shadow-red-900/30 transition-all flex items-center justify-center gap-4"
-                         >
-                           {isBackordering === selectedSnipe.domain ? <i className="fas fa-dna fa-spin"></i> : <><i className="fas fa-bolt"></i> {t.backorderActive}</>}
-                         </button>
-                       ) : (
-                         <button className="w-full py-6 bg-white/5 text-slate-500 rounded-[28px] text-sm font-black uppercase tracking-widest cursor-not-allowed border border-white/5">
-                            API DISCONNECTED
-                         </button>
-                       )}
+                       <button 
+                        onClick={() => handleExternalBackorder(selectedSnipe)}
+                        className="w-full py-6 bg-red-600 text-white rounded-[28px] text-sm font-black uppercase tracking-widest hover:bg-red-500 shadow-2xl shadow-red-900/30 transition-all flex items-center justify-center gap-4"
+                       >
+                         <i className="fas fa-external-link-alt"></i> {t.snipeExternal}
+                       </button>
                     </div>
                  </div>
               )}
-              <i className="fas fa-skull-crossbones absolute left-[-40px] top-[-40px] text-white/2 text-[250px] pointer-events-none -rotate-12"></i>
            </div>
         </div>
       </div>

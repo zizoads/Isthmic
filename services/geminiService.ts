@@ -4,7 +4,7 @@ export { performOsintInvestigationAI, checkTrademarkRiskAI } from "./ai/Forensic
 export { rigorousDiscoveryAI, getDropSniperListAI, analyzeSnipeOpportunityAI, registrarInquiryAI, findLocalBuyersAI } from "./ai/DiscoveryService";
 export { evaluateDomainExpertAI, debateDomainStrategyAI, generateExecutiveReportAI, nexusPrimeIntelligenceAI } from "./ai/AnalysisService";
 export { optimizeAfternicListingAI, harvestBulkLeadsAI, analyzeMarketPulseAI, generateLeadGenBlueprintAI, generatePersonaPitchAI, getAuctionIntelligenceAI } from "./ai/LiquidationService";
-export { generateBrandIdentityAI, generateValueProofAI, generatePromoVideoAI } from "./ai/ValueService";
+export { generateBrandIdentityAI, generateValueProofAI } from "./ai/ValueService";
 
 // Market Signals functionality migrated from legacy
 import { Type } from "@google/genai";

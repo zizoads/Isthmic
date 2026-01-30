@@ -48,7 +48,7 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Sidebar: Engineering List */}
+      {/* Sidebar: Asset List */}
       <div className="lg:col-span-4 square-card flex flex-col h-[850px] bg-[#0a0a0c]">
         <div className="p-10 border-b border-white/5 bg-white/[0.01] flex justify-between items-center">
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.portfolio}</h3>
@@ -75,7 +75,7 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
         </div>
       </div>
 
-      {/* Main: Visual Engineering Canvas */}
+      {/* Main: Visual Canvas & ROI */}
       <div className="lg:col-span-8 flex flex-col gap-10 h-[850px] overflow-y-auto no-scrollbar pb-20">
         {selectedDomain ? (
           <div className="space-y-10">
@@ -116,7 +116,6 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-8">
-               {/* ROI Calculator now spans full width after removing video component */}
                <HardROICalculator domain={selectedDomain} lang={lang} marketHeat={marketSignal?.momentumScore} />
             </div>
           </div>

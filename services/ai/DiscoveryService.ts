@@ -4,7 +4,7 @@ import { generateStructuredAI } from "./base";
 import { supabase } from "../SupabaseClient";
 
 /**
- * Discovery Cache Logic
+ * Discovery Cache Logic - Persistent for 7 days
  */
 async function getCachedDiscovery(prompt: string) {
   const cleanPrompt = prompt.toLowerCase().trim();
@@ -19,7 +19,6 @@ async function getCachedDiscovery(prompt: string) {
     const now = new Date();
     const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // تم تمديد صلاحية الكاش إلى 7 أيام لتقليل نداءات الـ API غير الضرورية
     if (diffDays <= 7) return data.results_json;
   }
   return null;
@@ -39,7 +38,6 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
     return { data: cached, cached: true };
   }
 
-  // استخدام الموديل Flash بدلاً من Pro لتجنب أخطاء الـ Quota في عمليات التنقيب المتكررة
   const results = await generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
     `You are a strategic market miner. Language: ${lang}. Found alpha assets based on deep web research.`,

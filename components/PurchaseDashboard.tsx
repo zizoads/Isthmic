@@ -8,18 +8,13 @@ import { translations } from '../translations';
 interface Props {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
-  // Added lang to Props to fix context missing property
   lang: 'ar' | 'en';
 }
 
 const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
-  // Removed lang from context destructuring as it's not present in DomainContextType
-  const { integrations, addLog } = useDomainContext();
+  const { addLog } = useDomainContext();
   const t = translations[lang || 'ar'];
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
-  const [purchasingId, setPurchasingId] = useState<string | null>(null);
-
-  const isRegistrarConnected = integrations.some(i => i.provider === 'registrar_api' && i.status === 'connected');
 
   const handleVerify = async (domain: Domain) => {
     setVerifyingId(domain.id);
@@ -30,16 +25,9 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
     setVerifyingId(null);
   };
 
-  const handleDirectPurchase = async (domain: Domain) => {
-    setPurchasingId(domain.id);
-    // Simulated API call to Namecheap/GoDaddy
-    await new Promise(r => setTimeout(r, 2500));
-    setDomains(prev => prev.map(d => d.id === domain.id ? { ...d, status: 'purchased' } : d));
-    addLog('Executor', `Direct API Purchase successful for ${domain.name}. Asset secured.`, 'success');
-    setPurchasingId(null);
-  };
-
-  const handlePurchaseClick = (domainName: string) => {
+  const handleExternalRedirect = (domainName: string) => {
+    // نظام التوجيه الخارجي لمنع التلاعب المالي وحماية المستخدم
+    addLog('Redirector', `Redirecting to Namecheap for ${domainName}...`, 'info');
     const url = `https://www.namecheap.com/domains/registration-results/?domain=${encodeURIComponent(domainName)}`;
     window.open(url, '_blank');
   };
@@ -56,9 +44,7 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
         <div>
           <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">{lang === 'ar' ? 'غرفة التنفيذ' : 'EXECUTION SUITE'}</h3>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-             {isRegistrarConnected 
-               ? (lang === 'ar' ? 'وضع التنفيذ المباشر (Direct API) نشط.' : 'Direct API Execution mode is active.')
-               : (lang === 'ar' ? 'قم بربط API مسجل النطاقات لتفعيل الشراء بضغطة زر.' : 'Connect Registrar API to enable one-click execution.')}
+             {lang === 'ar' ? 'نظام التوجيه الخارجي نشط. سيتم توجيهك للمسجل لإتمام العملية.' : 'External redirection mode active. You will be redirected to the registrar.'}
           </p>
         </div>
       </div>
@@ -83,32 +69,22 @@ const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
             </button>
 
             <div className="space-y-3">
-              {isRegistrarConnected ? (
-                <button 
-                  onClick={() => handleDirectPurchase(domain)}
-                  disabled={purchasingId === domain.id}
-                  className="w-full bg-indigo-600 text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-3"
-                >
-                  {purchasingId === domain.id ? <i className="fas fa-dna fa-spin"></i> : <><i className="fas fa-bolt"></i> {t.directPurchase}</>}
-                </button>
-              ) : (
-                <button 
-                  onClick={() => handlePurchaseClick(domain.name)}
-                  className="w-full bg-white text-black py-5 rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-xl flex items-center justify-center gap-2"
-                >
-                  <i className="fas fa-external-link-alt"></i> External Checkout
-                </button>
-              )}
+              <button 
+                onClick={() => handleExternalRedirect(domain.name)}
+                className="w-full bg-indigo-600 text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-3"
+              >
+                <i className="fas fa-external-link-alt"></i> {t.checkoutExternal}
+              </button>
               
               <button 
                 onClick={() => markAsPurchased(domain.id)}
                 className="w-full py-3.5 rounded-[22px] text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors"
               >
-                Mark as Secured
+                Mark as Secured in Portfolio
               </button>
             </div>
             
-            <i className="fas fa-shield-halved absolute right-[-20px] bottom-[-20px] text-white/2 text-[120px] pointer-events-none group-hover:scale-110 transition-transform"></i>
+            <i className="fas fa-external-link-square-alt absolute right-[-20px] bottom-[-20px] text-white/2 text-[120px] pointer-events-none group-hover:scale-110 transition-transform"></i>
           </div>
         ))}
       </div>

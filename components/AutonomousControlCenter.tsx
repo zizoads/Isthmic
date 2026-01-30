@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AgentThought, PlatformStrategy, AutonomousAction, AgentRole } from '../types';
+import { AgentThought, PlatformStrategy, AutonomousAction, AgentRole, ActiveJob } from '../types';
 import { MasterBrainEngine } from '../services/masterBrainEngine';
+import { useDomainContext } from '../context/DomainContext';
+import { translations } from '../translations';
 
 interface Props {
   strategy: PlatformStrategy;
@@ -10,10 +12,19 @@ interface Props {
 }
 
 const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected, lang }) => {
+  const { activeJobs, saveJob, clearJob } = useDomainContext();
+  const t = translations[lang];
   const [thoughts, setThoughts] = useState<AgentThought[]>([]);
-  const [actions, setActions] = useState<AutonomousAction[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-Recovery Logic
+  useEffect(() => {
+    const activeLoop = activeJobs.find(j => j.type === 'SOVEREIGN_LOOP' && j.status === 'running');
+    if (activeLoop) {
+      setThoughts(activeLoop.thoughts);
+    }
+  }, [activeJobs]);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,16 +33,36 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
   const runSystem = async () => {
     setIsRunning(true);
     setThoughts([]);
+    
+    const jobId = `job_${Date.now()}`;
+    const initialJob: ActiveJob = {
+      id: jobId,
+      workspaceId: strategy.id,
+      type: 'SOVEREIGN_LOOP',
+      status: 'running',
+      payload: { strategy },
+      thoughts: [],
+      lastUpdate: new Date().toISOString()
+    };
+    
+    await saveJob(initialJob);
+
     const engine = new MasterBrainEngine(
-      (updatedThoughts) => setThoughts(updatedThoughts),
-      (newAction) => setActions(prev => [newAction, ...prev])
+      async (updatedThoughts) => {
+        setThoughts(updatedThoughts);
+        await saveJob({ ...initialJob, thoughts: updatedThoughts });
+      },
+      () => {}, // No external action callback needed for internal loops
+      jobId
     );
     
     try {
       const results = await engine.executeSovereignLoop(strategy);
       onDomainsInjected(results);
+      await clearJob(jobId);
     } catch (e) {
       console.error(e);
+      await saveJob({ ...initialJob, status: 'failed' });
     } finally {
       setIsRunning(false);
     }
@@ -39,7 +70,6 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
 
   return (
     <div className="space-y-10 animate-precision">
-      {/* Surgical Banner */}
       <div className="square-card p-1">
         <div className="bg-[#121214] rounded-[31px] p-10 lg:p-14 relative overflow-hidden">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10">
@@ -47,12 +77,11 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
               <h2 className="text-3xl lg:text-5xl prestige-heading text-white italic">
                 Sovereign Logic Narrative
               </h2>
-              <div className="flex items-center gap-4">
-                 <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-[#c5a059] animate-pulse' : 'bg-white/10'}`}></div>
-                 <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em]">
-                    {isRunning ? 'Synthesizing Alpha Inference' : 'Awaiting Tactical Signal'}
-                 </p>
-              </div>
+              {activeJobs.some(j => j.status === 'running') && (
+                <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-lg border border-indigo-500/20 animate-pulse">
+                   {t.resumingSession}
+                </div>
+              )}
             </div>
             
             <button 
@@ -71,13 +100,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:h-[650px]">
-        {/* Main Terminal Area */}
         <div className="lg:col-span-8 square-card flex flex-col bg-[#161618]">
-          <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Inference_Stream</span>
-             <div className="text-[9px] data-mono opacity-40">Core_v7.2_Precise</div>
-          </div>
-          
           <div className="flex-1 overflow-y-auto p-10 lg:p-14 space-y-12 no-scrollbar">
             {thoughts.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center opacity-10">
@@ -103,38 +126,6 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
             ))}
             <div ref={terminalEndRef} />
           </div>
-        </div>
-
-        {/* Side Metrics Feed */}
-        <div className="lg:col-span-4 flex flex-col gap-10 overflow-hidden">
-           <div className="flex-1 square-card p-10 flex flex-col bg-white/[0.01]">
-              <div className="flex justify-between items-center mb-10">
-                <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Market Impact</h3>
-                <i className="fas fa-signature text-[#c5a059]/30"></i>
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-6 no-scrollbar">
-                 {actions.length === 0 ? (
-                   <div className="h-full flex flex-col items-center justify-center opacity-10 scale-75">
-                      <p className="text-[9px] font-black uppercase tracking-widest">Awaiting_Impact</p>
-                   </div>
-                 ) : actions.map((action, i) => (
-                   <div key={i} className="p-8 bg-white/[0.02] border border-white/5 rounded-[24px] hover:bg-white/5 transition-all">
-                      <div className="flex justify-between items-center mb-3">
-                         <span className="text-base font-black text-white italic tracking-tighter">{action.domainName}</span>
-                         <span className="text-[10px] font-black text-[#c5a059] data-mono">+{action.impactScore}%</span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-relaxed italic">{action.description}</p>
-                   </div>
-                 ))}
-              </div>
-           </div>
-           
-           <div className="square-card p-10 bg-[#c5a059]/5 border-[#c5a059]/10">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">System Entropy</span>
-              <div className="text-5xl font-light prestige-heading text-white mt-4 flex items-baseline gap-2">
-                 0.92<span className="text-sm text-[#c5a059] font-mono tracking-widest">Ω</span>
-              </div>
-           </div>
         </div>
       </div>
     </div>

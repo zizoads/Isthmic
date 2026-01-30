@@ -12,12 +12,12 @@ interface Props {
 const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) => {
   const t = translations[lang];
   const acq = domain.price || 0;
-  const metrics = domain.technicalMetrics || {};
+  const metrics = domain.technicalMetrics;
   
   // Calculate Market Multiplier based on Heat Score + SEO Performance
   const baseHeatFactor = marketHeat / 200;
-  const trafficBonus = (metrics.organicTraffic || 0) > 500 ? 0.2 : 0;
-  const authorityBonus = (metrics.da || 0) > 30 ? 0.3 : 0;
+  const trafficBonus = (metrics?.organicTraffic || 0) > 500 ? 0.2 : 0;
+  const authorityBonus = (metrics?.da || 0) > 30 ? 0.3 : 0;
   
   const totalMultiplier = 1 + baseHeatFactor + trafficBonus + authorityBonus;
   
@@ -37,7 +37,7 @@ const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) =
           {lang === 'ar' ? 'الجدوى الاقتصادية الديناميكية' : 'DYNAMIC ECONOMIC REPORT'}
         </h3>
         <div className="flex gap-2">
-           {metrics.isGscConnected && (
+           {metrics?.isGscConnected && (
               <span className="text-[8px] font-black px-2 py-0.5 rounded bg-green-500 text-black">
                  {t.searchConsoleCalibrated}
               </span>
@@ -75,7 +75,7 @@ const HardROICalculator: React.FC<Props> = ({ domain, lang, marketHeat = 50 }) =
       <div className="mt-4 flex items-center gap-2 text-[8px] text-slate-600 italic">
         <i className="fas fa-microchip"></i>
         <span>
-           {metrics.isGscConnected 
+           {metrics?.isGscConnected 
              ? (lang === 'ar' ? 'تمت المعايرة بناءً على بيانات البحث العضوية الحقيقية.' : 'Calibrated based on actual organic search performance.')
              : (lang === 'ar' ? 'تم ضبط السعر بناءً على إشارات السوق التقديرية.' : 'Price calibrated via market estimation signals.')}
         </span>

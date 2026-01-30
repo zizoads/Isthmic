@@ -1,22 +1,17 @@
 
-/* Isthmic Pro - Sovereign Identity CSS v9.1 */
+/* Isthmic Pro - Sovereign Identity CSS v10.0 */
 
 :root {
   --bg-main: #0a0a0c;
   --bg-card: #111113;
   --accent: #c5a059;
   
-  /* Fluid Spacing System */
-  --header-height: 70px;
-  --sidebar-width: clamp(260px, 18vw, 300px);
-  --safe-gap: clamp(1rem, 4vw, 3rem);
-  --card-radius: clamp(1.5rem, 3vw, 3rem);
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --header-height: 80px;
-  }
+  /* Fluid Spacing System - تقليص الهوامش ديناميكياً للشاشات المتوسطة */
+  --header-height: clamp(60px, 8vh, 80px);
+  --sidebar-width: clamp(240px, 16vw, 280px);
+  --safe-gap: clamp(1rem, 3vw, 2.5rem);
+  --card-padding: clamp(1.25rem, 4vw, 3.5rem);
+  --card-radius: clamp(1.25rem, 2.5vw, 3rem);
 }
 
 /* Global Reset */
@@ -34,6 +29,7 @@ body, html {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  font-size: clamp(14px, 1vw, 16px); /* تحجيم الخط الأساسي */
 }
 
 #root {
@@ -41,14 +37,12 @@ body, html {
   width: 100%;
 }
 
-/* Structural Layout Grid - Unified Without Ticker */
+/* Layout Grid - تحسين التوزيع للشاشات المتوسطة */
 .app-shell {
   display: grid;
   height: 100vh;
   width: 100vw;
-  grid-template-areas: 
-    "header"
-    "main";
+  grid-template-areas: "header" "main";
   grid-template-columns: 1fr;
   grid-template-rows: var(--header-height) 1fr;
 }
@@ -59,16 +53,13 @@ body, html {
       "sidebar header"
       "sidebar main";
     grid-template-columns: var(--sidebar-width) 1fr;
-    grid-template-rows: var(--header-height) 1fr;
   }
 }
 
-/* Grid Area Assignments */
 .sidebar-area { grid-area: sidebar; }
 .header-area { grid-area: header; }
 .main-area { grid-area: main; }
 
-/* Main Content Area */
 main {
   height: 100%;
   overflow-y: auto;
@@ -76,32 +67,21 @@ main {
   padding: var(--safe-gap);
   scroll-behavior: smooth;
   background-color: var(--bg-main);
-  position: relative;
 }
 
-/* Scrollbar Styling */
-main::-webkit-scrollbar {
-  width: 4px;
-}
-main::-webkit-scrollbar-track {
-  background: transparent;
-}
-main::-webkit-scrollbar-thumb {
-  background: rgba(197, 160, 89, 0.1);
-  border-radius: 10px;
-}
-
-/* Bento Grid Helper */
+/* Bento Grid الذكي للتكيف مع تعدد المهام والشاشات المتوسطة */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: var(--safe-gap);
 }
 
-@media (min-width: 1024px) {
-  .bento-grid {
-    grid-template-columns: repeat(12, 1fr);
-  }
+@media (min-width: 768px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1280px) {
+  .bento-grid { grid-template-columns: repeat(12, 1fr); }
   .bento-span-12 { grid-column: span 12 / span 12; }
   .bento-span-8 { grid-column: span 8 / span 8; }
   .bento-span-4 { grid-column: span 4 / span 4; }
@@ -112,12 +92,14 @@ main::-webkit-scrollbar-thumb {
   background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--card-radius);
+  padding: var(--card-padding);
   overflow: hidden;
 }
 
 .prestige-heading {
   font-family: 'Cormorant Garamond', serif;
-  line-height: 0.9;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 
 .noise-bg {
@@ -129,20 +111,16 @@ main::-webkit-scrollbar-thumb {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+/* التمرير السلس ومنع التكدس */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(197, 160, 89, 0.1); border-radius: 10px; }
+
 @keyframes fadeInContent {
-  from { opacity: 0; transform: translateY(15px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-precision {
-  animation: fadeInContent 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.scroll-x-mobile {
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scroll-x-mobile::-webkit-scrollbar {
-  display: none;
+  animation: fadeInContent 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

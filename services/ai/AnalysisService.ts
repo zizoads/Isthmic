@@ -16,7 +16,6 @@ async function checkCache(domainName: string) {
     const now = new Date();
     const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // صلاحية الكاش لـ 14 يوم لتقليل النداءات المتكررة لنفس النطاقات
     if (diffDays <= 14) return data.result_json;
   }
   return null;
@@ -34,15 +33,13 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
   const cached = await checkCache(domainName);
   if (cached) return { data: cached, cached: true };
 
-  // استخدام Flash للتدقيق الأولي لزيادة سقف العمليات المسموح به قبل الوصول لـ Quota Exceeded
-  // تم تحسين البرومبت ليشمل فحص السمعة التاريخية (Archive) والأمان (VirusTotal)
   const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
     `You are a forensic domain auditor. Language: ${lang}. 
      Specialties: SEO, brand potential, exit velocity, and HISTORICAL REPUTATION.
-     Instruction: Check if the domain has a dark past (spam, adult, malicious) via historical signals.`,
-    `Audit: ${domainName}. Ground research in live data using search tools. 
-     Specifically evaluate history via Archive.org patterns and security blacklists.`,
+     Instruction: Verify historical category and VirusTotal status through inference.`,
+    `Audit: ${domainName}. Ground research in live data. 
+     Evaluate history via Archive.org patterns and reputation blacklists.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -56,9 +53,10 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
             pa: { type: Type.NUMBER },
             spamScore: { type: Type.NUMBER },
             backlinks: { type: Type.NUMBER },
-            historicalCategory: { type: Type.STRING, description: "Previous content type (e.g. Corporate, Parking, Spam, etc.)" },
-            virusTotalStatus: { type: Type.STRING, enum: ['Clean', 'Malicious', 'Suspicious'] },
-            reputationScore: { type: Type.NUMBER, description: "Overall reputation percentage 0-100" }
+            historicalCategory: { type: Type.STRING },
+            virusTotalStatus: { type: Type.STRING, enum: ['Clean', 'Malicious', 'Suspicious', 'Untested'] },
+            reputationScore: { type: Type.NUMBER },
+            verificationStatus: { type: Type.STRING, enum: ['AI_INFERRED', 'REGISTRY_VERIFIED', 'CROSS_REFERENCED'] }
           }
         }
       }
@@ -68,6 +66,8 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
   );
 
   if (result && !result.error) {
+    // Add inferred verification status for the badge
+    result.technicalMetrics.verificationStatus = 'AI_INFERRED';
     await updateCache(domainName, result);
   }
 
@@ -76,9 +76,9 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
 
 export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'en' = 'ar') => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview', // الحفاظ على Pro للمناظرات المعقدة فقط
+    'gemini-3-pro-preview',
     `Multi-agent debate engine between Aggressive VC and Risk Auditor. Language: ${lang}`,
-    `Debate acquisition strategy for: ${domainName}. Consider both financial upside and historical reputation risk.`,
+    `Debate acquisition strategy for: ${domainName}.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -106,7 +106,7 @@ export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: s
   return generateStructuredAI<any>(
     'gemini-3-flash-preview',
     "C-Suite investment strategist reporting engine.",
-    `Generate memo for portfolio: ${JSON.stringify(stats)}. Focus: ${sectors.join(', ')}`,
+    `Generate memo for portfolio: ${JSON.stringify(stats)}.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -127,7 +127,6 @@ export const nexusPrimeIntelligenceAI = async (mode: string, context: string, la
       type: Type.OBJECT,
       properties: {
         analysisVerdict: { type: Type.STRING },
-        strategicRiskAssessment: { type: Type.STRING },
         opportunities: {
           type: Type.ARRAY,
           items: {

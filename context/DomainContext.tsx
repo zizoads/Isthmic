@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile, PlatformMonetizationSettings } from '../types';
+import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile, PlatformMonetizationSettings, ActiveJob } from '../types';
 import { AuthService } from '../services/AuthService';
 import { supabase } from '../services/SupabaseClient';
 
@@ -19,6 +19,9 @@ interface DomainContextType {
   monetization: PlatformMonetizationSettings;
   updateMonetization: (settings: PlatformMonetizationSettings) => Promise<void>;
   isInitialLoading: boolean;
+  activeJobs: ActiveJob[];
+  saveJob: (job: ActiveJob) => Promise<void>;
+  clearJob: (id: string) => Promise<void>;
   login: (email: string, pass: string) => Promise<void>;
   signup: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
@@ -40,6 +43,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
   const [monetization, setMonetization] = useState<PlatformMonetizationSettings>({
     isMonetizationActive: false,
     currency: 'USD',
@@ -62,15 +66,25 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActiveProfileState(profile);
     setIsEmailConfirmed(confirmed);
     
-    const { data: userDomains } = await supabase.from('domains').select('*').eq('workspaceId', profile.id);
-    const { data: userIntegrations } = await supabase.from('integrations').select('*').eq('workspaceId', profile.id);
-    const { data: userStrategy } = await supabase.from('strategies').select('*').eq('id', profile.id).single();
-    const { data: globalSettings } = await supabase.from('platform_settings').select('*').eq('id', 'global').single();
+    const [
+      { data: userDomains }, 
+      { data: userIntegrations }, 
+      { data: userStrategy }, 
+      { data: globalSettings },
+      { data: userJobs }
+    ] = await Promise.all([
+      supabase.from('domains').select('*').eq('workspaceId', profile.id),
+      supabase.from('integrations').select('*').eq('workspaceId', profile.id),
+      supabase.from('strategies').select('*').eq('id', profile.id).single(),
+      supabase.from('platform_settings').select('*').eq('id', 'global').single(),
+      supabase.from('active_jobs').select('*').eq('workspaceId', profile.id)
+    ]);
 
     if (userDomains) setDomains(userDomains);
     if (userIntegrations) setIntegrations(userIntegrations);
     if (userStrategy) setStrategy(userStrategy);
     if (globalSettings?.monetization_config) setMonetization(globalSettings.monetization_config);
+    if (userJobs) setActiveJobs(userJobs);
 
     setIsInitialLoading(false);
   }, []);
@@ -80,7 +94,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profileData } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        // Fixed: Add preferences property to UserProfile initialization
         const user: UserProfile = {
           id: session.user.id,
           email: session.user.email || '',
@@ -101,6 +114,24 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     boot();
   }, [loadUserData]);
 
+  const saveJob = async (job: ActiveJob) => {
+    setActiveJobs(prev => {
+      const existing = prev.findIndex(j => j.id === job.id);
+      if (existing >= 0) {
+        const next = [...prev];
+        next[existing] = job;
+        return next;
+      }
+      return [...prev, job];
+    });
+    await supabase.from('active_jobs').upsert(job);
+  };
+
+  const clearJob = async (id: string) => {
+    setActiveJobs(prev => prev.filter(j => j.id !== id));
+    await supabase.from('active_jobs').delete().eq('id', id);
+  };
+
   const updateMonetization = async (settings: PlatformMonetizationSettings) => {
     setMonetization(settings);
     await supabase.from('platform_settings').upsert({ id: 'global', monetization_config: settings });
@@ -108,19 +139,15 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const trackUsage = async (type: 'scan' | 'audit'): Promise<boolean> => {
     if (!activeProfile || !monetization.isMonetizationActive) return true;
-
     const plan = monetization.plans[activeProfile.subscriptionTier];
     const currentUsage = activeProfile.usageStats;
-    
     if (type === 'scan' && currentUsage.scansThisMonth >= plan.maxScans) return false;
     if (type === 'audit' && currentUsage.auditsThisMonth >= plan.maxAudits) return false;
-
     const updatedStats = {
       ...currentUsage,
       scansThisMonth: type === 'scan' ? currentUsage.scansThisMonth + 1 : currentUsage.scansThisMonth,
       auditsThisMonth: type === 'audit' ? currentUsage.auditsThisMonth + 1 : currentUsage.auditsThisMonth,
     };
-
     setActiveProfileState(prev => prev ? { ...prev, usageStats: updatedStats } : null);
     await supabase.from('profiles').update({ usage_stats: updatedStats }).eq('id', activeProfile.id);
     return true;
@@ -134,21 +161,20 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const signup = async (name: string, email: string, pass: string) => {
     const { user, needsConfirmation } = await AuthService.signup(name, email, pass);
-    if (user) {
-      await loadUserData(user, !needsConfirmation);
-    }
+    if (user) await loadUserData(user, !needsConfirmation);
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
     setActiveProfileState(null);
     setDomains([]);
+    setActiveJobs([]);
   };
 
   const addLog = useCallback((agent: string, message: string, type: ActivityLog['type'] = 'info') => {
     if (!activeProfile) return;
     const log: ActivityLog = { id: crypto.randomUUID(), workspaceId: activeProfile.id, time: new Date().toLocaleTimeString(), agent, message, type };
-    setActivityLogs(prev => [log, ...prev].slice(0, 50));
+    setActivityLogs(prev => [log, ...prev].slice(0, 30));
   }, [activeProfile]);
 
   const exportVault = useCallback(async () => {
@@ -204,12 +230,13 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo(() => ({
     activeProfile, isEmailConfirmed, setActiveProfile: setActiveProfileState, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
+    activeJobs, saveJob, clearJob,
     login, signup, logout, addLog, exportVault, importVault, wipeLocalVault, monetization, updateMonetization, trackUsage,
     connectService: (id: string, provider: string) => {
       if (!activeProfile) return;
       setIntegrations(prev => [...prev, { id, workspaceId: activeProfile.id, provider, name: provider.toUpperCase(), status: 'connected', impactArea: 'Global' }]);
     }
-  }), [activeProfile, isEmailConfirmed, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault, monetization]);
+  }), [activeProfile, isEmailConfirmed, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, activeJobs, monetization]);
 
   return <DomainContext.Provider value={value as any}>{children}</DomainContext.Provider>;
 };
