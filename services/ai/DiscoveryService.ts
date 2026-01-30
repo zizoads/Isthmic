@@ -5,7 +5,6 @@ import { supabase } from "../SupabaseClient";
 
 /**
  * Discovery Cache Logic
- * Saves expensive niche searches to Supabase.
  */
 async function getCachedDiscovery(prompt: string) {
   const cleanPrompt = prompt.toLowerCase().trim();
@@ -20,8 +19,8 @@ async function getCachedDiscovery(prompt: string) {
     const now = new Date();
     const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Discovery cache is valid for 3 days as markets move fast
-    if (diffDays <= 3) return data.results_json;
+    // تم تمديد صلاحية الكاش إلى 7 أيام لتقليل نداءات الـ API غير الضرورية
+    if (diffDays <= 7) return data.results_json;
   }
   return null;
 }
@@ -34,19 +33,15 @@ async function saveDiscoveryCache(prompt: string, results: any[]) {
   });
 }
 
-/**
- * Returns { data: any[], cached: boolean }
- */
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
-  // 1. Check Global Cache
   const cached = await getCachedDiscovery(prompt);
   if (cached) {
     return { data: cached, cached: true };
   }
 
-  // 2. Execute High-Cost AI Call
+  // استخدام الموديل Flash بدلاً من Pro لتجنب أخطاء الـ Quota في عمليات التنقيب المتكررة
   const results = await generateStructuredAI<any[]>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     `You are a strategic market miner. Language: ${lang}. Found alpha assets based on deep web research.`,
     `Execute sweep for: ${prompt}`,
     {
@@ -66,7 +61,6 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
     signal
   );
 
-  // 3. Persist to cache
   if (results && results.length > 0) {
     await saveDiscoveryCache(prompt, results);
   }
@@ -76,7 +70,7 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
 
 export const getDropSniperListAI = async (sector: string) => {
   return generateStructuredAI<any[]>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Elite drop-catching intelligence agent.",
     `Hunt for high-authority dropped domains in ${sector}.`,
     {
@@ -99,7 +93,7 @@ export const getDropSniperListAI = async (sector: string) => {
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Forensic sniper auditor.",
     `Deep audit for dropping domain: ${domainName}.`,
     {

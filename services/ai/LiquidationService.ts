@@ -4,7 +4,7 @@ import { generateStructuredAI } from "./base";
 
 export const optimizeAfternicListingAI = async (domainName: string, sector: string) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Registrar metadata optimizer.",
     `Optimize ${domainName} for Afternic in ${sector}.`,
     {
@@ -28,7 +28,7 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
 
 export const harvestBulkLeadsAI = async (domainName: string, sector: string) => {
   return generateStructuredAI<any[]>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Corporate prospecting engine.",
     `Harvest leads for ${domainName} in ${sector}. Identify key strategic decision makers.`,
     {
@@ -49,7 +49,7 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string) => 
 
 export const analyzeMarketPulseAI = async (sector: string, lang: 'ar' | 'en') => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     `Market momentum analyzer. Language: ${lang}.`,
     `Analyze pulse for ${sector}.`,
     {
@@ -73,7 +73,7 @@ export const analyzeMarketPulseAI = async (sector: string, lang: 'ar' | 'en') =>
 
 export const generateLeadGenBlueprintAI = async (domainName: string, sector: string) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Business model architect.",
     `Design blueprint for ${domainName}.`,
     {
@@ -90,19 +90,16 @@ export const generateLeadGenBlueprintAI = async (domainName: string, sector: str
 
 export const generatePersonaPitchAI = async (domainName: string, company: any, persona: string) => {
   return generateStructuredAI<string>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "High-conversion sales writer.",
     `Draft pitch for ${domainName} to ${persona} at ${company.companyName}. Synergy: ${company.synergyReason}.`,
     { type: Type.STRING }
   );
 };
 
-/**
- * محرك استخبارات المزادات - يحل مشكلة الاستيراد المفقود في التقرير.
- */
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "Auction market intelligence scout.",
     `Analyze auction trends and recent sales for: ${sectors.join(', ')}.`,
     {

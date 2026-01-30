@@ -4,10 +4,6 @@ import { generateStructuredAI } from "./base";
 import { PlatformStats } from "../../types";
 import { supabase } from "../SupabaseClient";
 
-/**
- * Sovereign Cache Engine
- * Checks if a domain has been audited recently to prevent redundant API calls.
- */
 async function checkCache(domainName: string) {
   const { data } = await supabase
     .from('domain_cache')
@@ -20,8 +16,8 @@ async function checkCache(domainName: string) {
     const now = new Date();
     const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Cache is valid for 7 days
-    if (diffDays <= 7) return data.result_json;
+    // صلاحية الكاش لـ 14 يوم لتقليل النداءات المتكررة لنفس النطاقات
+    if (diffDays <= 14) return data.result_json;
   }
   return null;
 }
@@ -34,20 +30,13 @@ async function updateCache(domainName: string, result: any) {
   });
 }
 
-/**
- * Returns { data: any, cached: boolean }
- */
 export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal): Promise<any> => {
-  // 1. Try to fetch from Sovereign Cache first
   const cached = await checkCache(domainName);
-  if (cached) {
-    console.log(`ISTHMIC_CACHE: Hit for ${domainName}. Skipping API.`);
-    return { data: cached, cached: true };
-  }
+  if (cached) return { data: cached, cached: true };
 
-  // 2. If not in cache, call Gemini
+  // استخدام Flash للتدقيق الأولي لزيادة سقف العمليات المسموح به قبل الوصول لـ Quota Exceeded
   const result = await generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     `You are a forensic domain auditor. Language: ${lang}. Analyze SEO, brand potential, and exit velocity.`,
     `Audit: ${domainName}. Ground research in live data.`,
     {
@@ -71,7 +60,6 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
     signal
   );
 
-  // 3. Save to cache for future users
   if (result && !result.error) {
     await updateCache(domainName, result);
   }
@@ -81,7 +69,7 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
 
 export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'en' = 'ar') => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-pro-preview', // الحفاظ على Pro للمناظرات المعقدة فقط
     `Multi-agent debate engine between Aggressive VC and Risk Auditor. Language: ${lang}`,
     `Debate acquisition strategy for: ${domainName}`,
     {
@@ -109,7 +97,7 @@ export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'e
 
 export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: string[]) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     "C-Suite investment strategist reporting engine.",
     `Generate memo for portfolio: ${JSON.stringify(stats)}. Focus: ${sectors.join(', ')}`,
     {
@@ -125,7 +113,7 @@ export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: s
 
 export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: string) => {
   return generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-3-flash-preview',
     `Nexus Prime Intelligence. Mode: ${mode}. Language: ${lang}`,
     `Execute deep intelligence for context: ${context}`,
     {
