@@ -1,17 +1,23 @@
 
-/* Isthmic Pro - Sovereign Identity CSS v8.0 */
+/* Isthmic Pro - Sovereign Identity CSS v9.0 */
 
 :root {
   --bg-main: #0a0a0c;
   --bg-card: #111113;
   --accent: #c5a059;
   
-  /* Precision Spacing System */
-  --header-height: 80px;
+  /* Fluid Spacing System */
+  --header-height: 70px;
   --sidebar-width: clamp(260px, 18vw, 300px);
   --ticker-height: 48px;
-  --safe-gap: clamp(1rem, 3vw, 2.5rem);
-  --card-radius: 32px;
+  --safe-gap: clamp(1rem, 4vw, 3rem);
+  --card-radius: clamp(1.5rem, 3vw, 3rem);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-height: 80px;
+  }
 }
 
 /* Global Reset */
@@ -28,7 +34,7 @@ body, html {
   font-family: 'Plus Jakarta Sans', sans-serif;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* يمنع تمرير الصفحة كاملة ويحصرها في الـ Main */
+  overflow: hidden;
 }
 
 #root {
@@ -36,62 +42,69 @@ body, html {
   width: 100%;
 }
 
-/* Structural Layout Grid */
+/* Structural Layout Grid - Responsive Optimized */
 .app-shell {
   display: grid;
   height: 100vh;
   width: 100vw;
   grid-template-areas: 
-    "sidebar header"
-    "sidebar main"
-    "ticker ticker";
-  grid-template-columns: var(--sidebar-width) 1fr;
+    "header"
+    "main"
+    "ticker";
+  grid-template-columns: 1fr;
   grid-template-rows: var(--header-height) 1fr var(--ticker-height);
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
   .app-shell {
     grid-template-areas: 
-      "header"
-      "main"
-      "ticker";
-    grid-template-columns: 1fr;
+      "sidebar header"
+      "sidebar main"
+      "ticker ticker";
+    grid-template-columns: var(--sidebar-width) 1fr;
     grid-template-rows: var(--header-height) 1fr var(--ticker-height);
   }
 }
 
-/* Main Content Area - THE ONLY SCROLLABLE PART */
+/* Main Content Area */
 main {
   grid-area: main;
   height: 100%;
-  overflow-y: auto; /* هذا هو التعديل الجوهري لضمان التمرير */
+  overflow-y: auto;
   overflow-x: hidden;
   padding: var(--safe-gap);
   scroll-behavior: smooth;
   background-color: var(--bg-main);
   position: relative;
-  display: block; /* يضمن سلوك الكتلة للتمرير */
 }
 
-/* Custom Scrollbar for Luxury Feel */
+/* Scrollbar Styling */
 main::-webkit-scrollbar {
-  width: 3px;
+  width: 4px;
 }
 main::-webkit-scrollbar-track {
   background: transparent;
 }
 main::-webkit-scrollbar-thumb {
-  background: rgba(197, 160, 89, 0.15);
+  background: rgba(197, 160, 89, 0.1);
   border-radius: 10px;
 }
-main::-webkit-scrollbar-thumb:hover {
-  background: rgba(197, 160, 89, 0.4);
+
+/* Bento Grid Helper */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--safe-gap);
 }
 
-/* Headers & Sidebar Pinned State */
-header { grid-area: header; }
-aside { grid-area: sidebar; }
-.ticker-container { grid-area: ticker; }
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .bento-span-12 { grid-column: span 12 / span 12; }
+  .bento-span-8 { grid-column: span 8 / span 8; }
+  .bento-span-4 { grid-column: span 4 / span 4; }
+}
 
 /* Component Consistency */
 .square-card {
@@ -102,21 +115,11 @@ aside { grid-area: sidebar; }
   overflow: hidden;
 }
 
-.icon-box {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  flex-shrink: 0;
-}
-
 .prestige-heading {
   font-family: 'Cormorant Garamond', serif;
+  line-height: 0.9;
 }
 
-/* Noise & Depth */
 .noise-bg {
   position: fixed;
   inset: 0;
@@ -126,12 +129,21 @@ aside { grid-area: sidebar; }
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Navigation Animation */
 @keyframes fadeInContent {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-precision {
-  animation: fadeInContent 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInContent 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Horizontal Scroll for Mobile Tabs */
+.scroll-x-mobile {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-x-mobile::-webkit-scrollbar {
+  display: none;
 }
