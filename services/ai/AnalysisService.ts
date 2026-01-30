@@ -2,13 +2,54 @@
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
 import { PlatformStats } from "../../types";
+import { supabase } from "../SupabaseClient";
 
-// Fix: Added signal parameter to match EvaluationDashboard call and Promise<any> return
+/**
+ * Sovereign Cache Engine
+ * Checks if a domain has been audited recently to prevent redundant API calls.
+ */
+async function checkCache(domainName: string) {
+  const { data } = await supabase
+    .from('domain_cache')
+    .select('*')
+    .eq('domain_name', domainName.toLowerCase())
+    .single();
+
+  if (data) {
+    const cacheDate = new Date(data.created_at);
+    const now = new Date();
+    const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Cache is valid for 7 days
+    if (diffDays <= 7) return data.result_json;
+  }
+  return null;
+}
+
+async function updateCache(domainName: string, result: any) {
+  await supabase.from('domain_cache').upsert({
+    domain_name: domainName.toLowerCase(),
+    result_json: result,
+    created_at: new Date().toISOString()
+  });
+}
+
+/**
+ * Returns { data: any, cached: boolean }
+ */
 export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal): Promise<any> => {
-  return generateStructuredAI<any>(
+  // 1. Try to fetch from Sovereign Cache first
+  const cached = await checkCache(domainName);
+  if (cached) {
+    console.log(`ISTHMIC_CACHE: Hit for ${domainName}. Skipping API.`);
+    return { data: cached, cached: true };
+  }
+
+  // 2. If not in cache, call Gemini
+  const result = await generateStructuredAI<any>(
     'gemini-3-pro-preview',
-    `You are a forensic domain auditor. Language: ${lang}.`,
-    `Audit: ${domainName}. Analyze SEO, brand potential, and exit velocity.`,
+    `You are a forensic domain auditor. Language: ${lang}. Analyze SEO, brand potential, and exit velocity.`,
+    `Audit: ${domainName}. Ground research in live data.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -25,11 +66,19 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
           }
         }
       }
-    }
+    },
+    [{ googleSearch: {} }],
+    signal
   );
+
+  // 3. Save to cache for future users
+  if (result && !result.error) {
+    await updateCache(domainName, result);
+  }
+
+  return { data: result, cached: false };
 };
 
-// Fix: Added lang parameter to match AgentReasoningLab call
 export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'en' = 'ar') => {
   return generateStructuredAI<any>(
     'gemini-3-pro-preview',
@@ -74,7 +123,6 @@ export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: s
   );
 };
 
-// Fix: Added missing nexusPrimeIntelligenceAI function
 export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: string) => {
   return generateStructuredAI<any>(
     'gemini-3-pro-preview',

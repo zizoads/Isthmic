@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import ExecutiveReportDashboard from '../ExecutiveReportDashboard';
 import IntegrationCenter from '../IntegrationCenter';
+import PricingTerminal from '../PricingTerminal';
 import { Domain, PlatformStats, ServiceIntegration } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 
@@ -14,8 +15,9 @@ interface Props {
 }
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
-  const { activeProfile, isEmailConfirmed, exportVault, importVault, wipeLocalVault } = useDomainContext();
+  const { activeProfile, isEmailConfirmed, exportVault, importVault, wipeLocalVault, monetization } = useDomainContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
+  const [showPricing, setShowPricing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!activeProfile) return null;
@@ -30,8 +32,12 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
     reader.readAsText(file);
   };
 
+  const currentPlan = monetization.plans[activeProfile.subscriptionTier];
+
   return (
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
+
       {/* Header Profile Section */}
       <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-10 lg:p-14 overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
@@ -47,15 +53,18 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
               {activeProfile.name}
             </h2>
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 items-center">
-              <span className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.3em] bg-[#c5a059]/10 px-4 py-1.5 rounded-full border border-[#c5a059]/20">
-                Rank: {activeProfile.role}
-              </span>
+              <button 
+                onClick={() => setShowPricing(true)}
+                className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.3em] bg-[#c5a059]/10 px-4 py-1.5 rounded-full border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all"
+              >
+                Access: {activeProfile.subscriptionTier} Tier
+              </button>
               <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${
                 isEmailConfirmed 
                 ? 'bg-green-500/10 text-green-500 border-green-500/20' 
                 : 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse'
               }`}>
-                {isEmailConfirmed ? 'Identity Verified' : 'Unverified Identity (Check Spam)'}
+                {isEmailConfirmed ? 'Identity Verified' : 'Unverified Identity'}
               </span>
             </div>
           </div>
@@ -95,52 +104,43 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                     <div className="text-white text-lg font-medium">{activeProfile.email}</div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Date</label>
-                    <div className="text-white text-lg font-medium">{new Date(activeProfile.createdAt).toLocaleDateString()}</div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Default Language</label>
-                    <div className="text-white text-lg font-medium">Standard English (Precision)</div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Interface Mode</label>
-                    <div className="text-white text-lg font-medium italic">Sovereign Dark Mode</div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Subscription Quota</label>
+                    <div className="text-white text-sm font-bold uppercase">
+                      {activeProfile.usageStats.scansThisMonth} / {currentPlan.maxScans} Scans Used
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {!isEmailConfirmed && (
-                <div className="bg-amber-500/10 border border-amber-500/20 p-10 rounded-[40px] flex items-center gap-8">
-                  <div className="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center text-2xl shrink-0">
-                    <i className="fas fa-envelope-open-text"></i>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold text-xl mb-2">Pending Identity Verification</h4>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      Your identity is not yet fully anchored in the sovereign cloud. Check your email (including <b>Spam/Junk</b> folders) for the confirmation link.
-                    </p>
-                    <button className="mt-4 text-[#c5a059] text-[10px] font-black uppercase tracking-widest hover:underline">Resend Verification Signal</button>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-10">
                <div className="square-card p-10 bg-gradient-to-br from-[#161618] to-[#0a0a0c]">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8">Platform Statistics</h3>
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8">System Usage</h3>
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">Total Discovery Ops</span>
-                      <span className="text-white font-bold">{stats.totalDiscovered}</span>
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[8px] font-black uppercase text-slate-600">
+                          <span>AI Inference</span>
+                          <span>{Math.round((activeProfile.usageStats.scansThisMonth / currentPlan.maxScans) * 100)}%</span>
+                       </div>
+                       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div className="bg-[#c5a059] h-full" style={{ width: `${(activeProfile.usageStats.scansThisMonth / currentPlan.maxScans) * 100}%` }}></div>
+                       </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">Negotiation Wins</span>
-                      <span className="text-green-500 font-bold">{stats.openRate}%</span>
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[8px] font-black uppercase text-slate-600">
+                          <span>Forensic Audit</span>
+                          <span>{Math.round((activeProfile.usageStats.auditsThisMonth / currentPlan.maxAudits) * 100)}%</span>
+                       </div>
+                       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div className="bg-indigo-500 h-full" style={{ width: `${(activeProfile.usageStats.auditsThisMonth / currentPlan.maxAudits) * 100}%` }}></div>
+                       </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-400">Alpha Yield</span>
-                      <span className="text-[#c5a059] font-bold">High</span>
-                    </div>
+                    <button 
+                      onClick={() => setShowPricing(true)}
+                      className="w-full py-4 mt-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase text-white hover:bg-white hover:text-black transition-all"
+                    >
+                      UPGRADE ACCESS
+                    </button>
                   </div>
                </div>
             </div>
@@ -148,7 +148,6 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
         )}
 
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
-        
         {activeTab === 'reports' && <ExecutiveReportDashboard domains={domains} stats={stats} lang={lang} />}
         
         {activeTab === 'vault' && (

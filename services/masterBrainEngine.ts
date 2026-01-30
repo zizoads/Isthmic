@@ -41,7 +41,10 @@ export class MasterBrainEngine {
 
   async generateTermSheet(domain: Domain): Promise<string> {
     this.addThought(AgentRole.LIQUIDATOR, `Architecting high-stakes legal framework for: ${domain.name}...`, "thinking");
+    // Get AI client instance
     const ai = AIService.getAIClient();
+    // Safety check for API key
+    if (!ai) throw new Error("AI_KEY_MISSING");
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Generate a binding Domain Sales Agreement for ${domain.name}. Price: $${domain.price}. Legal jurisdiction: International Digital Asset Law. Focus on Escrow security.`,
@@ -63,15 +66,19 @@ export class MasterBrainEngine {
   async executeSovereignLoop(strategy: PlatformStrategy): Promise<Domain[]> {
     this.addThought(AgentRole.STRATEGIST, "Launching Recursive Sovereign Cycle (V5)...", "thinking");
     
+    // Fixed: rigorousDiscoveryAI returns { data, cached }
     const rawOpportunities = await AIService.rigorousDiscoveryAI(strategy.investmentThesis);
-    this.addThought(AgentRole.EXECUTOR, `Frontier sweep complete. ${rawOpportunities.length} potential alpha assets identified.`);
+    this.addThought(AgentRole.EXECUTOR, `Frontier sweep complete. ${rawOpportunities.data.length} potential alpha assets identified.`);
 
     const auditedDomains: Domain[] = [];
-    for (const opp of rawOpportunities.slice(0, 3)) {
+    // Fixed: access .data for slicing
+    for (const opp of rawOpportunities.data.slice(0, 3)) {
       this.addThought(AgentRole.AUDITOR, `Forensic Audit in progress for: ${opp.name}...`, "thinking");
+      // evaluateDomainExpertAI returns { data, cached }
       const auditResult = await AIService.evaluateDomainExpertAI(opp.name);
       
-      if (auditResult.probability > 0.65) {
+      // Fixed: check .data and access nested properties
+      if (auditResult.data && auditResult.data.probability > 0.65) {
         auditedDomains.push({
           id: Math.random().toString(36).substr(2, 9),
           // Added workspaceId using strategy.id which represents the profile ID
@@ -80,9 +87,9 @@ export class MasterBrainEngine {
           price: opp.estimatedPrice || 250,
           status: 'available',
           contentStatus: 'none',
-          sector: auditResult.sector,
-          probability: auditResult.probability,
-          justification: auditResult.justification,
+          sector: auditResult.data.sector,
+          probability: auditResult.data.probability,
+          justification: auditResult.data.justification,
           lastChecked: new Date().toISOString(),
           financials: {
             acquisitionCost: opp.estimatedPrice || 250,
@@ -92,7 +99,7 @@ export class MasterBrainEngine {
             netProfit: (opp.estimatedPrice || 250) * 14,
             platformFees: (opp.estimatedPrice || 250) * 0.15,
             escrowFees: (opp.estimatedPrice || 250) * 0.03,
-            liquidityScore: Math.round(auditResult.probability * 100),
+            liquidityScore: Math.round(auditResult.data.probability * 100),
             alphaScore: 88
           }
         });

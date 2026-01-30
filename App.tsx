@@ -4,6 +4,7 @@ import { AgentType, Domain } from './types';
 import { DomainProvider, useDomainContext } from './context/DomainContext';
 import { useMasterBrain } from './hooks/useMasterBrain';
 import { checkSupabaseConnection } from './services/SupabaseClient';
+import { AuthService } from './services/AuthService';
 
 // Hubs
 import IntelligenceHub from './components/hubs/IntelligenceHub';
@@ -18,8 +19,10 @@ import CommandPalette from './components/CommandPalette';
 import AgentReasoningLab from './components/AgentReasoningLab';
 import SonnerNotification from './components/SonnerNotification';
 import TickerTape from './components/TickerTape';
+import OnboardingTour from './components/OnboardingTour';
+import LegalModal from './components/LegalModal';
 
-const LandingPage: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
+const LandingPage: React.FC<{ onAuth: () => void, openLegal: (type: 'tos' | 'privacy') => void }> = ({ onAuth, openLegal }) => {
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#c5a059]/30 overflow-x-hidden relative">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -132,8 +135,14 @@ const LandingPage: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
              <i className="fas fa-cube"></i>
              <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.4em] lg:tracking-[0.5em]">Isthmic Pro</span>
           </div>
-          <div className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-slate-600 text-center">
-            © 2024 Sovereign Asset Management Protocol. All rights reserved.
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-slate-600 text-center">
+              © 2024 Sovereign Asset Management Protocol. All rights reserved.
+            </div>
+            <div className="flex gap-6 mt-2">
+              <button onClick={() => openLegal('tos')} className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-[#c5a059] transition-colors">Terms of Service</button>
+              <button onClick={() => openLegal('privacy')} className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-[#c5a059] transition-colors">Privacy Policy</button>
+            </div>
           </div>
           <div className="flex gap-6 lg:gap-8 text-slate-500">
              <i className="fab fa-twitter hover:text-[#c5a059] cursor-pointer"></i>
@@ -148,11 +157,12 @@ const LandingPage: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
 
 const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { isInitialLoading, signup, login } = useDomainContext() as any;
-  const [view, setView] = useState<'login' | 'signup' | 'loading'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'loading' | 'forgot'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   useEffect(() => {
@@ -184,6 +194,18 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     } catch (e: any) {
       setError(e.message);
       setView('login');
+    }
+  };
+
+  const handleReset = async () => {
+    if (!email) { setError('يرجى إدخال البريد الإلكتروني أولاً'); return; }
+    setError(null);
+    try {
+      await AuthService.resetPassword(email);
+      setInfo('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني بنجاح.');
+      setTimeout(() => setView('login'), 3000);
+    } catch (e: any) {
+      setError(e.message);
     }
   };
 
@@ -226,20 +248,43 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
           )}
 
-          {view === 'login' ? (
+          {info && (
+            <div className="mb-6 p-4 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-2xl text-[#c5a059] text-[10px] font-bold text-center leading-relaxed">
+              {info}
+            </div>
+          )}
+
+          {view === 'login' && (
             <div className="space-y-4">
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleLogin} disabled={serverStatus === 'offline'} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50">دخول آمن</button>
+              <div className="flex justify-end">
+                <button onClick={() => setView('forgot')} className="text-slate-500 text-[8px] font-black uppercase hover:text-white transition-colors">نسيت كلمة المرور؟</button>
+              </div>
+              <button onClick={handleLogin} disabled={serverStatus === 'offline'} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50 shadow-xl">دخول آمن</button>
               <button onClick={() => setView('signup')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">إنشاء هوية جديدة</button>
             </div>
-          ) : (
+          )}
+
+          {view === 'signup' && (
             <div className="space-y-4">
               <input type="text" placeholder="الاسم الكامل" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleSignup} disabled={serverStatus === 'offline'} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50">تسجيل الهوية</button>
+              <button onClick={handleSignup} disabled={serverStatus === 'offline'} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 shadow-xl">تسجيل الهوية</button>
               <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة لتسجيل الدخول</button>
+            </div>
+          )}
+
+          {view === 'forgot' && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-white text-lg font-bold">استعادة الوصول</h3>
+                <p className="text-slate-500 text-[10px] uppercase font-black">أدخل بريدك الإلكتروني لإرسال رابط التشفير</p>
+              </div>
+              <input type="email" placeholder="البريد الإلكتروني المسجل" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
+              <button onClick={handleReset} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-xl">إرسال رابط التعيين</button>
+              <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة للدخول</button>
             </div>
           )}
         </div>
@@ -255,11 +300,34 @@ const AppContent: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
   const [view, setView] = useState<'landing' | 'auth'>('landing');
+  const [showTour, setShowTour] = useState(false);
+  const [legalView, setLegalView] = useState<'tos' | 'privacy' | null>(null);
   const { isScanning, initiateScan } = useMasterBrain(strategy, 'en');
+
+  useEffect(() => {
+    if (activeProfile) {
+      const tourCompleted = localStorage.getItem(`isthmic_tour_v1_${activeProfile.id}`);
+      if (!tourCompleted) {
+        setShowTour(true);
+      }
+    }
+  }, [activeProfile]);
+
+  const handleTourComplete = () => {
+    if (activeProfile) {
+      localStorage.setItem(`isthmic_tour_v1_${activeProfile.id}`, 'true');
+    }
+    setShowTour(false);
+  };
 
   if (!activeProfile) {
     if (view === 'auth') return <LoginScreen onBack={() => setView('landing')} />;
-    return <LandingPage onAuth={() => setView('auth')} />;
+    return (
+      <>
+        <LandingPage onAuth={() => setView('auth')} openLegal={(type) => setLegalView(type)} />
+        {legalView && <LegalModal type={legalView} onClose={() => setLegalView(null)} lang="en" />}
+      </>
+    );
   }
 
   const isAdmin = activeProfile.role === 'Admin';
@@ -273,6 +341,8 @@ const AppContent: React.FC = () => {
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} lang="en" onClose={() => setInspectedDomain(null)} />}
       
+      {showTour && <OnboardingTour onComplete={handleTourComplete} lang="en" />}
+
       <aside className={`z-[200] bg-[#111113] border-white/5 transition-all duration-500 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)] shadow-2xl' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
         <div className="p-8 lg:p-10 flex flex-col h-full">
           <div className="flex items-center justify-between mb-12 lg:mb-16">

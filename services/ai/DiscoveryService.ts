@@ -1,9 +1,51 @@
 
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
+import { supabase } from "../SupabaseClient";
 
+/**
+ * Discovery Cache Logic
+ * Saves expensive niche searches to Supabase.
+ */
+async function getCachedDiscovery(prompt: string) {
+  const cleanPrompt = prompt.toLowerCase().trim();
+  const { data } = await supabase
+    .from('discovery_cache')
+    .select('*')
+    .eq('search_query', cleanPrompt)
+    .single();
+
+  if (data) {
+    const cacheDate = new Date(data.created_at);
+    const now = new Date();
+    const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Discovery cache is valid for 3 days as markets move fast
+    if (diffDays <= 3) return data.results_json;
+  }
+  return null;
+}
+
+async function saveDiscoveryCache(prompt: string, results: any[]) {
+  await supabase.from('discovery_cache').upsert({
+    search_query: prompt.toLowerCase().trim(),
+    results_json: results,
+    created_at: new Date().toISOString()
+  });
+}
+
+/**
+ * Returns { data: any[], cached: boolean }
+ */
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
-  return generateStructuredAI<any[]>(
+  // 1. Check Global Cache
+  const cached = await getCachedDiscovery(prompt);
+  if (cached) {
+    return { data: cached, cached: true };
+  }
+
+  // 2. Execute High-Cost AI Call
+  const results = await generateStructuredAI<any[]>(
     'gemini-3-pro-preview',
     `You are a strategic market miner. Language: ${lang}. Found alpha assets based on deep web research.`,
     `Execute sweep for: ${prompt}`,
@@ -23,6 +65,13 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
     [{ googleSearch: {} }],
     signal
   );
+
+  // 3. Persist to cache
+  if (results && results.length > 0) {
+    await saveDiscoveryCache(prompt, results);
+  }
+
+  return { data: results, cached: false };
 };
 
 export const getDropSniperListAI = async (sector: string) => {

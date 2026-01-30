@@ -4,11 +4,33 @@ export interface UserProfile {
   name: string;
   email: string;
   role: 'Admin' | 'Executive' | 'Strategist' | 'Analyst';
+  subscriptionTier: 'Free' | 'Pro' | 'Sovereign';
+  usageStats: {
+    scansThisMonth: number;
+    auditsThisMonth: number;
+  };
   avatar?: string;
   createdAt: string;
   lastSync?: string;
   isSyncEnabled: boolean;
   googleId?: string;
+}
+
+export interface PlatformMonetizationSettings {
+  isMonetizationActive: boolean;
+  currency: string;
+  plans: {
+    Free: PlanDetails;
+    Pro: PlanDetails;
+    Sovereign: PlanDetails;
+  };
+}
+
+export interface PlanDetails {
+  price: number;
+  maxScans: number;
+  maxAudits: number;
+  features: string[];
 }
 
 export enum AgentType {
@@ -44,7 +66,7 @@ export interface ThinkingStep {
 
 export interface Domain {
   id: string;
-  workspaceId: string; // رابط مباشر مع User ID
+  workspaceId: string; 
   name: string;
   price: number;
   status: 'available' | 'purchased' | 'negotiating' | 'sold' | 'watching' | 'processing';

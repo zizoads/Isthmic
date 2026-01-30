@@ -26,6 +26,8 @@ export class AuthService {
         name: name,
         email: email,
         role: role,
+        subscription_tier: 'Free',
+        usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
         created_at: new Date().toISOString()
       }]);
 
@@ -38,6 +40,8 @@ export class AuthService {
           name,
           email,
           role: role as any,
+          subscriptionTier: 'Free',
+          usageStats: { scansThisMonth: 0, auditsThisMonth: 0 },
           createdAt: authData.user.created_at,
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
@@ -63,8 +67,6 @@ export class AuthService {
         .eq('id', data.user.id)
         .single();
 
-      // Priority 1: Use Database Role. 
-      // Priority 2: Fallback to Admin if it's the bootstrap owner.
       const finalRole = profileData?.role || (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
 
       return {
@@ -72,6 +74,8 @@ export class AuthService {
         email: data.user.email || '',
         name: profileData?.name || data.user.user_metadata?.display_name || 'User',
         role: finalRole as any,
+        subscriptionTier: profileData?.subscription_tier || 'Free',
+        usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
         createdAt: data.user.created_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
@@ -79,5 +83,12 @@ export class AuthService {
     } catch (error: any) {
       throw error;
     }
+  }
+
+  static async resetPassword(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (error) throw error;
   }
 }

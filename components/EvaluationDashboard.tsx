@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Domain, ThinkingStep } from '../types';
 import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../services/geminiService';
 import { translations } from '../translations';
+import { useDomainContext } from '../context/DomainContext';
 
 interface Props {
   domains: Domain[];
@@ -13,14 +14,17 @@ interface Props {
 
 const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
   const t = translations[lang];
+  const { trackUsage } = useDomainContext();
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
+  const [isCached, setIsCached] = useState(false);
   const [liveSteps, setLiveSteps] = useState<ThinkingStep[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleEvaluate = async (domain: Domain) => {
     setEvaluatingId(domain.id);
     setActiveAnalysis(null);
+    setIsCached(false);
     abortControllerRef.current = new AbortController();
 
     setLiveSteps([
@@ -30,24 +34,31 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
     ]);
 
     try {
-      // Cast the first result of Promise.all to any because it's a placeholder returning {} in geminiServiceLegacy.ts
-      const [result, tmResult] = await Promise.all([
-        evaluateDomainExpertAI(domain.name, lang, abortControllerRef.current.signal) as Promise<any>,
-        checkTrademarkRiskAI(domain.name)
-      ]);
+      // 1. Check Forensic Engine (with Cache)
+      const response = await evaluateDomainExpertAI(domain.name, lang, abortControllerRef.current.signal);
       
-      if (result) {
+      // 2. Parallel Trademark Check
+      const tmResult = await checkTrademarkRiskAI(domain.name);
+      
+      if (response) {
         setLiveSteps(prev => prev.map(s => ({ ...s, status: 'complete' as const })));
-        setActiveAnalysis(result);
+        setActiveAnalysis(response.data);
+        setIsCached(response.cached);
         
+        if (!response.cached) {
+          await trackUsage('audit');
+          addLog('System', `Live Forensic Audit complete for ${domain.name}`, 'success');
+        } else {
+          addLog('System', `Institutional Memory Hit for ${domain.name}`, 'success');
+        }
+
         setDomains(prev => prev.map(d => d.id === domain.id ? {
           ...d,
-          sector: result.sector,
-          probability: result.probability,
-          justification: result.justification,
-          technicalMetrics: { ...result.technicalMetrics, trademarkRisk: tmResult }
+          sector: response.data.sector,
+          probability: response.data.probability,
+          justification: response.data.justification,
+          technicalMetrics: { ...response.data.technicalMetrics, trademarkRisk: tmResult }
         } : d));
-        addLog('System', `${t.passed}: ${domain.name}`, 'success');
       }
     } catch (e: any) {
       if (e.message === 'Aborted') {
@@ -133,13 +144,20 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
           <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[#0b0e14] to-transparent pointer-events-none"></div>
         </div>
 
-        <div className="glass dark:glass-dark rounded-[40px] p-8 lg:p-10 flex-1 flex flex-col min-h-[250px]">
+        <div className="glass dark:glass-dark rounded-[40px] p-8 lg:p-10 flex-1 flex flex-col min-h-[250px] relative">
           <h4 className={`text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.investmentReport}</h4>
           {activeAnalysis ? (
             <div className={`space-y-6 animate-fade-in ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-              <div className="flex items-center gap-6 mb-8">
-                <div className="text-4xl font-black text-indigo-600">{activeAnalysis.probability ? Math.round(activeAnalysis.probability * 100) : 0}%</div>
-                <div className="text-[9px] font-black text-slate-400 uppercase leading-none">{t.liquidityScore}</div>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-6">
+                  <div className="text-4xl font-black text-indigo-600">{activeAnalysis.probability ? Math.round(activeAnalysis.probability * 100) : 0}%</div>
+                  <div className="text-[9px] font-black text-slate-400 uppercase leading-none">{t.liquidityScore}</div>
+                </div>
+                {isCached && (
+                  <span className="px-3 py-1 bg-green-500/10 text-green-500 border border-green-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">
+                    Institutional Memory Hit
+                  </span>
+                )}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic">
                 "{activeAnalysis.justification}"

@@ -3,8 +3,8 @@ import React, { useState, useRef } from 'react';
 import { Domain } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
 import { translations } from '../translations';
-// Added useDomainContext import
 import { useDomainContext } from '../context/DomainContext';
+import PricingTerminal from './PricingTerminal';
 
 interface Props {
   domains: Domain[];
@@ -15,24 +15,37 @@ interface Props {
 
 const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
   const t = translations[lang];
-  // Get activeProfile from context
-  const { activeProfile } = useDomainContext();
+  const { activeProfile, trackUsage } = useDomainContext();
   const [prompt, setPrompt] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isCachedResult, setIsCachedResult] = useState(false);
   const [scannedResults, setScannedResults] = useState<any[]>([]);
+  const [showPricing, setShowPricing] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleSearch = async () => {
     if (!prompt) return;
+
     setIsSearching(true);
     setScannedResults([]);
+    setIsCachedResult(false);
     abortControllerRef.current = new AbortController();
+    
     addLog('Discovery', lang === 'ar' ? 'بدء تنقيب السوق الاستراتيجي...' : 'Initiating strategic market mining...', 'info');
 
     try {
-      const results = await rigorousDiscoveryAI(prompt, lang, abortControllerRef.current.signal);
-      setScannedResults(results);
-      addLog('Discovery', `Mining complete. Found ${results.length} opportunities.`, 'success');
+      const response = await rigorousDiscoveryAI(prompt, lang, abortControllerRef.current.signal);
+      
+      if (response.cached) {
+        setIsCachedResult(true);
+        addLog('System', lang === 'ar' ? 'تم استدعاء النتائج من الذاكرة المؤسسية بنجاح.' : 'Retrieved results from Institutional Memory.', 'success');
+      } else {
+        // Track usage only for NEW AI calls to protect tokens
+        await trackUsage('scan');
+        addLog('Discovery', `Mining complete via Live AI. Found ${response.data.length} opportunities.`, 'success');
+      }
+      
+      setScannedResults(response.data);
     } catch (e: any) {
       if (e.name === 'AbortError') addLog('System', t.processAborted, 'warning');
       else addLog('System', 'Engine communication failure', 'critical');
@@ -47,11 +60,9 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
   };
 
   const addAllToPipeline = () => {
-    // Check if activeProfile exists
     if (!activeProfile) return;
     const formatted: Domain[] = scannedResults.map(r => ({
       id: globalThis.crypto.randomUUID(),
-      // Added workspaceId
       workspaceId: activeProfile.id,
       name: r.name,
       price: r.estimatedPrice || 250,
@@ -68,6 +79,8 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
 
   return (
     <div className="space-y-16 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
+
       <div className="max-w-5xl mx-auto">
         <div className={`square-card p-2 transition-all duration-500 ${isSearching ? 'border-indigo-500 ring-4 ring-indigo-500/10' : ''}`}>
           <div className="bg-[#050507] rounded-[22px] p-6 lg:p-10 relative overflow-hidden">
@@ -85,7 +98,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
                     <i className="fas fa-satellite text-indigo-400"></i>
                     <span>Gemini_3_Pro</span>
                   </div>
-                  <div className="hidden sm:block">Grounding: Search_Live</div>
+                  <div className="hidden sm:block">Mode: Institutional_Memory_Enabled</div>
                </div>
 
                <div className="flex items-center gap-4 w-full md:w-auto">
@@ -107,9 +120,6 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
                  )}
                </div>
             </div>
-            
-            {/* Design detail from Square UI: Subtle accent in background */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -119,7 +129,14 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
            <div className="flex justify-between items-end border-b border-white/5 pb-6">
               <div>
                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Inferred_Opportunities</h3>
-                <div className="text-3xl font-black text-white mt-1 italic tracking-tighter">Harvested_ {scannedResults.length} Assets</div>
+                <div className="flex items-center gap-4 mt-1">
+                   <div className="text-3xl font-black text-white italic tracking-tighter">Harvested_ {scannedResults.length} Assets</div>
+                   {isCachedResult && (
+                     <span className="px-4 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-2">
+                        <i className="fas fa-bolt"></i> Institutional Memory Hit
+                     </span>
+                   )}
+                </div>
               </div>
               <button onClick={addAllToPipeline} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">
                 <i className="fas fa-plus-circle mr-2"></i> Add All To Pipeline

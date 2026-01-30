@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile } from '../types';
+import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, Notification, PlatformStats, UserProfile, PlatformMonetizationSettings } from '../types';
 import { AuthService } from '../services/AuthService';
 import { supabase } from '../services/SupabaseClient';
 
@@ -16,6 +16,8 @@ interface DomainContextType {
   activityLogs: ActivityLog[];
   notifications: Notification[];
   stats: PlatformStats;
+  monetization: PlatformMonetizationSettings;
+  updateMonetization: (settings: PlatformMonetizationSettings) => Promise<void>;
   isInitialLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   signup: (name: string, email: string, pass: string) => Promise<void>;
@@ -25,6 +27,7 @@ interface DomainContextType {
   exportVault: () => Promise<void>;
   importVault: (json: string) => Promise<void>;
   wipeLocalVault: () => Promise<void>;
+  trackUsage: (type: 'scan' | 'audit') => Promise<boolean>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -37,6 +40,16 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [monetization, setMonetization] = useState<PlatformMonetizationSettings>({
+    isMonetizationActive: false,
+    currency: 'USD',
+    plans: {
+      Free: { price: 0, maxScans: 5, maxAudits: 2, features: ['Core Discovery', 'Basic Analytics'] },
+      Pro: { price: 49, maxScans: 100, maxAudits: 50, features: ['Drop Sniper', 'Forensic TM Audit', 'Priority AI'] },
+      Sovereign: { price: 199, maxScans: 9999, maxAudits: 9999, features: ['Unlimited Agents', 'API Access', 'Dedicated Node'] }
+    }
+  });
+
   const [strategy, setStrategy] = useState<PlatformStrategy>({
     id: 'default',
     totalBudget: 50000,
@@ -52,11 +65,12 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const { data: userDomains } = await supabase.from('domains').select('*').eq('workspaceId', profile.id);
     const { data: userIntegrations } = await supabase.from('integrations').select('*').eq('workspaceId', profile.id);
     const { data: userStrategy } = await supabase.from('strategies').select('*').eq('id', profile.id).single();
+    const { data: globalSettings } = await supabase.from('platform_settings').select('*').eq('id', 'global').single();
 
     if (userDomains) setDomains(userDomains);
     if (userIntegrations) setIntegrations(userIntegrations);
     if (userStrategy) setStrategy(userStrategy);
-    else setStrategy({ id: profile.id, totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: '' });
+    if (globalSettings?.monetization_config) setMonetization(globalSettings.monetization_config);
 
     setIsInitialLoading(false);
   }, []);
@@ -71,6 +85,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           email: session.user.email || '',
           name: profileData?.name || 'User',
           role: profileData?.role || 'Executive',
+          subscriptionTier: profileData?.subscription_tier || 'Free',
+          usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
           createdAt: session.user.created_at,
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.id}`
@@ -82,6 +98,31 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     boot();
   }, [loadUserData]);
+
+  const updateMonetization = async (settings: PlatformMonetizationSettings) => {
+    setMonetization(settings);
+    await supabase.from('platform_settings').upsert({ id: 'global', monetization_config: settings });
+  };
+
+  const trackUsage = async (type: 'scan' | 'audit'): Promise<boolean> => {
+    if (!activeProfile || !monetization.isMonetizationActive) return true;
+
+    const plan = monetization.plans[activeProfile.subscriptionTier];
+    const currentUsage = activeProfile.usageStats;
+    
+    if (type === 'scan' && currentUsage.scansThisMonth >= plan.maxScans) return false;
+    if (type === 'audit' && currentUsage.auditsThisMonth >= plan.maxAudits) return false;
+
+    const updatedStats = {
+      ...currentUsage,
+      scansThisMonth: type === 'scan' ? currentUsage.scansThisMonth + 1 : currentUsage.scansThisMonth,
+      auditsThisMonth: type === 'audit' ? currentUsage.auditsThisMonth + 1 : currentUsage.auditsThisMonth,
+    };
+
+    setActiveProfileState(prev => prev ? { ...prev, usageStats: updatedStats } : null);
+    await supabase.from('profiles').update({ usage_stats: updatedStats }).eq('id', activeProfile.id);
+    return true;
+  };
 
   const login = async (email: string, pass: string) => {
     const user = await AuthService.login(email, pass);
@@ -161,12 +202,12 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo(() => ({
     activeProfile, isEmailConfirmed, setActiveProfile: setActiveProfileState, domains, setDomains, strategy, setStrategy, integrations, activityLogs, notifications, stats, isInitialLoading,
-    login, signup, logout, addLog, exportVault, importVault, wipeLocalVault,
+    login, signup, logout, addLog, exportVault, importVault, wipeLocalVault, monetization, updateMonetization, trackUsage,
     connectService: (id: string, provider: string) => {
       if (!activeProfile) return;
       setIntegrations(prev => [...prev, { id, workspaceId: activeProfile.id, provider, name: provider.toUpperCase(), status: 'connected', impactArea: 'Global' }]);
     }
-  }), [activeProfile, isEmailConfirmed, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault]);
+  }), [activeProfile, isEmailConfirmed, domains, strategy, integrations, activityLogs, notifications, stats, isInitialLoading, exportVault, importVault, wipeLocalVault, monetization]);
 
   return <DomainContext.Provider value={value as any}>{children}</DomainContext.Provider>;
 };
