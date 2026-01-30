@@ -9,11 +9,27 @@ export interface UserProfile {
     scansThisMonth: number;
     auditsThisMonth: number;
   };
+  preferences: {
+    emailAlerts: boolean;
+    sniperNotifications: boolean;
+    reportReadiness: boolean;
+  };
   avatar?: string;
   createdAt: string;
   lastSync?: string;
   isSyncEnabled: boolean;
   googleId?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  actionType: 'USER_UPDATE' | 'PLAN_UPDATE' | 'SYSTEM_CONFIG' | 'SECURITY_BREACH' | 'VAULT_WIPE';
+  description: string;
+  targetIdentity: string;
+  severity: 'info' | 'warning' | 'critical';
 }
 
 export interface PlatformMonetizationSettings {

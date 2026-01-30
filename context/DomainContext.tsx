@@ -80,6 +80,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profileData } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        // Fixed: Add preferences property to UserProfile initialization
         const user: UserProfile = {
           id: session.user.id,
           email: session.user.email || '',
@@ -87,6 +88,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           role: profileData?.role || 'Executive',
           subscriptionTier: profileData?.subscription_tier || 'Free',
           usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
+          preferences: profileData?.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
           createdAt: session.user.created_at,
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${session.user.id}`

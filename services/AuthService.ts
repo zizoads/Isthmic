@@ -33,6 +33,7 @@ export class AuthService {
 
       const needsConfirmation = !authData.session && !authData.user.email_confirmed_at;
 
+      // Fixed: Add preferences property to UserProfile initialization
       return { 
         needsConfirmation,
         user: {
@@ -42,6 +43,7 @@ export class AuthService {
           role: role as any,
           subscriptionTier: 'Free',
           usageStats: { scansThisMonth: 0, auditsThisMonth: 0 },
+          preferences: { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
           createdAt: authData.user.created_at,
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
@@ -69,6 +71,7 @@ export class AuthService {
 
       const finalRole = profileData?.role || (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
 
+      // Fixed: Add preferences property to UserProfile initialization
       return {
         id: data.user.id,
         email: data.user.email || '',
@@ -76,6 +79,7 @@ export class AuthService {
         role: finalRole as any,
         subscriptionTier: profileData?.subscription_tier || 'Free',
         usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
+        preferences: profileData?.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
         createdAt: data.user.created_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`

@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { getDropSniperListAI, analyzeSnipeOpportunityAI } from '../services/geminiService';
 import { translations } from '../translations';
+import { useDomainContext } from '../context/DomainContext';
+import { NotificationService } from '../services/NotificationService';
 
 interface Props {
   lang: 'ar' | 'en';
@@ -9,6 +11,7 @@ interface Props {
 
 const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
   const t = translations[lang];
+  const { activeProfile, addLog } = useDomainContext();
   const [sector, setSector] = useState('Artificial Intelligence');
   const [snipes, setSnipes] = useState<any[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -29,6 +32,16 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
     const result = await analyzeSnipeOpportunityAI(snipe.domain);
     setDeepAnalysis(result);
     setIsAnalyzing(false);
+
+    // Trigger Transactional Email Alert for Golden Verdicts
+    if (result.verdict === 'Golden' && activeProfile?.preferences?.emailAlerts) {
+      await NotificationService.sendTransactionalEmail(activeProfile.email, 'GOLDEN_SNIPER', {
+        domain: snipe.domain,
+        value: snipe.estimatedValue,
+        verdict: result.verdict
+      });
+      addLog('System', lang === 'ar' ? `تم إرسال تنبيه ذهبي إلى ${activeProfile.email}` : `Golden Alert dispatched to ${activeProfile.email}`, 'success');
+    }
   };
 
   return (

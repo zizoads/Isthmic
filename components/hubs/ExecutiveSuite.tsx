@@ -5,6 +5,7 @@ import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
 import { Domain, PlatformStats, ServiceIntegration } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
+import { NotificationService } from '../../services/NotificationService';
 
 interface Props {
   domains: Domain[];
@@ -15,12 +16,24 @@ interface Props {
 }
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
-  const { activeProfile, isEmailConfirmed, exportVault, importVault, wipeLocalVault, monetization } = useDomainContext();
+  const { activeProfile, isEmailConfirmed, exportVault, importVault, wipeLocalVault, monetization, addLog, setActiveProfile } = useDomainContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!activeProfile) return null;
+
+  const handleTogglePref = async (key: string) => {
+    const nextPrefs = {
+      ...(activeProfile.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true }),
+      [key]: !((activeProfile.preferences as any)?.[key] ?? true)
+    };
+    const success = await NotificationService.updatePreferences(activeProfile.id, nextPrefs);
+    if (success) {
+      setActiveProfile({ ...activeProfile, preferences: nextPrefs });
+      addLog('System', lang === 'ar' ? 'تم تحديث التفضيلات السيادية' : 'Sovereign preferences updated', 'success');
+    }
+  };
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,6 +122,35 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                       {activeProfile.usageStats.scansThisMonth} / {currentPlan.maxScans} Scans Used
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Proactive Notification Toggles */}
+              <div className="square-card p-10 lg:p-14">
+                <h3 className="text-xl prestige-heading text-white italic mb-10 border-b border-white/5 pb-6">Transactional Alerts</h3>
+                <div className="space-y-6">
+                   {[
+                     { id: 'emailAlerts', label: 'Global Email Notifications', desc: 'Enable encrypted dispatch for all high-stakes events.' },
+                     { id: 'sniperNotifications', label: 'Golden Sniper Discovery', desc: 'Alert me instantly when a domain is audited as "Golden".' },
+                     { id: 'reportReadiness', label: 'Executive Report Sync', desc: 'Notify when quarterly financial narrative is synthesized.' }
+                   ].map(pref => (
+                     <div key={pref.id} className="flex justify-between items-center group">
+                        <div className="space-y-1">
+                           <div className="text-sm font-bold text-white uppercase tracking-tight">{pref.label}</div>
+                           <div className="text-[10px] text-slate-500 uppercase">{pref.desc}</div>
+                        </div>
+                        <button 
+                          onClick={() => handleTogglePref(pref.id)}
+                          className={`w-14 h-7 rounded-full relative transition-all duration-500 ${
+                            (activeProfile.preferences as any)?.[pref.id] ?? true ? 'bg-indigo-600' : 'bg-white/10'
+                          }`}
+                        >
+                           <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-500 ${
+                             (activeProfile.preferences as any)?.[pref.id] ?? true ? 'right-1' : 'left-1'
+                           }`}></div>
+                        </button>
+                     </div>
+                   ))}
                 </div>
               </div>
             </div>
