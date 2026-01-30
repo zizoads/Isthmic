@@ -115,7 +115,6 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   useEffect(() => {
@@ -260,7 +259,8 @@ const AppContent: React.FC = () => {
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} lang="en" onClose={() => setInspectedDomain(null)} />}
 
-      <aside className={`z-[200] bg-[#111113] border-white/5 transition-all duration-500 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)] shadow-2xl' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
+      {/* Sidebar - Fixed Area and Responsiveness */}
+      <aside className={`sidebar-area z-[200] bg-[#111113] border-white/5 transition-all duration-500 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)] shadow-2xl' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
         <div className="p-8 lg:p-10 flex flex-col h-full">
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-4">
@@ -317,7 +317,8 @@ const AppContent: React.FC = () => {
         </div>
       </aside>
       
-      <header className="z-[100] flex items-center justify-between px-6 lg:px-10 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-2xl h-[var(--header-height)]">
+      {/* Header - Fixed Area */}
+      <header className="header-area z-[100] flex items-center justify-between px-6 lg:px-10 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-2xl h-[var(--header-height)]">
         <div className="flex items-center gap-6">
           <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400 hover:text-white w-10 h-10 flex items-center justify-center rounded-xl border border-white/10"><i className="fas fa-bars"></i></button>
           <div className="flex items-baseline gap-4">
@@ -337,7 +338,8 @@ const AppContent: React.FC = () => {
         </div>
       </header>
       
-      <main className="no-scrollbar">
+      {/* Main Content - Fixed Area */}
+      <main className="main-area no-scrollbar">
         <div className="max-w-[1400px] mx-auto animate-precision">
           {activeTab === AgentType.ADMIN_PANEL && <AdminHub />}
           {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang="en" onInitiateScan={initiateScan} isScanning={isScanning} activeWorkflow={activeWorkflow} />}
@@ -348,7 +350,10 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
-      <TickerTape lang="en" />
+      <div className="ticker-area">
+        <TickerTape lang="en" />
+      </div>
+      
       <SonnerNotification notifications={notifications} onDismiss={dismissNotification} />
       <div className="noise-bg"></div>
     </div>

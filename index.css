@@ -1,5 +1,5 @@
 
-/* Isthmic Pro - Sovereign Identity CSS v9.0 */
+/* Isthmic Pro - Sovereign Identity CSS v9.1 */
 
 :root {
   --bg-main: #0a0a0c;
@@ -42,7 +42,7 @@ body, html {
   width: 100%;
 }
 
-/* Structural Layout Grid - Responsive Optimized */
+/* Structural Layout Grid - Fixed & Reliable */
 .app-shell {
   display: grid;
   height: 100vh;
@@ -66,9 +66,14 @@ body, html {
   }
 }
 
+/* Grid Area Assignments */
+.sidebar-area { grid-area: sidebar; }
+.header-area { grid-area: header; }
+.main-area { grid-area: main; }
+.ticker-area { grid-area: ticker; }
+
 /* Main Content Area */
 main {
-  grid-area: main;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -106,7 +111,6 @@ main::-webkit-scrollbar-thumb {
   .bento-span-4 { grid-column: span 4 / span 4; }
 }
 
-/* Component Consistency */
 .square-card {
   position: relative;
   background: var(--bg-card);
@@ -138,7 +142,6 @@ main::-webkit-scrollbar-thumb {
   animation: fadeInContent 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Horizontal Scroll for Mobile Tabs */
 .scroll-x-mobile {
   overflow-x: auto;
   scrollbar-width: none;
