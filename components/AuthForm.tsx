@@ -20,92 +20,80 @@ const AuthForm: React.FC = () => {
         await signup(name, email, password);
       }
     } catch (error: any) {
-      addLog('Auth', 'Protocol Access Denied: Verification Failed', 'critical');
+      addLog('Auth', 'Protocol Access Denied', 'critical');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0a0a0c] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0a0a0c] relative">
       <div className="bg-grid"></div>
       <div className="noise-bg"></div>
       
-      <div className="w-full max-w-lg relative z-10">
-        <div className="square-box border-white/5 bg-black/60 backdrop-blur-3xl !p-0">
-          {/* Top Decorative Bar */}
-          <div className="bg-white/5 p-4 flex justify-between items-center border-b border-white/5">
-            <span className="text-[10px] font-black tracking-[0.3em] text-[#d4af37] uppercase">ISTHMIC_SECURE_AUTH_V4.0</span>
-            <div className="flex gap-1.5">
-               <div className="w-2 h-2 rounded-full bg-white/10"></div>
-               <div className="w-2 h-2 rounded-full bg-white/10"></div>
-            </div>
+      {/* Decorative Glows */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
+
+      <div className="w-full max-w-xl relative z-10">
+        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center">
+          <div className="space-y-6">
+            <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Industrial Grade AI Suite</span>
+            <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic Pro.</h1>
+            <p className="text-slate-400 text-lg italic max-w-sm mx-auto">
+              {isLogin ? "Return to your sovereign digital asset command." : "Initiate your journey into multi-agent asset management."}
+            </p>
           </div>
 
-          <div className="p-10 lg:p-16 space-y-12">
-            <div className="space-y-4 text-center">
-              <h1 className="prestige-title heading-xl italic">Isthmic.</h1>
-              <p className="font-bold text-[10px] uppercase tracking-[0.5em] text-slate-500">Sovereign Domain Intelligence</p>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <input 
+                type="text" 
+                required 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
+                placeholder="Full Legal Name"
+              />
+            )}
+            <input 
+              type="email" 
+              required 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
+              placeholder="Sovereign Email Address"
+            />
+            <input 
+              type="password" 
+              required 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center"
+              placeholder="Security Keyphrase"
+            />
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {!isLogin && (
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Full Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 p-5 outline-none text-white focus:border-[#d4af37] transition-all"
-                    placeholder="Enter Legal Identity..."
-                  />
-                </div>
-              )}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sovereign Email</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-5 outline-none text-white focus:border-[#d4af37] transition-all"
-                  placeholder="admin@sovereign.io"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Security Phrase</label>
-                <input 
-                  type="password" 
-                  required 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-5 outline-none text-white focus:border-[#d4af37] transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="prestige-btn prestige-btn-gold w-full mt-4"
+            >
+              {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-link"></i>}
+              <span>{isLogin ? 'ESTABLISH LINK' : 'INITIATE PROTOCOL'}</span>
+            </button>
+          </form>
 
-              <button 
-                type="submit" 
-                disabled={isLoading}
-                className="square-btn w-full py-5 text-sm"
-              >
-                {isLoading ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-arrow-right"></i>}
-                <span className="ml-2">{isLogin ? 'ESTABLISH LINK' : 'INITIATE PROTOCOL'}</span>
-              </button>
-            </form>
-
-            <div className="pt-10 border-t border-white/5 flex flex-col items-center gap-6">
-              <button 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-[10px] font-black uppercase tracking-widest text-[#d4af37] hover:text-white transition-colors"
-              >
-                {isLogin ? "Generate New Command Identity?" : "Return to Master Login?"}
-              </button>
-              <div className="flex items-center gap-4 text-[9px] font-mono text-slate-700 uppercase">
-                 <i className="fas fa-shield-halved"></i>
-                 <span>AES-512 Encryption Protocol Active</span>
-              </div>
+          <div className="pt-10 border-t border-white/5 space-y-6">
+            <button 
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
+            >
+              {isLogin ? "Generate New Command Identity?" : "Return to Master Login?"}
+            </button>
+            <div className="flex justify-center gap-8 opacity-20">
+               <i className="fas fa-shield-halved text-xl"></i>
+               <i className="fas fa-fingerprint text-xl"></i>
+               <i className="fas fa-microchip text-xl"></i>
             </div>
           </div>
         </div>

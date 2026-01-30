@@ -33,92 +33,71 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   ];
 
   return (
-    <div className="stack-md" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Precision Tab Bar */}
-      <div className="flex bg-[#111113] border border-white/5 shadow-[3px_3px_0px_0px_#000]">
+    <div className="space-y-12" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Sovereign Glass Tab Bar */}
+      <div className="flex bg-white/5 backdrop-blur-xl p-2 rounded-[24px] border border-white/5 w-fit mx-auto lg:mx-0 shadow-2xl">
         {tabs.map(tab => (
           <button 
             key={tab.id}
             onClick={() => setSubTab(tab.id as any)} 
-            className={`flex-1 px-4 py-3 text-[9px] font-black uppercase tracking-widest border-r border-white/5 last:border-r-0 transition-all flex items-center justify-center gap-2
-              ${subTab === tab.id ? 'bg-[#d4af37] text-black' : 'text-slate-500 hover:text-white'}`}
+            className={`px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3
+              ${subTab === tab.id ? 'bg-white text-black shadow-2xl scale-105' : 'text-slate-500 hover:text-white'}`}
           >
-            <i className={`fas ${tab.icon} text-[11px]`}></i>
+            <i className={`fas ${tab.icon} text-sm`}></i>
             <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {currentWorkflow && (
-        <div className="square-box !p-4 !bg-[#d4af37]/5 border-[#d4af37]/20">
+        <div className="animate-slide-up">
            <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
         </div>
       )}
 
-      <div className="stack-md animate-fade-in">
+      <div className="animate-fade-in space-y-12">
         {subTab === 'sovereign' && (
-          <div className="stack-md">
-            <div className="square-box !p-0 overflow-hidden">
-               <div className="bg-white/5 px-4 py-2 text-mute text-gold">autonomous_v4</div>
-               <div className="p-6">
-                  <AutonomousControlCenter 
-                      strategy={strategy} 
-                      onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
-                      lang={lang} 
-                  />
-               </div>
+          <div className="space-y-12">
+            <div className="glass-panel p-10 lg:p-16">
+                <AutonomousControlCenter 
+                    strategy={strategy} 
+                    onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
+                    lang={lang} 
+                />
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 square-box !p-6 bg-black">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-8 glass-panel p-10">
                 <MarketMomentumChart lang={lang} />
               </div>
-              <div className="square-box !p-6 bg-black">
-                <h3 className="prestige-title text-xl text-[#d4af37] italic mb-6">Pulse.</h3>
-                <div className="space-y-4 font-mono text-[10px]">
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-slate-500">NET_STATUS</span>
-                    <span className="text-green-500 font-bold">STABLE</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2">
-                    <span className="text-slate-500">LATENCY</span>
-                    <span className="text-white">12ms</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">SEC_LEVEL</span>
-                    <span className="text-[#d4af37] font-black">AES-512</span>
-                  </div>
+              <div className="lg:col-span-4 glass-panel p-10 flex flex-col justify-between bg-gradient-to-br from-indigo-600/10 to-transparent">
+                <div className="space-y-8">
+                   <h3 className="prestige-title text-3xl text-white italic">System Pulse.</h3>
+                   <div className="space-y-6">
+                      {[
+                        { label: 'Network', val: 'STABLE', color: 'text-green-500' },
+                        { label: 'Latency', val: '12ms', color: 'text-white' },
+                        { label: 'Security', val: 'AES-512', color: 'text-[#d4af37]' }
+                      ].map((s, i) => (
+                        <div key={i} className="flex justify-between border-b border-white/5 pb-4">
+                          <span className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">{s.label}</span>
+                          <span className={`${s.color} font-black text-xs font-mono`}>{s.val}</span>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+                <div className="pt-10 opacity-30 italic text-[10px] text-slate-500">
+                  // Multi-agent cores operational<br/>
+                  // Sync: Nominal
                 </div>
               </div>
             </div>
           </div>
         )}
         
-        {subTab === 'nexus' && (
-          <div className="square-box !p-6">
-            <NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} />
-          </div>
-        )}
-        
-        {subTab === 'strategy' && (
-          <div className="square-box !p-6">
-            <MasterBrainDashboard 
-              stats={stats} 
-              activityLogs={activityLogs} 
-              strategy={strategy} 
-              setStrategy={setStrategy} 
-              lang={lang} 
-              onInitiateScan={onInitiateScan}
-              isScanning={isScanning}
-            />
-          </div>
-        )}
-
-        {subTab === 'feedback' && (
-          <div className="square-box !p-6">
-            <FeedbackDashboard domains={domains} stats={stats} />
-          </div>
-        )}
+        {subTab === 'nexus' && <div className="glass-panel p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
+        {subTab === 'strategy' && <div className="glass-panel p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
+        {subTab === 'feedback' && <div className="glass-panel p-12"><FeedbackDashboard domains={domains} stats={stats} /></div>}
       </div>
     </div>
   );
