@@ -91,44 +91,6 @@ const LandingPage: React.FC<{ onAuth: () => void, openLegal: (type: 'tos' | 'pri
         </div>
       </section>
 
-      <section className="px-6 lg:px-10 py-24 lg:py-48">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-          <div className="lg:col-span-8 bg-[#111113] border border-white/5 rounded-[32px] lg:rounded-[48px] p-8 lg:p-16 relative overflow-hidden group">
-            <div className="relative z-10 space-y-6 lg:space-y-8">
-              <h3 className="text-3xl lg:text-4xl prestige-heading italic">Autonomous Intelligence</h3>
-              <p className="text-slate-400 text-base lg:text-lg leading-relaxed max-w-xl">
-                Isthmic Pro reasons. Our multi-agent brain identifies market gaps and technical leverage before they become public knowledge.
-              </p>
-              <div className="grid grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-8">
-                <div className="space-y-3 lg:space-y-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#c5a059]"><i className="fas fa-microchip"></i></div>
-                  <div className="text-[10px] lg:text-xs font-black uppercase tracking-widest">Neural Logic</div>
-                </div>
-                <div className="space-y-3 lg:space-y-4">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#c5a059]"><i className="fas fa-satellite-dish"></i></div>
-                  <div className="text-[10px] lg:text-xs font-black uppercase tracking-widest">Global Sync</div>
-                </div>
-              </div>
-            </div>
-            <i className="fas fa-brain absolute right-[-40px] lg:right-[-50px] bottom-[-40px] lg:bottom-[-50px] text-white/5 text-[150px] lg:text-[300px] pointer-events-none group-hover:text-[#c5a059]/5 transition-colors duration-700"></i>
-          </div>
-
-          <div className="lg:col-span-4 bg-[#c5a059] text-black rounded-[32px] lg:rounded-[48px] p-8 lg:p-16 flex flex-col justify-between relative overflow-hidden group">
-            <div className="relative z-10 mb-8 lg:mb-0">
-              <h3 className="text-2xl lg:text-3xl prestige-heading italic mb-4 lg:mb-6">Forensic Audit</h3>
-              <p className="text-black/70 text-sm leading-relaxed font-medium">
-                Surgical OSINT audits that strip back ownership history and trademark risks in seconds.
-              </p>
-            </div>
-            <div className="relative z-10 space-y-1 lg:space-y-2">
-              <div className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Confidence Score</div>
-              <div className="text-4xl lg:text-5xl font-light prestige-heading">99.8%</div>
-            </div>
-            <i className="fas fa-shield-halved absolute right-[-20px] lg:right-[-30px] top-[-20px] lg:top-[-30px] text-black/5 text-[120px] lg:text-[200px] pointer-events-none"></i>
-          </div>
-        </div>
-      </section>
-
       <footer className="px-6 lg:px-10 py-12 lg:py-20 border-t border-white/5 bg-[#050507]">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8 lg:gap-10">
           <div className="flex items-center gap-4 grayscale opacity-50">
@@ -139,15 +101,6 @@ const LandingPage: React.FC<{ onAuth: () => void, openLegal: (type: 'tos' | 'pri
             <div className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-slate-600 text-center">
               © 2024 Sovereign Asset Management Protocol. All rights reserved.
             </div>
-            <div className="flex gap-6 mt-2">
-              <button onClick={() => openLegal('tos')} className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-[#c5a059] transition-colors">Terms of Service</button>
-              <button onClick={() => openLegal('privacy')} className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-[#c5a059] transition-colors">Privacy Policy</button>
-            </div>
-          </div>
-          <div className="flex gap-6 lg:gap-8 text-slate-500">
-             <i className="fab fa-twitter hover:text-[#c5a059] cursor-pointer"></i>
-             <i className="fab fa-linkedin hover:text-[#c5a059] cursor-pointer"></i>
-             <i className="fab fa-github hover:text-[#c5a059] cursor-pointer"></i>
           </div>
         </div>
       </footer>
@@ -197,18 +150,6 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
-  const handleReset = async () => {
-    if (!email) { setError('يرجى إدخال البريد الإلكتروني أولاً'); return; }
-    setError(null);
-    try {
-      await AuthService.resetPassword(email);
-      setInfo('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني بنجاح.');
-      setTimeout(() => setView('login'), 3000);
-    } catch (e: any) {
-      setError(e.message);
-    }
-  };
-
   if (isInitialLoading || view === 'loading') return (
     <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a0c]">
       <div className="w-12 h-12 border-4 border-t-[#c5a059] border-white/10 rounded-full animate-spin mb-6"></div>
@@ -218,39 +159,23 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   return (
     <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-6 font-sans overflow-y-auto">
-      <div className="w-full max-w-md space-y-6 lg:space-y-8 my-auto relative z-10">
+      <div className="w-full max-w-md space-y-6 lg:space-y-8 my-auto relative z-10 text-right" dir="rtl">
         <button 
           onClick={onBack}
-          className="absolute -top-12 lg:-top-16 left-0 text-[9px] font-black uppercase text-slate-500 hover:text-white flex items-center gap-2"
+          className="absolute -top-12 lg:-top-16 right-0 text-[9px] font-black uppercase text-slate-500 hover:text-white flex items-center gap-2"
         >
-          <i className="fas fa-arrow-left"></i> Back to Home
+          <i className="fas fa-arrow-right"></i> العودة للرئيسية
         </button>
 
         <div className="text-center">
           <h1 className="text-3xl lg:text-4xl font-light text-white italic tracking-tighter">Isthmic Pro</h1>
-          <p className="text-[#c5a059] text-[8px] lg:text-[9px] font-black uppercase tracking-[0.4em] mt-2">Strategic Asset Command</p>
+          <p className="text-[#c5a059] text-[8px] lg:text-[9px] font-black uppercase tracking-[0.4em] mt-2">قيادة الأصول الاستراتيجية</p>
         </div>
 
         <div className="bg-[#111113] border border-white/5 rounded-[24px] lg:rounded-[32px] p-6 lg:p-8 shadow-2xl">
-          <div className="flex justify-center mb-6">
-            <div className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-2 border ${
-              serverStatus === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
-              serverStatus === 'offline' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/5'
-            }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${serverStatus === 'online' ? 'bg-green-500 animate-pulse' : serverStatus === 'offline' ? 'bg-red-500' : 'bg-slate-500'}`}></div>
-              {serverStatus === 'online' ? 'Sovereign Cloud: Online' : serverStatus === 'offline' ? 'Sovereign Cloud: Offline' : 'Verifying Cloud...'}
-            </div>
-          </div>
-
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-bold text-center leading-relaxed">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-bold text-center">
               {error}
-            </div>
-          )}
-
-          {info && (
-            <div className="mb-6 p-4 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-2xl text-[#c5a059] text-[10px] font-bold text-center leading-relaxed">
-              {info}
             </div>
           )}
 
@@ -258,11 +183,8 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="space-y-4">
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <div className="flex justify-end">
-                <button onClick={() => setView('forgot')} className="text-slate-500 text-[8px] font-black uppercase hover:text-white transition-colors">نسيت كلمة المرور؟</button>
-              </div>
-              <button onClick={handleLogin} disabled={serverStatus === 'offline'} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50 shadow-xl">دخول آمن</button>
-              <button onClick={() => setView('signup')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">إنشاء هوية جديدة</button>
+              <button onClick={handleLogin} disabled={serverStatus === 'offline'} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-xl">دخول آمن</button>
+              <button onClick={() => setView('signup')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest text-center">إنشاء هوية جديدة</button>
             </div>
           )}
 
@@ -271,66 +193,63 @@ const LoginScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               <input type="text" placeholder="الاسم الكامل" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="email" placeholder="البريد الإلكتروني" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
               <input type="password" placeholder="كلمة السر" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleSignup} disabled={serverStatus === 'offline'} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 shadow-xl">تسجيل الهوية</button>
-              <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة لتسجيل الدخول</button>
-            </div>
-          )}
-
-          {view === 'forgot' && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h3 className="text-white text-lg font-bold">استعادة الوصول</h3>
-                <p className="text-slate-500 text-[10px] uppercase font-black">أدخل بريدك الإلكتروني لإرسال رابط التشفير</p>
-              </div>
-              <input type="email" placeholder="البريد الإلكتروني المسجل" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-[#c5a059]/50" />
-              <button onClick={handleReset} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-xl">إرسال رابط التعيين</button>
-              <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest">العودة للدخول</button>
+              <button onClick={handleSignup} disabled={serverStatus === 'offline'} className="w-full bg-[#c5a059] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-xl">تسجيل الهوية</button>
+              <button onClick={() => setView('login')} className="w-full text-slate-500 text-[10px] font-bold uppercase py-2 tracking-widest text-center">العودة لتسجيل الدخول</button>
             </div>
           )}
         </div>
       </div>
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] noise-bg"></div>
     </div>
   );
 };
 
 const AppContent: React.FC = () => {
-  const { activeProfile, isEmailConfirmed, logout, domains, setDomains, integrations, stats, notifications, dismissNotification, addLog, connectService, strategy } = useDomainContext() as any;
+  const { activeProfile, logout, domains, setDomains, integrations, stats, notifications, dismissNotification, addLog, connectService, strategy } = useDomainContext() as any;
   const [activeTab, setActiveTab] = useState<AgentType>(AgentType.INTELLIGENCE);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inspectedDomain, setInspectedDomain] = useState<Domain | null>(null);
   const [view, setView] = useState<'landing' | 'auth'>('landing');
-  const [showTour, setShowTour] = useState(false);
-  const [legalView, setLegalView] = useState<'tos' | 'privacy' | null>(null);
-  const { isScanning, initiateScan } = useMasterBrain(strategy, 'en');
-
-  useEffect(() => {
-    if (activeProfile) {
-      const tourCompleted = localStorage.getItem(`isthmic_tour_v1_${activeProfile.id}`);
-      if (!tourCompleted) {
-        setShowTour(true);
-      }
-    }
-  }, [activeProfile]);
-
-  const handleTourComplete = () => {
-    if (activeProfile) {
-      localStorage.setItem(`isthmic_tour_v1_${activeProfile.id}`, 'true');
-    }
-    setShowTour(false);
-  };
+  const { isScanning, initiateScan, activeWorkflow } = useMasterBrain(strategy, 'en');
 
   if (!activeProfile) {
     if (view === 'auth') return <LoginScreen onBack={() => setView('landing')} />;
-    return (
-      <>
-        <LandingPage onAuth={() => setView('auth')} openLegal={(type) => setLegalView(type)} />
-        {legalView && <LegalModal type={legalView} onClose={() => setLegalView(null)} lang="en" />}
-      </>
-    );
+    return <LandingPage onAuth={() => setView('auth')} openLegal={() => {}} />;
   }
 
   const isAdmin = activeProfile.role === 'Admin';
+
+  const menuStructure = [
+    { 
+      id: AgentType.INTELLIGENCE, 
+      label: 'Intelligence', 
+      icon: 'fa-brain',
+      subAgents: ['Sovereign Core', 'Nexus Radar', 'Neural Thesis', 'Feedback Hub']
+    },
+    { 
+      id: AgentType.ACQUISITION, 
+      label: 'Acquisition', 
+      icon: 'fa-crosshairs',
+      subAgents: ['Mining Desk', 'Forensic Audit', 'OSINT Panel', 'Maps Radar', 'Drop Sniper']
+    },
+    { 
+      id: AgentType.OPERATIONS, 
+      label: 'Operations', 
+      icon: 'fa-layer-group',
+      subAgents: ['Flow Pipeline', 'Visual Branding', 'Value Proofing', 'Multiplier Engine']
+    },
+    { 
+      id: AgentType.LIQUIDATION, 
+      label: 'Liquidation', 
+      icon: 'fa-money-bill-wave',
+      subAgents: ['Messaging Hub', 'War Room', 'Marketplace Sync', 'Flow Radar']
+    },
+    { 
+      id: AgentType.MANAGEMENT, 
+      label: 'Executive', 
+      icon: 'fa-user-circle',
+      subAgents: ['Profile Identity', 'API Gateways', 'Financial Reports', 'Secure Vault']
+    }
+  ];
 
   return (
     <div className="app-shell bg-[#0a0a0c] selection:bg-[#c5a059]/30 overflow-hidden">
@@ -340,36 +259,57 @@ const AppContent: React.FC = () => {
       }} />
       
       {inspectedDomain && <AgentReasoningLab domain={inspectedDomain} lang="en" onClose={() => setInspectedDomain(null)} />}
-      
-      {showTour && <OnboardingTour onComplete={handleTourComplete} lang="en" />}
 
       <aside className={`z-[200] bg-[#111113] border-white/5 transition-all duration-500 fixed lg:static top-0 bottom-0 left-0 border-r ${isSidebarOpen ? 'translate-x-0 w-full lg:w-[var(--sidebar-width)] shadow-2xl' : '-translate-x-full lg:translate-x-0 w-[var(--sidebar-width)]'}`}>
         <div className="p-8 lg:p-10 flex flex-col h-full">
-          <div className="flex items-center justify-between mb-12 lg:mb-16">
+          <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-xl flex items-center justify-center text-[#c5a059] shadow-2xl"><i className="fas fa-cube text-base lg:text-xl"></i></div>
-              <span className="text-[10px] lg:text-[12px] font-black tracking-[0.5em] text-white uppercase italic">Isthmic</span>
+              <div className="w-8 h-8 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-xl flex items-center justify-center text-[#c5a059] shadow-2xl"><i className="fas fa-cube"></i></div>
+              <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">Isthmic</span>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white p-2">
               <i className="fas fa-times"></i>
             </button>
           </div>
-          <nav className="flex-1 space-y-3 lg:space-y-4 overflow-y-auto no-scrollbar pr-2">
+
+          <nav className="flex-1 space-y-2 overflow-y-auto no-scrollbar pr-2">
             {isAdmin && (
-              <button onClick={() => {setActiveTab(AgentType.ADMIN_PANEL); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.ADMIN_PANEL ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-shield-halved"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Admin Hub</span></button>
+              <button onClick={() => {setActiveTab(AgentType.ADMIN_PANEL); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl ${activeTab === AgentType.ADMIN_PANEL ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-slate-500 hover:text-white'}`}>
+                <i className="fas fa-shield-halved w-5"></i> 
+                <span className="text-[10px] font-black uppercase">Admin Hub</span>
+              </button>
             )}
-            <button onClick={() => {setActiveTab(AgentType.INTELLIGENCE); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.INTELLIGENCE ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-brain"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Intelligence</span></button>
-            <button onClick={() => {setActiveTab(AgentType.ACQUISITION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.ACQUISITION ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-crosshairs"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Acquisition</span></button>
-            <button onClick={() => {setActiveTab(AgentType.OPERATIONS); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.OPERATIONS ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-layer-group"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Operations</span></button>
-            <button onClick={() => {setActiveTab(AgentType.LIQUIDATION); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.LIQUIDATION ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-money-bill-wave"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Liquidation</span></button>
-            <button onClick={() => {setActiveTab(AgentType.MANAGEMENT); setIsSidebarOpen(false)}} className={`w-full flex items-center gap-4 lg:gap-6 px-6 lg:px-8 py-4 rounded-2xl ${activeTab === AgentType.MANAGEMENT ? 'bg-[#c5a059] text-black shadow-2xl' : 'text-slate-500 hover:text-white transition-colors'}`}><i className="fas fa-user-circle"></i> <span className="text-[9px] lg:text-[10px] font-black uppercase">Executive Suite</span></button>
+
+            {menuStructure.map((item) => (
+              <div key={item.id} className="space-y-1">
+                <button 
+                  onClick={() => {setActiveTab(item.id); setIsSidebarOpen(false)}} 
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-white/5 text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}
+                >
+                  <i className={`fas ${item.icon} w-5`}></i>
+                  <span className="text-[10px] font-black uppercase">{item.label}</span>
+                </button>
+                
+                {activeTab === item.id && (
+                  <div className="ml-12 space-y-2 py-2 animate-slide-up">
+                    {item.subAgents.map((sub, idx) => (
+                      <div key={idx} className="flex items-center gap-3 group cursor-pointer">
+                        <div className="w-1 h-1 bg-[#c5a059] rounded-full opacity-30 group-hover:opacity-100"></div>
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-slate-600 group-hover:text-[#c5a059] transition-colors">{sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </nav>
+
           <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-             <div className="flex items-center gap-3 lg:gap-4">
-                <img src={activeProfile.avatar} className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl" alt="Avatar" />
+             <div className="flex items-center gap-3">
+                <img src={activeProfile.avatar} className="w-8 h-8 rounded-xl" alt="Avatar" />
                 <div className="text-left">
-                  <div className="text-white text-[10px] lg:text-xs font-bold italic truncate max-w-[100px]">{activeProfile.name}</div>
-                  <div className="text-[7px] lg:text-[8px] text-[#c5a059] font-black uppercase italic tracking-tighter">Sovereign Link</div>
+                  <div className="text-white text-[10px] font-bold italic truncate max-w-[100px]">{activeProfile.name}</div>
+                  <div className="text-[7px] text-[#c5a059] font-black uppercase tracking-tighter italic">Sovereign Node</div>
                 </div>
              </div>
              <button onClick={logout} className="text-slate-500 hover:text-red-500 transition-colors"><i className="fas fa-power-off"></i></button>
@@ -377,21 +317,22 @@ const AppContent: React.FC = () => {
         </div>
       </aside>
       
-      <header className="z-[100] flex items-center justify-between px-6 lg:px-10 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-2xl">
-        <div className="flex items-center gap-4 lg:gap-6">
-          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400 hover:text-white transition-colors w-10 h-10 flex items-center justify-center rounded-xl border border-white/10"><i className="fas fa-bars"></i></button>
-          <div className="text-white prestige-heading text-lg lg:text-xl italic tracking-tighter">Command Console</div>
+      <header className="z-[100] flex items-center justify-between px-6 lg:px-10 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-2xl h-[var(--header-height)]">
+        <div className="flex items-center gap-6">
+          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden icon-box bg-white/5 text-slate-400 hover:text-white w-10 h-10 flex items-center justify-center rounded-xl border border-white/10"><i className="fas fa-bars"></i></button>
+          <div className="flex items-baseline gap-4">
+             <div className="text-white prestige-heading text-xl italic tracking-tighter uppercase">Command Console</div>
+             <div className="h-4 w-[1px] bg-white/10"></div>
+             <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">
+                {menuStructure.find(m => m.id === activeTab)?.label || 'System'}
+             </div>
+          </div>
         </div>
         
-        <div className="flex items-center gap-4 lg:gap-6">
-          {!isEmailConfirmed && (
-            <button onClick={() => setActiveTab(AgentType.MANAGEMENT)} className="px-3 lg:px-4 py-2 rounded-xl text-[7px] lg:text-[8px] font-black uppercase bg-red-500/10 text-red-500 border border-red-500/20 hidden sm:flex items-center gap-2 animate-pulse">
-              <i className="fas fa-user-shield"></i> Pending
-            </button>
-          )}
+        <div className="flex items-center gap-6">
           <div className="px-3 lg:px-4 py-2 rounded-xl text-[7px] lg:text-[8px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-2 lg:gap-3">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            Secured
+            Node Active
           </div>
         </div>
       </header>
@@ -399,7 +340,7 @@ const AppContent: React.FC = () => {
       <main className="no-scrollbar">
         <div className="max-w-[1400px] mx-auto animate-precision">
           {activeTab === AgentType.ADMIN_PANEL && <AdminHub />}
-          {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang="en" onInitiateScan={initiateScan} isScanning={isScanning} />}
+          {activeTab === AgentType.INTELLIGENCE && <IntelligenceHub stats={stats} lang="en" onInitiateScan={initiateScan} isScanning={isScanning} activeWorkflow={activeWorkflow} />}
           {activeTab === AgentType.ACQUISITION && <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang="en" />}
           {activeTab === AgentType.OPERATIONS && <OperationsHub domains={domains} setDomains={setDomains} onInspect={setInspectedDomain} lang="en" />}
           {activeTab === AgentType.LIQUIDATION && <LiquidationEngine domains={domains} setDomains={setDomains} lang="en" />}

@@ -5,15 +5,6 @@ import { useDomainContext } from '../../context/DomainContext';
 import { AuditLogEntry, PlatformMonetizationSettings } from '../../types';
 import { AuditService } from '../../services/AuditService';
 
-interface UserRow {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-  subscription_tier: string;
-}
-
 const AdminHub: React.FC = () => {
   const { monetization, updateMonetization, activeProfile } = useDomainContext();
   const [platformStats, setPlatformStats] = useState({
@@ -22,7 +13,7 @@ const AdminHub: React.FC = () => {
     activeNow: 0,
     revenueInflow: 124500
   });
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeView, setActiveView] = useState<'users' | 'billing' | 'security'>('users');
@@ -40,12 +31,9 @@ const AdminHub: React.FC = () => {
       activeNow: Math.floor(Math.random() * 8) + 3
     }));
 
-    if (usersData) setUsers(usersData as UserRow[]);
-    
-    // Fetch Audit Logs
+    if (usersData) setUsers(usersData);
     const logs = await AuditService.fetchLogs();
     setAuditLogs(logs);
-
     setIsLoading(false);
   };
 
@@ -57,7 +45,6 @@ const AdminHub: React.FC = () => {
     const nextStatus = !monetization.isMonetizationActive;
     const nextSettings = { ...monetization, isMonetizationActive: nextStatus };
     await updateMonetization(nextSettings);
-
     if (activeProfile) {
       await AuditService.logAction({
         actorId: activeProfile.id,
@@ -71,13 +58,12 @@ const AdminHub: React.FC = () => {
   };
 
   const handleUpdatePlan = async (tier: string, key: string, value: any) => {
-    const oldPrice = monetization.plans[tier as keyof typeof monetization.plans].price;
+    const oldPrice = (monetization.plans as any)[tier].price;
     const nextPlans = {
       ...monetization.plans,
-      [tier]: { ...monetization.plans[tier as keyof typeof monetization.plans], [key]: value }
+      [tier]: { ...(monetization.plans as any)[tier], [key]: value }
     };
     await updateMonetization({ ...monetization, plans: nextPlans as any });
-
     if (activeProfile && key === 'price') {
       await AuditService.logAction({
         actorId: activeProfile.id,
@@ -123,10 +109,6 @@ const AdminHub: React.FC = () => {
               <div className="text-[8px] font-black text-slate-500 uppercase mb-1">Network Health</div>
               <div className="text-xl font-black text-green-500 uppercase italic">Nominal</div>
             </div>
-            <div className="px-6 py-4 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-3xl text-center min-w-[140px]">
-              <div className="text-[8px] font-black text-[#c5a059] uppercase mb-1">Fail-Safe Status</div>
-              <div className="text-xl font-black text-[#c5a059] uppercase italic">Ready</div>
-            </div>
           </div>
         </div>
         <i className="fas fa-shield-halved absolute left-[-60px] top-[-60px] text-white/5 text-[350px] pointer-events-none -rotate-12"></i>
@@ -150,34 +132,18 @@ const AdminHub: React.FC = () => {
             {(Object.entries(monetization.plans) as [string, any][]).map(([tier, details]) => (
               <div key={tier} className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] space-y-6">
                 <div className="text-sm font-black text-[#c5a059] uppercase tracking-widest">{tier} Access</div>
-                
                 <div className="space-y-4">
                    <div>
                       <label className="text-[9px] font-black text-slate-500 uppercase block mb-2">Price (USD)</label>
-                      <input 
-                        type="number" 
-                        value={details.price}
-                        onChange={(e) => handleUpdatePlan(tier, 'price', Number(e.target.value))}
-                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold"
-                      />
+                      <input type="number" value={details.price} onChange={(e) => handleUpdatePlan(tier, 'price', Number(e.target.value))} className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold" />
                    </div>
                    <div>
                       <label className="text-[9px] font-black text-slate-500 uppercase block mb-2">Scan Limit</label>
-                      <input 
-                        type="number" 
-                        value={details.maxScans}
-                        onChange={(e) => handleUpdatePlan(tier, 'maxScans', Number(e.target.value))}
-                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold"
-                      />
+                      <input type="number" value={details.maxScans} onChange={(e) => handleUpdatePlan(tier, 'maxScans', Number(e.target.value))} className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold" />
                    </div>
                    <div>
                       <label className="text-[9px] font-black text-slate-500 uppercase block mb-2">Audit Limit</label>
-                      <input 
-                        type="number" 
-                        value={details.maxAudits}
-                        onChange={(e) => handleUpdatePlan(tier, 'maxAudits', Number(e.target.value))}
-                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold"
-                      />
+                      <input type="number" value={details.maxAudits} onChange={(e) => handleUpdatePlan(tier, 'maxAudits', Number(e.target.value))} className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-bold" />
                    </div>
                 </div>
               </div>
@@ -225,9 +191,7 @@ const AdminHub: React.FC = () => {
                             </span>
                         </td>
                         <td className="p-6 text-right">
-                            <div className="flex justify-end gap-3">
-                              <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-slate-400">Manage</button>
-                            </div>
+                            <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-slate-400">Manage</button>
                         </td>
                       </tr>
                     ))}
@@ -272,11 +236,6 @@ const AdminHub: React.FC = () => {
                          </td>
                       </tr>
                     ))}
-                    {auditLogs.length === 0 && (
-                      <tr>
-                         <td colSpan={5} className="p-20 text-center text-slate-700 uppercase font-black text-xs opacity-30 italic">No events logged in the last session.</td>
-                      </tr>
-                    )}
                  </tbody>
               </table>
            </div>

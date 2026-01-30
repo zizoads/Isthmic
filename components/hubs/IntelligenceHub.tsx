@@ -5,19 +5,27 @@ import NexusPrimeDashboard from '../NexusPrimeDashboard';
 import FeedbackDashboard from '../FeedbackDashboard';
 import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
-import { PlatformStats } from '../../types';
+import WorkflowIndicator from '../WorkflowIndicator';
+import { PlatformStats, WorkflowState } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
+import { useMasterBrain } from '../../hooks/useMasterBrain';
 
 interface Props {
   stats: PlatformStats;
   lang: 'ar' | 'en';
-  onInitiateScan?: () => void;
-  isScanning?: boolean;
+  // Props added to fix App.tsx type error and synchronize scanning state
+  onInitiateScan: () => void;
+  isScanning: boolean;
+  activeWorkflow?: WorkflowState | null;
 }
 
-const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning }) => {
+const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning, activeWorkflow: propsActiveWorkflow }) => {
   const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
+  
+  // Call useMasterBrain to get activeWorkflow if not provided via props
+  const { activeWorkflow: localActiveWorkflow } = useMasterBrain(strategy, lang);
+  const currentWorkflow = propsActiveWorkflow !== undefined ? propsActiveWorkflow : localActiveWorkflow;
 
   return (
     <div className="space-y-12 lg:space-y-24 pb-20 lg:pb-40">
@@ -53,6 +61,12 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
          </div>
       </div>
 
+      {currentWorkflow && (
+        <div className="max-w-3xl mx-auto mb-12">
+           <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
+        </div>
+      )}
+
       <div className="bento-grid">
         {subTab === 'sovereign' && (
           <>
@@ -60,12 +74,12 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
                <AutonomousControlCenter 
                   strategy={strategy} 
                   onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
-                  lang="en" 
+                  lang={lang} 
                />
             </div>
 
             <div className="bento-span-8 square-card p-6 lg:p-14">
-               <MarketMomentumChart lang="en" />
+               <MarketMomentumChart lang={lang} />
             </div>
             
             <div className="bento-span-4 flex flex-col gap-6 lg:gap-10">
@@ -76,7 +90,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
                     </div>
                     <div>
                        <h3 className="text-xl lg:text-2xl prestige-heading text-white italic mb-2 lg:mb-3">Calibration Context</h3>
-                       <p className="text-slate-500 text-[8px] lg:text-[9px] leading-relaxed font-bold uppercase tracking-tight opacity-70">
+                       <p className="text-slate-500 text-[8px] lg:text-[10px] font-black tracking-tight uppercase opacity-70">
                          Harmonizing autonomous logic with market aesthetics.
                        </p>
                     </div>
@@ -97,7 +111,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         
         {subTab === 'nexus' && (
           <div className="bento-span-12 square-card p-6 lg:p-16">
-            <NexusPrimeDashboard lang="en" addLog={addLog} setDomains={setDomains} />
+            <NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} />
           </div>
         )}
         
@@ -108,7 +122,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
               activityLogs={activityLogs} 
               strategy={strategy} 
               setStrategy={setStrategy} 
-              lang="en" 
+              lang={lang} 
               onInitiateScan={onInitiateScan}
               isScanning={isScanning}
             />

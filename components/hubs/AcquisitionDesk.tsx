@@ -6,6 +6,7 @@ import DropSniperDashboard from '../DropSniperDashboard';
 import PurchaseDashboard from '../PurchaseDashboard';
 import MapsTargeter from '../MapsTargeter';
 import ForensicAuditGrid from '../ForensicAuditGrid';
+import OsintIntelligencePanel from '../OsintIntelligencePanel';
 import { Domain } from '../../types';
 
 interface Props {
@@ -16,7 +17,7 @@ interface Props {
 }
 
 const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
-  const [mode, setMode] = useState<'mine' | 'audit' | 'sniper' | 'checkout' | 'maps'>('mine');
+  const [mode, setMode] = useState<'mine' | 'audit' | 'osint' | 'maps' | 'sniper' | 'checkout'>('mine');
 
   return (
     <div className="space-y-8 lg:space-y-12 animate-fade-in pb-20">
@@ -33,6 +34,7 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
             {[
               { id: 'mine', label: 'MINING' },
               { id: 'audit', label: 'AUDIT' },
+              { id: 'osint', label: 'OSINT' },
               { id: 'maps', label: 'MAPS' },
               { id: 'sniper', label: 'SNIPER' },
               { id: 'checkout', label: 'EXECUTE' }
@@ -52,17 +54,18 @@ const AcquisitionDesk: React.FC<Props> = ({ domains, setDomains, addLog, lang })
       </div>
 
       <div className="pt-4 lg:pt-8">
-        {mode === 'mine' && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang="en" />}
+        {mode === 'mine' && <DiscoveryDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />}
         {mode === 'audit' && (
           <div className="space-y-12">
              <div className="overflow-x-auto no-scrollbar -mx-4 lg:mx-0 px-4 lg:px-0">
-               <ForensicAuditGrid domains={domains} lang="en" />
+               <ForensicAuditGrid domains={domains} lang={lang} />
              </div>
-             <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang="en" />
+             <EvaluationDashboard domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />
           </div>
         )}
-        {mode === 'maps' && <MapsTargeter lang="en" />}
-        {mode === 'sniper' && <DropSniperDashboard lang="en" />}
+        {mode === 'osint' && <OsintIntelligencePanel lang={lang} />}
+        {mode === 'maps' && <MapsTargeter lang={lang} />}
+        {mode === 'sniper' && <DropSniperDashboard lang={lang} />}
         {mode === 'checkout' && <PurchaseDashboard domains={domains} setDomains={setDomains} />}
       </div>
     </div>

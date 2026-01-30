@@ -4,6 +4,8 @@ import { Domain } from '../types';
 import { generateBrandIdentityAI, getMarketSignalsAI } from '../services/geminiService';
 import { translations } from '../translations';
 import StatusBadge from './ui/StatusBadge';
+import PromoVideoViewer from './PromoVideoViewer';
+import HardROICalculator from './HardROICalculator';
 
 interface Props {
   domains: Domain[];
@@ -27,13 +29,18 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
     setLoading(false);
   };
 
+  const handleUpdateDomain = (updated: Domain) => {
+    setDomains(prev => prev.map(d => d.id === updated.id ? updated : d));
+    setSelectedDomain(updated);
+  };
+
   const handleGenerateBrand = async () => {
     if (!selectedDomain) return;
     setLoading(true);
     try {
       const brand = await generateBrandIdentityAI(selectedDomain.name, selectedDomain.sector || 'Technology');
-      setDomains(prev => prev.map(d => d.id === selectedDomain.id ? { ...d, brandAssets: brand } : d));
-      setSelectedDomain(prev => prev ? { ...prev, brandAssets: brand } : null);
+      const updated = { ...selectedDomain, brandAssets: brand };
+      handleUpdateDomain(updated);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -43,7 +50,7 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar: Engineering List */}
-      <div className="lg:col-span-4 square-card flex flex-col h-[750px] bg-[#0a0a0c]">
+      <div className="lg:col-span-4 square-card flex flex-col h-[850px] bg-[#0a0a0c]">
         <div className="p-10 border-b border-white/5 bg-white/[0.01] flex justify-between items-center">
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.portfolio}</h3>
           <span className="text-[9px] font-mono text-[#c5a059] bg-[#c5a059]/10 px-4 py-1.5 rounded-full">{purchasedDomains.length} UNITS</span>
@@ -66,80 +73,57 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
               </div>
             </div>
           ))}
-          {purchasedDomains.length === 0 && (
-            <div className="p-24 text-center opacity-10">
-               <i className="fas fa-layer-group text-5xl mb-6"></i>
-               <p className="text-[10px] font-black uppercase tracking-widest">Inventory_Empty</p>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Main: Visual Engineering Canvas */}
-      <div className="lg:col-span-8 flex flex-col gap-10">
+      <div className="lg:col-span-8 flex flex-col gap-10 h-[850px] overflow-y-auto no-scrollbar pb-20">
         {selectedDomain ? (
-          <div className="square-card p-14 lg:p-20 bg-[#0a0a0c] flex flex-col h-full relative group">
-            <div className="flex flex-col md:flex-row justify-between items-start gap-14 relative z-10">
-              <div className="flex-1 space-y-10">
-                <div className="space-y-6">
-                  <span className="text-[10px] font-black text-[#c5a059] uppercase tracking-widest bg-[#c5a059]/10 px-6 py-2 rounded-full border border-[#c5a059]/20">Active_Engineering</span>
-                  <h2 className="text-5xl lg:text-7xl font-light prestige-heading text-white italic leading-none">{selectedDomain.name}</h2>
-                  <p className="text-slate-500 text-base leading-relaxed italic max-w-xl pr-6 border-r-2 border-white/5">
-                    {selectedDomain.brandAssets?.tagline || "System awaiting core visual DNA synthesis. Launch engineering protocol to proceed."}
-                  </p>
-                </div>
-                
-                <div className="flex gap-5">
-                  <button 
-                    onClick={handleGenerateBrand}
-                    disabled={loading}
-                    className="bg-white text-black px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl"
-                  >
-                    {loading ? <i className="fas fa-sync fa-spin"></i> : <i className="fas fa-wand-magic-sparkles mr-3"></i>}
-                    {lang === 'ar' ? 'توليد الهوية البصرية' : 'SYNTHESIZE_DNA'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Logo Preview Area */}
-              <div className="w-64 h-64 square-card bg-[#050507] flex items-center justify-center p-10 border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.6)] group-hover:border-[#c5a059]/20 transition-all duration-700">
-                {selectedDomain.brandAssets?.logoUrl ? (
-                  <img src={selectedDomain.brandAssets.logoUrl} alt="Logo" className="w-full h-full object-contain animate-precision" />
-                ) : (
-                  <div className="flex flex-col items-center gap-6 text-slate-800">
-                    <i className="fas fa-palette text-6xl"></i>
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40">DNA_Unidentified</span>
+          <div className="space-y-10">
+            <div className="square-card p-14 lg:p-20 bg-[#0a0a0c] relative group">
+              <div className="flex flex-col md:flex-row justify-between items-start gap-14 relative z-10">
+                <div className="flex-1 space-y-10 text-right">
+                  <div className="space-y-6">
+                    <span className="text-[10px] font-black text-[#c5a059] uppercase tracking-widest bg-[#c5a059]/10 px-6 py-2 rounded-full border border-[#c5a059]/20">{t.visualSynthesis}</span>
+                    <h2 className="text-5xl lg:text-7xl font-light prestige-heading text-white italic leading-none">{selectedDomain.name}</h2>
+                    <p className="text-slate-500 text-base leading-relaxed italic max-w-xl pr-6 border-r-2 border-white/5">
+                      {selectedDomain.brandAssets?.tagline || "System awaiting core visual DNA synthesis. Launch engineering protocol to proceed."}
+                    </p>
                   </div>
-                )}
+                  
+                  <div className="flex gap-5 justify-end">
+                    <button 
+                      onClick={handleGenerateBrand}
+                      disabled={loading}
+                      className="bg-white text-black px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl"
+                    >
+                      {loading ? <i className="fas fa-sync fa-spin"></i> : <i className="fas fa-wand-magic-sparkles ml-3"></i>}
+                      {lang === 'ar' ? 'توليد الهوية البصرية' : 'SYNTHESIZE_DNA'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-64 h-64 square-card bg-[#050507] flex items-center justify-center p-10 border-white/5 shadow-2xl group-hover:border-[#c5a059]/20 transition-all">
+                  {selectedDomain.brandAssets?.logoUrl ? (
+                    <img src={selectedDomain.brandAssets.logoUrl} alt="Logo" className="w-full h-full object-contain animate-precision" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-6 text-slate-800">
+                      <i className="fas fa-palette text-6xl"></i>
+                      <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40">DNA_Unidentified</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Tactical Metrics Grid */}
-            <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 border-t border-white/5 relative z-10">
-              <div className="p-8 bg-white/[0.01] border border-white/5 rounded-3xl">
-                 <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Market_Sentiment</div>
-                 <div className="flex items-center gap-4">
-                    <div className={`w-3 h-3 rounded-full ${marketSignal?.signal === 'BULLISH' ? 'bg-[#c5a059] shadow-[0_0_15px_#c5a059]' : 'bg-slate-800'}`}></div>
-                    <div className="text-lg font-black text-white uppercase tracking-tighter italic">{marketSignal?.signal || 'N/A'}</div>
-                 </div>
-              </div>
-              <div className="p-8 bg-white/[0.01] border border-white/5 rounded-3xl text-center">
-                 <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Inference_Momentum</div>
-                 <div className="text-3xl font-light prestige-heading text-[#c5a059]">{marketSignal?.momentumScore || 0}<span className="text-sm font-sans ml-1 text-slate-700">%</span></div>
-              </div>
-              <div className="p-8 bg-white/[0.01] border border-white/5 rounded-3xl">
-                 <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Logic_Reasoning</div>
-                 <p className="text-[10px] text-slate-500 leading-relaxed italic line-clamp-2">
-                   {marketSignal?.reasoning || 'Perform system audit to reveal underlying market logic.'}
-                 </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <PromoVideoViewer domain={selectedDomain} onUpdate={handleUpdateDomain} lang={lang} />
+               <HardROICalculator domain={selectedDomain} lang={lang} marketHeat={marketSignal?.momentumScore} />
             </div>
-            
-            <i className="fas fa-dna absolute left-[-60px] top-[-60px] text-white/[0.01] text-[350px] pointer-events-none -rotate-12 group-hover:text-[#c5a059]/[0.02] transition-colors duration-1000"></i>
           </div>
         ) : (
           <div className="square-card h-full flex flex-col items-center justify-center bg-[#0a0a0c] border-dashed border-white/10 p-24 text-center">
-             <div className="w-24 h-24 bg-white/5 rounded-[32px] flex items-center justify-center mb-10 border border-white/5 shadow-2xl">
+             <div className="w-24 h-24 bg-white/5 rounded-[32px] flex items-center justify-center mb-10 border border-white/5">
                 <i className="fas fa-microchip text-slate-800 text-4xl"></i>
              </div>
              <h3 className="text-2xl prestige-heading text-white italic mb-4">Awaiting_Asset_Selection</h3>
