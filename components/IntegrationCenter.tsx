@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ServiceIntegration } from '../types';
 import { translations } from '../translations';
+import { useDomainContext } from '../context/DomainContext';
 
 interface Props {
   integrations: ServiceIntegration[];
@@ -10,9 +11,13 @@ interface Props {
 }
 
 const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect, lang }) => {
+  const { activeProfile } = useDomainContext();
   const t = translations[lang];
   const [activeKeyInput, setActiveKeyInput] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
+
+  // Analyst role is restricted from modifying integrations
+  const canModify = activeProfile?.role !== 'Analyst';
 
   const strategicTools = [
     { 
@@ -86,6 +91,11 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect, lang }) =
               ? 'اربط مفاتيح الـ API لتحويل المنصة من محلل إلى منفذ صفقات. هذه المفاتيح تمكن الوكلاء من الشراء، المزايدة، والمزامنة العالمية تلقائياً.'
               : 'Connect API keys to transform the platform from an analyzer to a deal executor. These keys enable agents to buy, bid, and sync globally automatically.'}
           </p>
+          {!canModify && (
+            <div className="mt-6 flex items-center gap-3 text-amber-500 text-[10px] font-black uppercase bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20 w-fit">
+               <i className="fas fa-exclamation-triangle"></i> Read-Only Mode: Analyst Account
+            </div>
+          )}
         </div>
         <div className="absolute right-[-40px] top-[-40px] text-white/5 text-[300px] opacity-10">
            <i className="fas fa-microchip"></i>
@@ -140,6 +150,7 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect, lang }) =
                   </div>
                 ) : (
                   <button 
+                    disabled={!canModify}
                     onClick={() => {
                       if (tool.provider === 'google') {
                         (window as any).aistudio.openSelectKey();
@@ -148,10 +159,12 @@ const IntegrationCenter: React.FC<Props> = ({ integrations, onConnect, lang }) =
                       }
                     }}
                     className={`w-full py-5 rounded-[22px] text-[10px] font-black uppercase tracking-widest transition-all ${
+                      !canModify ? 'opacity-20 cursor-not-allowed grayscale' :
                       isConnected ? 'bg-[#c5a059]/10 text-[#c5a059] border border-[#c5a059]/20' : 'bg-white text-black hover:bg-[#c5a059] hover:text-white shadow-xl'
                     }`}
                   >
-                    {isConnected ? (lang === 'ar' ? 'تحديث المفتاح' : 'Rotate Key') : (lang === 'ar' ? 'ربط الخدمة' : 'Secure Connection')}
+                    {!canModify ? (lang === 'ar' ? 'محرّم للمحللين' : 'RESTRICTED') : 
+                     isConnected ? (lang === 'ar' ? 'تحديث المفتاح' : 'Rotate Key') : (lang === 'ar' ? 'ربط الخدمة' : 'Secure Connection')}
                   </button>
                 )}
               </div>

@@ -6,6 +6,7 @@ import ValueProofDashboard from '../ValueProofDashboard';
 import ValueMultiplierDashboard from '../ValueMultiplierDashboard';
 import ForensicAuditGrid from '../ForensicAuditGrid';
 import { Domain } from '../../types';
+import { useDomainContext } from '../../context/DomainContext';
 
 interface Props {
   domains: Domain[];
@@ -16,6 +17,12 @@ interface Props {
 
 const OperationsHub: React.FC<Props> = ({ domains, setDomains, onInspect, lang }) => {
   const [view, setView] = useState<'pipeline' | 'forensic' | 'branding' | 'scaling' | 'multiplier'>('pipeline');
+  const { updateDomain } = useDomainContext();
+
+  // Unified update handler for operational state changes to ensure persistence logic
+  const handleDomainUpdate = async (updated: Domain) => {
+    await updateDomain(updated);
+  };
 
   return (
     <div className="space-y-12 lg:space-y-24 animate-fade-in pb-32 relative">

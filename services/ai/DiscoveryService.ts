@@ -1,47 +1,12 @@
 
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
-import { supabase } from "../SupabaseClient";
-
-/**
- * Discovery Cache Logic - Persistent for 7 days
- */
-async function getCachedDiscovery(prompt: string) {
-  const cleanPrompt = prompt.toLowerCase().trim();
-  const { data } = await supabase
-    .from('discovery_cache')
-    .select('*')
-    .eq('search_query', cleanPrompt)
-    .single();
-
-  if (data) {
-    const cacheDate = new Date(data.created_at);
-    const now = new Date();
-    const diffDays = Math.ceil(Math.abs(now.getTime() - cacheDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 7) return data.results_json;
-  }
-  return null;
-}
-
-async function saveDiscoveryCache(prompt: string, results: any[]) {
-  await supabase.from('discovery_cache').upsert({
-    search_query: prompt.toLowerCase().trim(),
-    results_json: results,
-    created_at: new Date().toISOString()
-  });
-}
 
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
-  const cached = await getCachedDiscovery(prompt);
-  if (cached) {
-    return { data: cached, cached: true };
-  }
-
-  const results = await generateStructuredAI<any[]>(
+  return generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
-    `You are a strategic market miner. Language: ${lang}. Found alpha assets based on deep web research.`,
-    `Execute sweep for: ${prompt}`,
+    `Strategic Market Miner. Task: Find high-potential domains based on current market gaps. Lang: ${lang}`,
+    `Execute deep search for: ${prompt}`,
     {
       type: Type.ARRAY,
       items: {
@@ -56,63 +21,57 @@ export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'a
       }
     },
     [{ googleSearch: {} }],
+    undefined,
     signal
   );
-
-  if (results && results.length > 0) {
-    await saveDiscoveryCache(prompt, results);
-  }
-
-  return { data: results, cached: false };
 };
 
 export const getDropSniperListAI = async (sector: string) => {
-  return generateStructuredAI<any[]>(
+  const res = await generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
-    "Elite drop-catching intelligence agent.",
-    `Hunt for high-authority dropped domains in ${sector}.`,
+    "Domain drop scouting agent.",
+    `Find domains about to drop in the ${sector} industry.`,
     {
       type: Type.ARRAY,
       items: {
         type: Type.OBJECT,
         properties: {
           domain: { type: Type.STRING },
-          dropDate: { type: Type.STRING },
-          estimatedAuthority: { type: Type.NUMBER },
           estimatedValue: { type: Type.NUMBER },
-          reasonToSnipe: { type: Type.STRING },
-          backorderPlatform: { type: Type.STRING }
+          dropDate: { type: Type.STRING },
+          backorderPlatform: { type: Type.STRING },
+          reasonToSnipe: { type: Type.STRING }
         }
       }
     },
     [{ googleSearch: {} }]
   );
+  return res.data;
 };
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
-  return generateStructuredAI<any>(
+  const res = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
-    "Forensic sniper auditor.",
-    `Deep audit for dropping domain: ${domainName}.`,
+    "Expert drop analyzer.",
+    `Analyze value for ${domainName}.`,
     {
       type: Type.OBJECT,
       properties: {
-        verdict: { type: Type.STRING, enum: ['Golden', 'Standard', 'Risky'] },
-        historySummary: { type: Type.STRING },
+        verdict: { type: Type.STRING, enum: ['Golden', 'Silver', 'Bronze', 'Trash'] },
         flipProbability: { type: Type.NUMBER },
         maxBackorderBid: { type: Type.NUMBER },
-        trademarkAlert: { type: Type.STRING }
+        tacticalIntelligence: { type: Type.STRING }
       }
-    },
-    [{ googleSearch: {} }]
+    }
   );
+  return res.data;
 };
 
 export const registrarInquiryAI = async (domainName: string) => {
-  return generateStructuredAI<any>(
+  const res = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
-    "Real-time registrar liaison.",
-    `Verify real-time status and price for ${domainName}.`,
+    "Real-time registrar status scout.",
+    `Check availability and price for ${domainName}.`,
     {
       type: Type.OBJECT,
       properties: {
@@ -122,32 +81,41 @@ export const registrarInquiryAI = async (domainName: string) => {
     },
     [{ googleSearch: {} }]
   );
+  return res.data;
 };
 
-// Fixed: Correctly implemented toolConfig for Maps grounding to provide user coordinates to the model.
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
   const toolConfig = lat && lng ? {
-    retrievalConfig: {
-      latLng: {
-        latitude: lat,
-        longitude: lng
-      }
-    }
+    retrievalConfig: { latLng: { latitude: lat, longitude: lng } }
   } : undefined;
 
-  return generateStructuredAI<any>(
-    'gemini-2.5-flash',
-    "Geographic market specialist.",
-    `Identify local buyers for ${query} near ${lat}, ${lng}.`,
+  const res = await generateStructuredAI<any>(
+    'gemini-3-pro-preview', // Maps grounding usually needs pro
+    "Geographic Targeter. Find real businesses needing this domain.",
+    `Find potential local buyers for "${query}" near coordinates ${lat}, ${lng}.`,
     {
       type: Type.OBJECT,
       properties: {
         text: { type: Type.STRING },
-        sources: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { maps: { type: Type.OBJECT, properties: { uri: { type: Type.STRING }, title: { type: Type.STRING } } } } } }
+        sources: { 
+          type: Type.ARRAY, 
+          items: { 
+            type: Type.OBJECT, 
+            properties: { 
+              maps: { 
+                type: Type.OBJECT, 
+                properties: { 
+                  uri: { type: Type.STRING }, 
+                  title: { type: Type.STRING } 
+                } 
+              } 
+            } 
+          } 
+        }
       }
     },
     [{ googleMaps: {} }],
-    undefined,
     toolConfig
   );
+  return res.data;
 };

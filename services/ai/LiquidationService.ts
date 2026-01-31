@@ -31,7 +31,8 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
  * Corporate Prospecting Engine (Enhanced with Apollo/Hunter logic)
  */
 export const harvestBulkLeadsAI = async (domainName: string, sector: string): Promise<LeadProspect[]> => {
-  return generateStructuredAI<LeadProspect[]>(
+  // Extract .data from the response to match Promise<LeadProspect[]>
+  const result = await generateStructuredAI<LeadProspect[]>(
     'gemini-3-flash-preview',
     `Corporate prospecting engine. 
      Mission: Identify high-ticket acquirers and their key decision makers.
@@ -56,6 +57,7 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string): Pr
     },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };
 
 export const analyzeMarketPulseAI = async (sector: string, lang: 'ar' | 'en') => {
@@ -99,8 +101,9 @@ export const generateLeadGenBlueprintAI = async (domainName: string, sector: str
   );
 };
 
-export const generatePersonaPitchAI = async (domainName: string, company: LeadProspect, persona: string) => {
-  return generateStructuredAI<string>(
+export const generatePersonaPitchAI = async (domainName: string, company: LeadProspect, persona: string): Promise<string> => {
+  // Extract .data from the response to match Promise<string>
+  const result = await generateStructuredAI<string>(
     'gemini-3-flash-preview',
     "High-conversion sales writer.",
     `Draft pitch for ${domainName} targeting ${persona} at ${company.companyName}. 
@@ -108,6 +111,7 @@ export const generatePersonaPitchAI = async (domainName: string, company: LeadPr
      Format as a short, punchy LinkedIn Message or cold email.`,
     { type: Type.STRING }
   );
+  return result.data;
 };
 
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {

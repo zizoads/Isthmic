@@ -1,9 +1,5 @@
 {
-  "name": "Isthmic - Domainer Pro Command Center",
-  "description": "The elite industrial-grade domain management suite. Multi-agent AI for discovery, forensic valuation, and executive liquidation of digital assets.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
-  ]
+  "requestFramePermissions": [],
+  "name": "Code Audit Sovereign",
+  "description": "Automated FAANG-level code quality auditor."
 }

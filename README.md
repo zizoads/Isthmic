@@ -1,30 +1,16 @@
-# Isthmic Pro: Domainer Enterprise Suite
+# Code Audit Sovereign (CAS) - Module for Isthmic Pro
 
-## 1. Overview
-Isthmic Pro is a sovereign command center for domain investors. It leverages multi-agent AI to automate discovery, forensic auditing, and asset liquidation.
+## Overview
+CAS is a professional-grade automated auditing system designed to evaluate AI-generated code against FAANG engineering standards, integrated as a core hub in Isthmic Pro.
 
-## 2. Documentation Index
-- [System Analysis](./analysis.md): Code functionality and gap report.
-- [Refactor Plan](./refactor_plan.md): Architectural roadmap.
-- [Use Cases](./use_cases.md): Functional test scenarios.
-- [QA Checklist](./QA_CHECKLIST.md): Quality and performance standards.
-- [Deployment Guide](./deployment.md): Instructions for production.
+## Project Phases
+- [x] Phase 1.1: Technical Design Doc
+- [x] Phase 1.2: Design Review (Refined v1.2)
+- [ ] Phase 1.3: Subsystem Breakdown
+- [ ] Phase 2.1: Backlog & Sprint Planning
+- [ ] Phase 3.1: TDD & Implementation
 
-## 3. Technology Stack
-- **Core**: React 19, TypeScript, ESM.
-- **AI Engine**: Google Gemini 3 (Pro/Flash).
-- **Styling**: Tailwind CSS 3.
-- **Charts**: Recharts.
-
-## 4. Quick Start
-```bash
-npm install
-# Set your API_KEY in .env
-npm run dev
-```
-
-## 5. Architectural Flow
-1. **Intelligence**: `MasterBrain` -> `NexusPrime`.
-2. **Acquisition**: `Discovery` -> `Evaluation`.
-3. **Operations**: `Pipeline` -> `Portfolio`.
-4. **Liquidation**: `Messaging` -> `Marketplace`.
+## Core Tech Stack
+- React 19
+- Google Gemini 3 (Pro/Flash)
+- Sovereign Client-Side Logic (SovereignShield)

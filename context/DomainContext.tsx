@@ -1,8 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, PlatformStats, UserProfile, ActiveJob, PlatformMonetizationSettings } from '../types';
-import { supabase } from '../services/SupabaseClient';
+import { supabase, checkSupabaseConnection } from '../services/SupabaseClient';
 import { AuthService } from '../services/AuthService';
+import { SovereignShield } from '../services/SovereignShield';
 
 export interface DomainContextType {
   activeProfile: UserProfile | null;
@@ -14,13 +15,16 @@ export interface DomainContextType {
   activeJobs: ActiveJob[];
   stats: PlatformStats;
   isInitialLoading: boolean;
+  isSyncing: boolean;
   activityLogs: ActivityLog[];
+  setActivityLogs: React.Dispatch<React.SetStateAction<ActivityLog[]>>;
   integrations: ServiceIntegration[];
   isEmailConfirmed: boolean;
   monetization: PlatformMonetizationSettings;
-  addLog: (agent: string, msg: string, type?: 'info' | 'success' | 'warning' | 'critical') => void;
+  addLog: (agent: string, msg: string, type?: 'info' | 'success' | 'warning' | 'critical', actionLabel?: string, actionPayload?: any, onAction?: (payload: any) => void) => void;
   saveJob: (job: ActiveJob) => Promise<void>;
   clearJob: (id: string) => Promise<void>;
+  resumeJob: (jobId: string) => Promise<void>;
   logout: () => Promise<void>;
   login: (email: string, pass: string) => Promise<void>;
   signup: (name: string, email: string, pass: string) => Promise<void>;
@@ -29,20 +33,27 @@ export interface DomainContextType {
   importVault: (json: string) => Promise<void>;
   wipeLocalVault: () => Promise<void>;
   updateMonetization: (settings: PlatformMonetizationSettings) => Promise<void>;
+  updateDomain: (domain: Domain) => Promise<void>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
 
 export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
-  const [strategy, setStrategy] = useState<PlatformStrategy>({
-    id: 'default', totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: ''
+  
+  // استعادة الاستراتيجية من الدرع السيادي (تخزين محلي مشفر)
+  const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
+    return SovereignShield.recover<PlatformStrategy>('strategy_draft') || {
+      id: 'default', totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: ''
+    };
   });
+  
   const [monetization, setMonetization] = useState<PlatformMonetizationSettings>({
     isMonetizationActive: true,
     plans: {
@@ -52,21 +63,81 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   });
 
-  const isEmailConfirmed = useMemo(() => true, []); // Mocked
+  // تحديث الدرع السيادي تلقائياً عند تغير الاستراتيجية
+  useEffect(() => {
+    if (activeProfile) SovereignShield.protect('strategy_draft', strategy);
+  }, [strategy, activeProfile]);
 
-  // --- RECOVERY LOGIC (The Heart of Pulse Sync) ---
-  const loadWorkspace = useCallback(async (uid: string) => {
-    const [{ data: d }, { data: s }, { data: j }, { data: i }] = await Promise.all([
-      supabase.from('domains').select('*').eq('workspaceId', uid),
-      supabase.from('strategies').select('*').eq('id', uid).single(),
-      supabase.from('active_jobs').select('*').eq('workspaceId', uid).eq('status', 'running'),
-      supabase.from('integrations').select('*').eq('workspaceId', uid)
-    ]);
-    if (d) setDomains(d);
-    if (s) setStrategy(s);
-    if (j) setActiveJobs(j);
-    if (i) setIntegrations(i);
+  const addLog = useCallback((agent: string, message: string, type: any = 'info', actionLabel?: string, actionPayload?: any, onAction?: (payload: any) => void) => {
+    const newLog: ActivityLog = { 
+      id: crypto.randomUUID(), workspaceId: 'sys', time: new Date().toLocaleTimeString(), 
+      agent, message, type, actionLabel, actionPayload, onAction
+    };
+    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
   }, []);
+
+  const saveJob = useCallback(async (job: ActiveJob) => {
+    setActiveJobs(prev => {
+      const idx = prev.findIndex(j => j.id === job.id);
+      return idx >= 0 ? [...prev.slice(0, idx), job, ...prev.slice(idx + 1)] : [job, ...prev];
+    });
+    try {
+      await supabase.from('active_jobs').upsert({ ...job, lastUpdate: new Date().toISOString() });
+    } catch (e) { console.warn("SYNC_DELAY: Job checkpoint pending..."); }
+  }, []);
+
+  const resumeJob = useCallback(async (jobId: string) => {
+    const { data } = await supabase.from('active_jobs').select('*').eq('id', jobId).single();
+    if (data) {
+      setActiveJobs(prev => [...prev.filter(j => j.id !== jobId), data]);
+      addLog('System', `Sovereign context resumed: ${data.id}`, 'info');
+    }
+  }, [addLog]);
+
+  const clearJob = useCallback(async (id: string) => {
+    setActiveJobs(prev => prev.filter(j => j.id !== id));
+    try { await supabase.from('active_jobs').delete().eq('id', id); } catch (e) {}
+  }, []);
+
+  /**
+   * بروتوكول تحميل بيئة العمل السيادية (Workspace Load Protocol)
+   */
+  const loadWorkspace = useCallback(async (uid: string) => {
+    try {
+      setIsSyncing(true);
+      const isUp = await checkSupabaseConnection();
+      if (!isUp) {
+        addLog('Shield', 'Database Unreachable. Operating in LOCAL_ONLY mode.', 'warning');
+        return;
+      }
+
+      const [dRes, sRes, jRes, iRes] = await Promise.all([
+        supabase.from('domains').select('*').eq('workspaceId', uid),
+        supabase.from('strategies').select('*').eq('id', uid).maybeSingle(),
+        supabase.from('active_jobs').select('*').eq('workspaceId', uid).eq('status', 'running'),
+        supabase.from('integrations').select('*').eq('workspaceId', uid)
+      ]);
+
+      if (dRes.data) setDomains(dRes.data);
+      if (sRes.data) {
+        setStrategy(sRes.data);
+        SovereignShield.protect('strategy_draft', sRes.data);
+      }
+      
+      // استعادة المهام المنقطعة (Context Resumption)
+      if (jRes.data && jRes.data.length > 0) {
+        setActiveJobs(jRes.data);
+        addLog('Core', `ZOMBIE_CONTEXT_DETECTED: Job ${jRes.data[0].id} found.`, 'warning', 'RESUME', jRes.data[0].id, resumeJob);
+      }
+      if (iRes.data) setIntegrations(iRes.data);
+
+    } catch (e) {
+      addLog('System', 'Pulse sync failed. Local cache remains active.', 'critical');
+    } finally {
+      setIsSyncing(false);
+      setIsInitialLoading(false);
+    }
+  }, [addLog, resumeJob]);
 
   useEffect(() => {
     const init = async () => {
@@ -81,36 +152,24 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profile.id}`
           });
           await loadWorkspace(profile.id);
-        }
-      }
-      setIsInitialLoading(false);
+        } else { setIsInitialLoading(false); }
+      } else { setIsInitialLoading(false); }
     };
     init();
   }, [loadWorkspace]);
 
-  // --- ACTIONS ---
-  const addLog = useCallback((agent: string, message: string, type: any = 'info') => {
-    const newLog: ActivityLog = { id: crypto.randomUUID(), workspaceId: 'sys', time: new Date().toLocaleTimeString(), agent, message, type };
-    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
-  }, []);
-
-  const saveJob = useCallback(async (job: ActiveJob) => {
-    setActiveJobs(prev => {
-      const idx = prev.findIndex(j => j.id === job.id);
-      return idx >= 0 ? [...prev.slice(0, idx), job, ...prev.slice(idx + 1)] : [job, ...prev];
-    });
-    await supabase.from('active_jobs').upsert(job);
-  }, []);
-
-  const clearJob = useCallback(async (id: string) => {
-    setActiveJobs(prev => prev.filter(j => j.id !== id));
-    await supabase.from('active_jobs').delete().eq('id', id);
+  const updateDomain = useCallback(async (domain: Domain) => {
+    setDomains(prev => prev.map(d => d.id === domain.id ? domain : d));
+    await supabase.from('domains').upsert(domain);
   }, []);
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
+    SovereignShield.purge('strategy_draft');
     setActiveProfile(null);
     setDomains([]);
+    setActiveJobs([]);
+    setIntegrations([]);
   }, []);
 
   const login = useCallback(async (email: string, pass: string) => {
@@ -132,7 +191,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const nextStats = { ...activeProfile.usageStats };
     if (type === 'scan') nextStats.scansThisMonth++;
     else nextStats.auditsThisMonth++;
-    
     await supabase.from('profiles').update({ usage_stats: nextStats }).eq('id', activeProfile.id);
     setActiveProfile({ ...activeProfile, usageStats: nextStats });
   }, [activeProfile]);
@@ -142,28 +200,23 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `isthmic_vault_${Date.now()}.json`;
+    a.href = url; a.download = `isthmic_vault_${Date.now()}.json`;
     a.click();
   }, [domains, strategy, integrations]);
 
   const importVault = useCallback(async (json: string) => {
     try {
       const { domains: d, strategy: s, integrations: i } = JSON.parse(json);
-      if (d) setDomains(d);
-      if (s) setStrategy(s);
-      if (i) setIntegrations(i);
-      addLog('System', 'Vault imported successfully', 'success');
-    } catch (e) {
-      addLog('System', 'Invalid vault file', 'critical');
-    }
+      if (d) setDomains(d); if (s) setStrategy(s); if (i) setIntegrations(i);
+      addLog('System', 'Vault Imported Successfully', 'success');
+    } catch (e) { addLog('System', 'Invalid Vault Signature', 'critical'); }
   }, [addLog]);
 
   const wipeLocalVault = useCallback(async () => {
     setDomains([]);
     setStrategy({ id: 'default', totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: '' });
-    setIntegrations([]);
-    addLog('System', 'Local vault sanitized', 'warning');
+    SovereignShield.purge('strategy_draft');
+    addLog('System', 'Local Vault Purged', 'warning');
   }, [addLog]);
 
   const updateMonetization = useCallback(async (settings: PlatformMonetizationSettings) => {
@@ -175,14 +228,14 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     totalPurchased: domains.filter(d => d.status === 'purchased').length,
     messagesSent: 0, openRate: 88, avgProfit: 310,
     estimatedPortfolioValue: domains.reduce((acc, d) => acc + (d.price || 0), 0),
-    systemResilienceStatus: 'nominal'
-  }), [domains]);
+    systemResilienceStatus: isSyncing ? 'syncing' : 'nominal'
+  }), [domains, isSyncing]);
 
   const value = useMemo(() => ({
-    activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading,
-    activityLogs, integrations, isEmailConfirmed, monetization,
-    addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization
-  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, activityLogs, integrations, isEmailConfirmed, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization]);
+    activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading, isSyncing,
+    activityLogs, setActivityLogs, integrations, isEmailConfirmed: true, monetization,
+    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain
+  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };
