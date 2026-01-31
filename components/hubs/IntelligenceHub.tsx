@@ -9,6 +9,7 @@ import WorkflowIndicator from '../WorkflowIndicator';
 import { PlatformStats, WorkflowState } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { useMasterBrain } from '../../hooks/useMasterBrain';
+import { useSovereignT } from '../../hooks/useTranslation';
 
 interface Props {
   stats: PlatformStats;
@@ -19,17 +20,18 @@ interface Props {
 }
 
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning, activeWorkflow: propsActiveWorkflow }) => {
-  const { domains, activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
+  const { activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
+  const t = useSovereignT(lang);
   
   const { activeWorkflow: localActiveWorkflow } = useMasterBrain(strategy, lang);
   const currentWorkflow = propsActiveWorkflow !== undefined ? propsActiveWorkflow : localActiveWorkflow;
 
   const tabs = [
-    { id: 'sovereign', label: 'Command', icon: 'fa-terminal' },
-    { id: 'nexus', label: 'Radar', icon: 'fa-satellite-dish' },
-    { id: 'strategy', label: 'Thesis', icon: 'fa-scroll' },
-    { id: 'feedback', label: 'Neural', icon: 'fa-brain' }
+    { id: 'sovereign', label: t('intelligence.tabs.command'), icon: 'fa-terminal' },
+    { id: 'nexus', label: t('intelligence.tabs.radar'), icon: 'fa-satellite-dish' },
+    { id: 'strategy', label: t('intelligence.tabs.thesis'), icon: 'fa-scroll' },
+    { id: 'feedback', label: t('intelligence.tabs.neural'), icon: 'fa-brain' }
   ];
 
   return (
@@ -69,7 +71,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         
         {subTab === 'nexus' && <div className="glass-panel p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
         {subTab === 'strategy' && <div className="glass-panel p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
-        {subTab === 'feedback' && <div className="glass-panel p-12"><FeedbackDashboard domains={domains} stats={stats} /></div>}
+        {subTab === 'feedback' && <div className="glass-panel p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 
-/* Isthmic Pro - Sovereign Prestige System v5.0 (RC1) */
+/* Isthmic Pro - Sovereign Prestige System v5.1 (RTL Edition) */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@200;400;700;900&display=swap');
 
 :root {
   --primary: #d4af37; /* Prestige Gold */
@@ -10,10 +12,48 @@
   --border-color: rgba(255, 255, 255, 0.08);
   --font-serif: 'Cormorant Garamond', serif;
   --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-arabic: 'Noto Sans Arabic', sans-serif;
   
   --radius-prestige: 40px;
   --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Global RTL Configuration */
+[dir="rtl"] {
+  font-family: var(--font-arabic);
+  text-align: right;
+}
+
+[dir="rtl"] .prestige-heading, 
+[dir="rtl"] .prestige-title {
+  font-family: var(--font-arabic);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Technical Data Preservation - The "Force LTR" exceptions */
+.force-ltr,
+.recharts-wrapper,
+.data-mono,
+.domain-name-display,
+.financial-value {
+  direction: ltr !important;
+  unicode-bidi: bidi-override;
+  text-align: left !important;
+}
+
+[dir="rtl"] .force-ltr {
+  text-align: right !important; /* Keep aligned to context but content flow is LTR */
+}
+
+/* RTL Spacing & Border Normalization */
+[dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
+[dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
+[dir="rtl"] .pl-10 { padding-right: 2.5rem; padding-left: 0; }
+[dir="rtl"] .border-l-2 { border-right-width: 2px; border-left-width: 0; }
+[dir="rtl"] .border-r-2 { border-left-width: 2px; border-right-width: 0; }
+
+/* ... existing index.css content ... */
 
 * {
   margin: 0;
@@ -34,7 +74,6 @@ body {
   overflow: hidden;
 }
 
-/* Global Typography */
 h1, h2, h3, .prestige-title {
   font-family: var(--font-serif);
   font-weight: 300;
@@ -45,7 +84,6 @@ h1, h2, h3, .prestige-title {
   letter-spacing: -0.02em;
 }
 
-/* Prestige Components */
 .glass-panel, .square-card, .glass-card {
   background: var(--bg-card) !important;
   backdrop-filter: blur(30px) !important;
@@ -61,7 +99,6 @@ h1, h2, h3, .prestige-title {
   box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
 }
 
-/* Buttons */
 .prestige-btn {
   display: inline-flex;
   align-items: center;
@@ -89,7 +126,6 @@ h1, h2, h3, .prestige-title {
   box-shadow: 0 15px 40px -10px var(--primary-glow);
 }
 
-/* Inputs */
 input, textarea {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(255,255,255,0.05) !important;
@@ -106,7 +142,6 @@ input:focus, textarea:focus {
   box-shadow: 0 0 20px var(--primary-glow);
 }
 
-/* Scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   width: 3px;
 }
@@ -118,7 +153,6 @@ input:focus, textarea:focus {
   border-radius: 10px;
 }
 
-/* Animations */
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }

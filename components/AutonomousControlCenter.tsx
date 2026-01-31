@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AgentThought, PlatformStrategy, AgentRole, ActiveJob, Domain } from '../types';
 import { MasterBrainEngine } from '../services/masterBrainEngine';
 import { useDomainContext } from '../context/DomainContext';
-import { translations } from '../translations';
+import { useSovereignT } from '../hooks/useTranslation';
 
 interface Props {
   strategy: PlatformStrategy;
@@ -13,7 +13,7 @@ interface Props {
 
 const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected, lang }) => {
   const { activeJobs, saveJob, clearJob, addLog } = useDomainContext();
-  const t = translations[lang];
+  const t = useSovereignT(lang);
   const [thoughts, setThoughts] = useState<AgentThought[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [needsNewKey, setNeedsNewKey] = useState(false);
@@ -92,9 +92,9 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
         <div className="space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-3 h-3 bg-[#c5a059]"></div>
-             <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core</span>
+             <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">{t('intelligence.autonomous_core')}</span>
           </div>
-          <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative</h2>
+          <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">{t('intelligence.logic_narrative')}</h2>
         </div>
         
         <div className="flex gap-4">
@@ -111,7 +111,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
                 onClick={() => runSystem(activeJobs[0]?.id)}
                 className="square-button bg-[#c5a059] text-black text-xs font-black shadow-2xl hover:scale-105 transition-transform"
               >
-                <i className="fas fa-redo-alt mr-2"></i> {t.resumingSession || 'RESUME PROTOCOL'}
+                <i className="fas fa-redo-alt mr-2"></i> {t('intelligence.resumingSession') || 'RESUME PROTOCOL'}
               </button>
             )
           )}
@@ -133,7 +133,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
       <div className="grid grid-cols-12 gap-0 border-2 border-white/10">
         <div className="col-span-12 lg:col-span-8 h-[600px] flex flex-col bg-[#050505] border-r-2 border-white/10">
           <div className="p-4 border-b-2 border-white/10 bg-white/5 flex justify-between items-center">
-            <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">System_Output_Stream</span>
+            <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">{t('intelligence.system_output')}</span>
             <div className="flex gap-2">
               <div className="w-2 h-2 bg-red-500"></div>
               <div className="w-2 h-2 bg-amber-500"></div>
@@ -155,9 +155,10 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
                     </span>
                     <span className="text-[9px] text-slate-700 font-mono">[{thought.timestamp}]</span>
                   </div>
-                  <p className={`text-lg leading-relaxed prestige-heading italic ${thought.status === 'failed' ? 'text-red-400' : 'text-white/90'}`}>
-                    "{thought.message}"
-                  </p>
+                  {/* Using dangerouslySetInnerHTML to allow our force-ltr spans injected by useSovereignT */}
+                  <p className={`text-lg leading-relaxed prestige-heading italic ${thought.status === 'failed' ? 'text-red-400' : 'text-white/90'}`}
+                     dangerouslySetInnerHTML={{ __html: `"${thought.message}"` }}
+                  />
                 </div>
               </div>
             ))}
@@ -167,7 +168,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
 
         <div className="col-span-12 lg:col-span-4 p-10 bg-white/2 space-y-10">
           <div className="space-y-6">
-            <h4 className="text-[11px] font-black text-[#c5a059] uppercase tracking-widest">Core Calibration</h4>
+            <h4 className="text-[11px] font-black text-[#c5a059] uppercase tracking-widest">{t('intelligence.core_calibration')}</h4>
             <div className="space-y-6">
               {[
                 { label: 'Neural Accuracy', val: '0.998' },
@@ -183,7 +184,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
           </div>
 
           <div className="p-8 border-2 border-indigo-500/20 bg-indigo-500/5">
-            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Pulse Status</h4>
+            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">{t('intelligence.pulse_status')}</h4>
             <div className="text-xs text-slate-400 leading-relaxed font-mono space-y-2">
               <p>The engine is monitoring real-time liquidity signals while executing the loop. Resumption logic is active.</p>
               {needsNewKey && <p className="text-red-400 font-black">// ACTION REQUIRED: RE-AUTHENTICATE KEY TO CONTINUE.</p>}
