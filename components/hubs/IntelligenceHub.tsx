@@ -49,6 +49,12 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         ))}
       </div>
 
+      {currentWorkflow && (
+        <div className="max-w-4xl mx-auto lg:mx-0">
+          <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
+        </div>
+      )}
+
       <div className="animate-fade-in space-y-12">
         {subTab === 'sovereign' && (
           <div className="space-y-12">

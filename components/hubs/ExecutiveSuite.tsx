@@ -1,10 +1,11 @@
+
 import React, { useState, useRef } from 'react';
 import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
 import SovereignReportBuilder from '../SovereignReportBuilder';
 import AutopsyLab from '../AutopsyLab';
 import LaunchControlHub from '../LaunchControlHub';
-import { Domain, PlatformStats, ServiceIntegration, SovereignAutopsyReport } from '../../types';
+import { Domain, PlatformStats, ServiceIntegration } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { NotificationService } from '../../services/NotificationService';
 
@@ -20,7 +21,6 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
   const { activeProfile, exportVault, importVault, wipeLocalVault, monetization, addLog, setActiveProfile } = useDomainContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'autopsy' | 'launch' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
-  // Removed unused autopsies state to fix type error when passing it to LaunchControlHub which doesn't accept props
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!activeProfile) return null;
@@ -154,11 +154,10 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
         {activeTab === 'reports' && <SovereignReportBuilder stats={stats} domains={domains} lang={lang} />}
         {activeTab === 'autopsy' && <AutopsyLab />}
-        {/* Fixed Type Error: LaunchControlHub does not accept an autopsies prop */}
         {activeTab === 'launch' && <LaunchControlHub />}
         
         {activeTab === 'vault' && (
-          <div className="max-w-5xl mx-auto space-y-12 animate-precision">
+          <div className="max-w-5_5xl mx-auto space-y-12 animate-precision">
              <div className="square-card p-14 bg-gradient-to-br from-[#111113] to-[#0a0a0c] border-white/5 relative overflow-hidden group">
                 <div className="relative z-10 space-y-10">
                    <div className="flex items-center gap-6">

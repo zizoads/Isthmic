@@ -1,3 +1,4 @@
+
 /**
  * Isthmic Pro - Sovereign Type Definitions v17.0
  * المرحلة النهائية: التحضير للإطلاق العالمي
@@ -169,6 +170,7 @@ export interface Domain {
   negotiationThread?: NegotiationThread;
   lastChecked?: string;
   contentStatus?: string;
+  agentThoughts?: AgentThought[];
 }
 
 export type DomainStatus = 'available' | 'purchased' | 'negotiating' | 'sold' | 'processing' | 'watching';
