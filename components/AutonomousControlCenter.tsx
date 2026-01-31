@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AgentThought, PlatformStrategy, AgentRole, ActiveJob } from '../types';
 import { MasterBrainEngine } from '../services/masterBrainEngine';
@@ -93,7 +94,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
              <div className="w-3 h-3 bg-[#c5a059]"></div>
              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core // النواة المستقلة</span>
           </div>
-          <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative // سرد المنطق</h2>
+          <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative</h2>
         </div>
         
         <div className="flex gap-4">
