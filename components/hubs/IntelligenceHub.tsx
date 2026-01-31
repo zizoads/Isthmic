@@ -46,7 +46,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
               ${subTab === tab.id ? 'bg-white text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
           >
             <i className={`fas ${tab.icon} text-[10px]`}></i>
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="hidden sm:inline" dangerouslySetInnerHTML={{ __html: tab.label }}></span>
           </button>
         ))}
       </div>

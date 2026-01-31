@@ -2,9 +2,19 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 /**
- * Isthmic Pro - Sovereign AI Execution Base v5.0 (RC1)
- * يتم استدعاء هذا المحرك في كل عملية استنباط استراتيجي.
+ * Preprocess Arabic text for better AI understanding.
+ * Removes heavy diacritics and normalizes specific letters.
  */
+const preprocessArabic = (text: string): string => {
+  if (!/[\u0600-\u06FF]/.test(text)) return text;
+  
+  return text
+    .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
+    .replace(/ـ+/g, "")             // Remove Tatweel (Kashida)
+    .replace(/[أإآ]/g, "ا")         // Normalize Alef
+    .replace(/ة/g, "ه")             // Normalize Teh Marbuta (optional, depends on precision needs)
+    .trim();
+};
 
 export const getAIClient = (): GoogleGenAI => {
   const apiKey = process.env.API_KEY;
@@ -12,13 +22,8 @@ export const getAIClient = (): GoogleGenAI => {
   return new GoogleGenAI({ apiKey });
 };
 
-/**
- * Safe AI Wrapper: يضمن استقرار الاتصال عبر تطبيق التراجع الأسي ومعالجة الأخطاء السيادية.
- */
 export async function safeAICall<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
-  // Stress-Testing Chaos Monkey
   if (localStorage.getItem('isthmic_chaos_mode') === 'true' && Math.random() < 0.2) {
-    console.warn("STRESS_PROTOCOL: Injecting synthetic instability (429)");
     throw new Error("RESOURCES_EXHAUSTED: Synthetic Chaos Active");
   }
 
@@ -26,28 +31,18 @@ export async function safeAICall<T>(fn: () => Promise<T>, retries = 3): Promise<
     return await fn();
   } catch (error: any) {
     const errorMsg = error.message || "";
-    
-    // Auth failures - requires key reset
     if (errorMsg.includes('401') || errorMsg.includes('403') || errorMsg.includes('Requested entity was not found')) {
-      console.error("SHIELD_ALERT: Sovereign key identity mismatch.");
       throw new Error("SOVEREIGN_KEY_EXPIRED");
     }
-
-    // Rate limits or transient errors - trigger Backoff
     if ((errorMsg.includes('429') || errorMsg.includes('quota') || errorMsg.includes('RESOURCES_EXHAUSTED')) && retries > 0) {
       const waitTime = Math.pow(2, 4 - retries) * 1200;
-      console.info(`SOVEREIGN_RECOVERY: Signal turbulence. Backing off for ${waitTime}ms...`);
       await new Promise(r => setTimeout(r, waitTime));
       return safeAICall(fn, retries - 1);
     }
-
     throw error;
   }
 }
 
-/**
- * دالة الاستنباط الهيكلي لضمان الحصول على JSON مطابق للمخطط.
- */
 export async function generateStructuredAI<T>(
   modelName: string,
   systemInstruction: string,
@@ -57,13 +52,15 @@ export async function generateStructuredAI<T>(
   toolConfig?: any,
   signal?: AbortSignal
 ): Promise<{ data: T, cached: boolean }> {
+  const cleanedPrompt = preprocessArabic(prompt);
+  
   return safeAICall(async () => {
     if (signal?.aborted) throw new Error("Aborted");
 
     const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: modelName,
-      contents: prompt,
+      contents: cleanedPrompt,
       config: { 
         systemInstruction, 
         responseMimeType: "application/json", 
@@ -73,7 +70,6 @@ export async function generateStructuredAI<T>(
       }
     });
     
-    // Fix: Moved 'text' declaration outside the try block so it is accessible in the catch block
     const text = response.text || '{}';
     try {
       const data = JSON.parse(text) as T;

@@ -2,10 +2,9 @@
 import React, { useState, useRef } from 'react';
 import { Domain } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
-import { translations } from '../translations';
 import { useDomainContext } from '../context/DomainContext';
+import { useSovereignT } from '../hooks/useTranslation';
 import PricingTerminal from './PricingTerminal';
-import SovereignSkeleton from './ui/SovereignSkeleton';
 import PrestigeLoader from './ui/PrestigeLoader';
 
 interface Props {
@@ -16,7 +15,7 @@ interface Props {
 }
 
 const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
-  const t = translations[lang];
+  const t = useSovereignT(lang);
   const { activeProfile, trackUsage } = useDomainContext();
   const [prompt, setPrompt] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -62,7 +61,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
            <textarea
              value={prompt}
              onChange={(e) => setPrompt(e.target.value)}
-             placeholder={t.searchPlaceholder}
+             placeholder={t('searchPlaceholder')}
              className="w-full bg-transparent border-none text-4xl lg:text-6xl prestige-title outline-none min-h-[180px] text-white placeholder:text-white/5 italic leading-tight p-0 resize-none"
            />
         </header>
@@ -83,7 +82,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang
               className="prestige-btn prestige-btn-gold !px-20 !py-7"
             >
               {isSearching ? <i className="fas fa-cog fa-spin"></i> : <i className="fas fa-bolt"></i>}
-              <span>{isSearching ? 'SYNTHESIZING' : t.startInference}</span>
+              <span>{isSearching ? 'SYNTHESIZING' : t('startInference')}</span>
             </button>
         </div>
         <i className="fas fa-globe-americas absolute right-[-100px] top-[-100px] text-white/[0.01] text-[400px] pointer-events-none -rotate-12 transition-all duration-1000 group-hover:opacity-10 group-hover:scale-110"></i>
