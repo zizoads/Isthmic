@@ -231,7 +231,7 @@ export interface AgentThought { role: AgentRole; message: string; timestamp: str
 export interface ServiceIntegration { id: string; workspaceId: string; name: string; provider: string; status: 'connected' | 'disconnected'; }
 export interface PlanDetails { price: number; maxScans: number; maxAudits: number; features: string[]; }
 export interface PlatformMonetizationSettings { isMonetizationActive: boolean; plans: { Free: PlanDetails; Pro: PlanDetails; Sovereign: PlanDetails; }; }
-export enum AgentType { INTELLIGENCE = 'INTELLIGENCE', ACQUISITION = 'ACQUISITION', OPERATIONS = 'OPERATIONS', LIQUIDATION = 'LIQUIDATION', MANAGEMENT = 'MANAGEMENT', CODE_AUDITOR = 'CODE_AUDITOR' }
+export enum AgentType { INTELLIGENCE = 'INTELLIGENCE', ACQUISITION = 'ACQUISITION', OPERATIONS = 'OPERATIONS', LIQUIDATION = 'LIQUIDATION', MANAGEMENT = 'MANAGEMENT', CODE_AUDITOR = 'CODE_AUDITOR', ADMIN = 'ADMIN' }
 export interface AuditLogEntry { id: string; timestamp: string; actorId: string; actorName: string; actionType: string; description: string; targetIdentity: string; severity: 'info' | 'warning' | 'critical'; }
 export interface ResilienceMetrics { pulseLatency: number; retryEfficiency: number; recoveryIntegrity: number; batchProcessTime: number; isChaosModeActive: boolean; }
 export interface NegotiationBattleCard { buyerMotive: string; leveragePoints: string[]; suggestedCounter: number; closingProbability: number; sentimentScore: number; }

@@ -6,6 +6,7 @@ import OperationsHub from '../hubs/OperationsHub';
 import LiquidationEngine from '../hubs/LiquidationEngine';
 import ExecutiveSuite from '../hubs/ExecutiveSuite';
 import CodeAuditorHub from '../hubs/CodeAuditorHub';
+import AdminHub from '../hubs/AdminHub';
 import ProtocolErrorBoundary from '../ui/ProtocolErrorBoundary';
 
 interface Props {
@@ -38,6 +39,8 @@ const HubRenderer: React.FC<Props> = ({
         return <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />;
       case AgentType.CODE_AUDITOR:
         return <CodeAuditorHub />;
+      case AgentType.ADMIN:
+        return <AdminHub />;
       case AgentType.OPERATIONS:
         return <OperationsHub domains={domains} setDomains={setDomains} onInspect={handleInspect} lang={lang} />;
       case AgentType.LIQUIDATION:

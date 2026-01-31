@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AgentType, ActivityLog } from '../../types';
 import CommandPalette from '../CommandPalette';
@@ -18,16 +17,19 @@ interface Props {
 const MainLayout: React.FC<Props> = ({ 
   activeHub, setActiveHub, activityLogs, lang, children, onSearchDomain 
 }) => {
-  const { setActivityLogs } = useDomainContext();
+  const { setActivityLogs, activeProfile } = useDomainContext();
   
   const navItems = [
     { id: AgentType.INTELLIGENCE, label: 'Intelligence', icon: 'fa-brain' },
     { id: AgentType.ACQUISITION, label: 'Acquisition', icon: 'fa-crosshairs' },
-    { id: AgentType.CODE_AUDITOR, label: 'Code Auditor', icon: 'fa-file-code' }, // الخيار الجديد
+    { id: AgentType.CODE_AUDITOR, label: 'Code Auditor', icon: 'fa-file-code' },
     { id: AgentType.OPERATIONS, label: 'Operations', icon: 'fa-layer-group' },
     { id: AgentType.LIQUIDATION, label: 'Liquidation', icon: 'fa-money-bill-wave' },
     { id: AgentType.MANAGEMENT, label: 'Executive', icon: 'fa-user-tie' }
   ];
+
+  // التحقق من صلاحيات المسؤول لإضافة خيار الإدارة
+  const isAdmin = activeProfile?.role === 'Admin';
 
   const handleDismiss = (id: string) => {
     setActivityLogs(prev => prev.filter(n => n.id !== id));
@@ -62,6 +64,20 @@ const MainLayout: React.FC<Props> = ({
               {item.label}
             </button>
           ))}
+
+          {/* زر المسؤول يظهر فقط للـ Admin */}
+          {isAdmin && (
+            <div className="mt-4 pt-4 border-t border-white/5">
+              <button 
+                onClick={() => setActiveHub(AgentType.ADMIN)}
+                className={`flex items-center gap-5 px-8 py-5 rounded-[22px] transition-all font-bold uppercase text-[9px] tracking-[0.2em] group border border-[#d4af37]/20
+                  ${activeHub === AgentType.ADMIN ? 'bg-[#d4af37] text-black shadow-2xl' : 'text-[#d4af37] hover:bg-[#d4af37]/10'}`}
+              >
+                <i className="fas fa-user-shield text-sm"></i>
+                Admin Panel
+              </button>
+            </div>
+          )}
         </nav>
 
         <div className="mt-auto space-y-6">
