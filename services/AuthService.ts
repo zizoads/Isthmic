@@ -3,11 +3,11 @@ import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
 
 /**
- * AuthService: نظام إدارة الهوية السيادية.
- * يتم التحكم في الصلاحيات من خلال "الهوية الجذرية" (Root Identity).
+ * AuthService: Sovereign Identity Management System.
+ * Permissions are governed by the Root Admin Identity (Master Key).
  */
 export class AuthService {
-  // الهوية الجذرية الوحيدة للمنظومة - لا يمكن تغييرها إلا من الكود المصدري
+  // The Root Admin Identity - The absolute authority of the Isthmic Pro ecosystem.
   private static readonly ROOT_ADMIN_IDENTITY = 'azeddinebeldjilali9@gmail.com';
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
@@ -21,12 +21,12 @@ export class AuthService {
       if (authError) throw authError;
       if (!authData.user) throw new Error("IDENTITY_CREATION_FAILED");
 
-      // التحقق الصارم: إذا لم يكن الإيميل هو إيميل المالك، فهو مستخدم عادي (Analyst)
+      // Sovereign Rule: If email matches Master Identity, grant absolute privileges.
       const isRoot = email.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
       const initialRole = isRoot ? 'Admin' : 'Analyst';
       const initialTier = isRoot ? 'Sovereign' : 'Free';
       
-      await supabase.from('profiles').upsert([{
+      const profilePayload = {
         id: authData.user.id,
         name: name,
         email: email,
@@ -34,7 +34,10 @@ export class AuthService {
         subscription_tier: initialTier,
         usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
         created_at: new Date().toISOString()
-      }]);
+      };
+
+      const { error: profileError } = await supabase.from('profiles').upsert([profilePayload]);
+      if (profileError) console.error("SOVEREIGN_REGISTRY_ERR:", profileError.message);
 
       const needsConfirmation = !authData.session && !authData.user.email_confirmed_at;
 
@@ -67,13 +70,37 @@ export class AuthService {
 
       if (error) throw error;
 
-      let { data: profileData } = await supabase
+      let { data: profileData, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      if (!profileData) throw new Error("REGISTRY_NOT_FOUND");
+      // SOVEREIGN RECOVERY PROTOCOL:
+      // If the auth user exists but the profile row is missing, auto-provision it.
+      // This is critical for the Root Admin identity to ensure they are never locked out.
+      if (!profileData || fetchError) {
+        const userEmail = data.user.email || email;
+        const isRoot = userEmail.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
+        
+        if (isRoot) {
+          console.warn("RECOVERY_PROTOCOL: Auto-provisioning missing Root Admin profile.");
+          const newProfile = {
+            id: data.user.id,
+            name: "Sovereign Root",
+            email: userEmail,
+            role: 'Admin',
+            subscription_tier: 'Sovereign',
+            usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
+            created_at: new Date().toISOString()
+          };
+          
+          await supabase.from('profiles').upsert([newProfile]);
+          profileData = newProfile;
+        } else if (!profileData) {
+          throw new Error("REGISTRY_NOT_FOUND");
+        }
+      }
 
       return {
         id: data.user.id,
