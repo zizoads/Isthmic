@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../services/SupabaseClient';
 import { useDomainContext } from '../../context/DomainContext';
@@ -9,7 +8,6 @@ const AdminHub: React.FC = () => {
   const { activeProfile, addLog, activityLogs } = useDomainContext();
   const [users, setUsers] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeView, setActiveView] = useState<'overview' | 'users' | 'audit' | 'resilience'>('overview');
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   
@@ -18,7 +16,6 @@ const AdminHub: React.FC = () => {
 
   const fetchData = async () => {
     if (!isAuthorized) return;
-    setIsLoading(true);
     try {
       const [usersRes, auditRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
@@ -29,8 +26,6 @@ const AdminHub: React.FC = () => {
       if (auditRes.data) setAuditLogs(auditRes.data);
     } catch (e) {
       addLog('Admin', 'Failed to sync sovereign registry.', 'critical');
-    } finally {
-      setIsLoading(false);
     }
   };
 

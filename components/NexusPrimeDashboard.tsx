@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NexusOpportunity, Domain } from '../types';
 import { nexusPrimeIntelligenceAI } from '../services/geminiService';
@@ -61,7 +60,7 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
               <span className="bg-indigo-600/20 text-indigo-400 px-4 py-1.5 rounded-xl text-[9px] font-black w-fit mb-6">{opp.type}</span>
               <h4 className="font-black text-xl text-white mb-4">{opp.title}</h4>
               <p className="text-xs text-slate-400 leading-relaxed mb-10 italic flex-1">"{opp.description}"</p>
-              <button onClick={() => setDomains(p => [...p, { id: globalThis.crypto.randomUUID(), name: opp.title, price: 500, status: 'available', contentStatus: 'none' } as Domain])} className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white">
+              <button onClick={() => setDomains(p => [...p, { id: globalThis.crypto.randomUUID(), workspaceId: 'sys', name: opp.title, price: 500, status: 'available', contentStatus: 'none' } as Domain])} className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white">
                 {t.inject}
               </button>
             </div>

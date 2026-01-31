@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Domain, PlatformStrategy, WorkflowState, AgentThought } from '../types';
 import { useDomainContext } from '../context/DomainContext';
@@ -49,6 +48,7 @@ export const useMasterBrain = (
       
       const formatted: Domain[] = finalResults.map((r: any) => ({
         id: Math.random().toString(36).substr(2, 9),
+        workspaceId: strategy.id,
         name: r.name,
         price: r.estimatedPrice || 250,
         status: 'available',

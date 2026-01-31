@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
@@ -18,7 +17,7 @@ interface Props {
 }
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
-  const { activeProfile, exportVault, importVault, wipeLocalVault, monetization, addLog, setActiveProfile } = useDomainContext();
+  const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile } = useDomainContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'autopsy' | 'launch' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

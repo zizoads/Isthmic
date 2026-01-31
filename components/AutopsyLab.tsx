@@ -3,7 +3,6 @@ import {
   SovereignAutopsyReport, 
   AutomaticFix, 
   ProjectExecutiveSummary, 
-  FixImpactReport, 
   ProblemCatalog 
 } from '../types';
 import { AutopsyService } from '../services/ai/AutopsyService';
@@ -14,7 +13,6 @@ import {
   PolarAngleAxis, 
   PolarRadiusAxis, 
   ResponsiveContainer, 
-  Tooltip as ChartTooltip,
   BarChart,
   Bar,
   XAxis,
