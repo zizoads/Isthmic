@@ -110,6 +110,7 @@ export interface MessageAuditInsight {
   psychologicalMarkers: string[];
   redFlags: string[];
   suggestedAction: string;
+  culturalNuance?: string; // Enhanced via Falcon-Arabic
 }
 
 export interface FAANGNegotiationReport {

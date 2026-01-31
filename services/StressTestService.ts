@@ -19,12 +19,14 @@ export class StressTestService {
    */
   static async simulateBurstUpdate(workspaceId: string): Promise<number> {
     const startTime = performance.now();
+    // Add missing required property 'contentStatus' to Domain objects to fix assignability error
     const fakeDomains: Domain[] = Array.from({ length: 100 }).map((_, i) => ({
       id: `stress_${i}_${Date.now()}`,
       workspaceId,
       name: `stress-test-${i}.com`,
       price: Math.floor(Math.random() * 5000),
       status: 'available',
+      contentStatus: 'none',
       lastChecked: new Date().toISOString()
     }));
 

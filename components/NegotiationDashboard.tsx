@@ -188,7 +188,7 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
                 <div className="flex justify-start animate-pulse">
                    <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center gap-3">
                       <div className="w-2 h-2 bg-[#c5a059] rounded-full animate-ping"></div>
-                      <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Deploying 4-Layer Forensic Suite...</span>
+                      <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Deploying Dual-Engine Forensic Suite...</span>
                    </div>
                 </div>
               )}
@@ -238,6 +238,8 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
             );
             
             const report = lastMsgWithReport.faangReport;
+            const insight = lastMsgWithReport.auditInsight;
+            
             return (
               <div className="space-y-8 animate-slide-up">
                 {/* Score Meters */}
@@ -247,6 +249,21 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
                      {report.leverageScore}%
                    </div>
                 </div>
+
+                {/* Cultural Insight Section - Falcon Powered */}
+                {insight?.culturalNuance && (
+                   <div className="p-6 bg-[#c5a059]/5 border border-[#c5a059]/30 rounded-2xl animate-precision">
+                      <div className="flex justify-between items-center mb-4">
+                         <h4 className="text-[9px] font-black text-[#c5a059] uppercase tracking-widest flex items-center gap-2">
+                            <i className="fas fa-falcon"></i> Cultural Linguistic Pulse
+                         </h4>
+                         <span className="text-[7px] bg-white/10 px-2 py-0.5 rounded text-white font-mono">FALCON_7B</span>
+                      </div>
+                      <p className="text-[11px] text-slate-200 leading-relaxed italic">
+                        {insight.culturalNuance}
+                      </p>
+                   </div>
+                )}
 
                 <div className="space-y-4">
                   <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Quantitative Indicators</h4>
