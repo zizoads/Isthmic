@@ -1,8 +1,7 @@
-
-import React, { ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
   fallbackName?: string;
 }
 
@@ -12,12 +11,12 @@ interface State {
 }
 
 /**
- * ProtocolErrorBoundary: نظام معالجة الأخطاء السيادي لضمان استمرارية الواجهة.
+ * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Fix: Extending React.Component explicitly to ensure props, state, and setState are correctly inherited
+// Fix: Extending React.Component explicitly to ensure inheritance of setState and props in all environments
 class ProtocolErrorBoundary extends React.Component<Props, State> {
-  // Fix: Explicitly initialize state and mark it as an override
-  public override state: State = {
+  // Fix: Initializing state property with explicit type and default values
+  public state: State = {
     hasError: false,
     error: null
   };
@@ -26,18 +25,18 @@ class ProtocolErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
-  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  // Fix: Explicitly typed ErrorInfo using React.ErrorInfo to avoid property resolution errors
+  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
-  // Ensure 'this' context is bound via arrow function for reset protocol
-  // Fix: setState is now correctly identified as an inherited member from React.Component
   private handleReset = () => {
+    // Fix: setState is now correctly recognized as a member of the inherited React.Component class
     this.setState({ hasError: false, error: null });
   };
 
-  public override render() {
-    // Fix: Access hasError from state through this.state
+  // Fix: render method utilizing inherited this.state and this.props which are now properly scoped
+  public render() {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center p-20 border-2 border-red-500/20 bg-red-500/5 rounded-[40px] animate-precision text-center space-y-8">
@@ -45,8 +44,7 @@ class ProtocolErrorBoundary extends React.Component<Props, State> {
             <i className="fas fa-microchip-slash"></i>
           </div>
           <div className="space-y-4">
-            <h3 className="text-[11px] font-black text-red-500 uppercase tracking-[0.4em]">Protocol Interruption // انقطاع البروتوكول</h3>
-            {/* Fix: fallbackName is accessed through this.props */}
+            <h3 className="text-[11px] font-black text-red-500 uppercase tracking-[0.4em]">Protocol Interruption</h3>
             <h2 className="text-3xl prestige-heading text-white italic">"{this.props.fallbackName || 'Unit'} malfunction detected."</h2>
             <p className="text-slate-500 text-xs font-mono max-w-md mx-auto leading-relaxed">
               The internal logic engine encountered an unexpected state. Sovereign resilience protocol is now active.
@@ -70,7 +68,6 @@ class ProtocolErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Fix: children is accessed through this.props as an inherited member from React.Component
     return this.props.children;
   }
 }

@@ -37,7 +37,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
     if ((window as any).aistudio) {
       await (window as any).aistudio.openSelectKey();
       setNeedsNewKey(false);
-      addLog('System', lang === 'ar' ? 'تم تحديث المفتاح. جاهز لاستئناف البروتوكول.' : 'Key updated. Ready to resume protocol.', 'success');
+      addLog('System', 'Key updated. Ready to resume protocol.', 'success');
     }
   };
 
@@ -71,15 +71,15 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
       const results = await engine.executeSovereignLoop(strategy);
       onDomainsInjected(results);
       await clearJob(jobId);
-      addLog('Master Brain', lang === 'ar' ? 'تم اكتمال البروتوكول السيادي بنجاح.' : 'Sovereign Protocol successfully concluded.', 'success');
+      addLog('Master Brain', 'Sovereign Protocol successfully concluded.', 'success');
     } catch (e: any) {
       console.error("Loop Error:", e.message);
       
       if (e.message === 'SOVEREIGN_KEY_EXPIRED') {
         setNeedsNewKey(true);
-        addLog('System', lang === 'ar' ? 'خطأ في الصلاحية: يرجى اختيار مفتاح API صالح.' : 'Identity Error: Please select a valid API Key.', 'critical');
+        addLog('System', 'Identity Error: Please select a valid API Key.', 'critical');
       } else {
-        addLog('System', lang === 'ar' ? `انقطع البروتوكول: ${e.message}` : `Loop interrupted: ${e.message}`, 'warning');
+        addLog('System', `Loop interrupted: ${e.message}`, 'warning');
       }
       
       setIsRunning(false);
@@ -92,7 +92,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
         <div className="space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-3 h-3 bg-[#c5a059]"></div>
-             <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core // النواة المستقلة</span>
+             <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core</span>
           </div>
           <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative</h2>
         </div>
@@ -103,7 +103,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
               onClick={handleKeyRenewal}
               className="square-button bg-red-600 text-white text-xs font-black shadow-2xl animate-pulse"
             >
-              <i className="fas fa-key mr-2"></i> {lang === 'ar' ? 'تجديد المفتاح السيادي' : 'RENEW SOVEREIGN KEY'}
+              <i className="fas fa-key mr-2"></i> RENEW SOVEREIGN KEY
             </button>
           ) : (
             thoughts.length > 0 && !isRunning && (
@@ -133,7 +133,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
       <div className="grid grid-cols-12 gap-0 border-2 border-white/10">
         <div className="col-span-12 lg:col-span-8 h-[600px] flex flex-col bg-[#050505] border-r-2 border-white/10">
           <div className="p-4 border-b-2 border-white/10 bg-white/5 flex justify-between items-center">
-            <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">System_Output_Stream // تدفق_مخرجات_النظام</span>
+            <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">System_Output_Stream</span>
             <div className="flex gap-2">
               <div className="w-2 h-2 bg-red-500"></div>
               <div className="w-2 h-2 bg-amber-500"></div>
@@ -167,7 +167,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
 
         <div className="col-span-12 lg:col-span-4 p-10 bg-white/2 space-y-10">
           <div className="space-y-6">
-            <h4 className="text-[11px] font-black text-[#c5a059] uppercase tracking-widest">Core Calibration // معايرة النواة</h4>
+            <h4 className="text-[11px] font-black text-[#c5a059] uppercase tracking-widest">Core Calibration</h4>
             <div className="space-y-6">
               {[
                 { label: 'Neural Accuracy', val: '0.998' },
@@ -183,7 +183,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
           </div>
 
           <div className="p-8 border-2 border-indigo-500/20 bg-indigo-500/5">
-            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Pulse Status // حالة النبض</h4>
+            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Pulse Status</h4>
             <div className="text-xs text-slate-400 leading-relaxed font-mono space-y-2">
               <p>The engine is monitoring real-time liquidity signals while executing the loop. Resumption logic is active.</p>
               {needsNewKey && <p className="text-red-400 font-black">// ACTION REQUIRED: RE-AUTHENTICATE KEY TO CONTINUE.</p>}

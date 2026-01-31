@@ -6,8 +6,8 @@ import { Type, GoogleGenAI } from "@google/genai";
 import { generateStructuredAI } from "./ai/base";
 
 /**
- * MasterBrainEngine: المحرك السيادي لإدارة العمليات المستقلة.
- * يدعم الآن استعادة الحالة (State Recovery) ونقاط الحفظ (Checkpointing).
+ * MasterBrainEngine: Sovereign engine for managing autonomous operations.
+ * Supports state recovery and checkpointing.
  */
 export class MasterBrainEngine {
   private thoughts: AgentThought[] = [];
@@ -22,7 +22,7 @@ export class MasterBrainEngine {
     this.activeJobId = jobId;
   }
 
-  // حفظ حالة المهمة في Supabase لضمان القدرة على الاستئناف
+  // Persist job state to Supabase to ensure resume capability
   private async persistState(thoughts: AgentThought[], status: ActiveJob['status'] = 'running') {
     if (!this.activeJobId) return;
     
@@ -36,7 +36,7 @@ export class MasterBrainEngine {
     this.onThoughtUpdate([...thoughts]);
   }
 
-  // إضافة فكرة جديدة للسجل مع تزامن فوري للقاعدة
+  // Add a new thought to the log with immediate DB sync
   private async addThought(role: AgentRole, message: string, status: AgentThought['status'] = 'resolved') {
     const thought: AgentThought = {
       role,
@@ -49,7 +49,7 @@ export class MasterBrainEngine {
   }
 
   async executeSovereignLoop(strategy: PlatformStrategy): Promise<Domain[]> {
-    // 1. منطق استعادة السياق من الجلسة السابقة
+    // 1. Context restoration logic from previous session
     if (this.activeJobId) {
       const { data } = await supabase.from('active_jobs').select('thoughts, payload').eq('id', this.activeJobId).single();
       if (data?.thoughts) {
@@ -61,38 +61,38 @@ export class MasterBrainEngine {
     const hasCompletedDiscovery = this.thoughts.some(t => t.message.includes("PHASE_DISCOVERY_COMPLETE"));
     let rawOpportunities: any = null;
 
-    // --- المرحلة 1: تنقيب السوق (Market Discovery) ---
+    // --- Phase 1: Market Discovery ---
     if (!hasCompletedDiscovery) {
-      await this.addThought(AgentRole.STRATEGIST, "بدء المرحلة 1: مسح السوق الاستراتيجي...", "thinking");
+      await this.addThought(AgentRole.STRATEGIST, "Initiating Phase 1: Strategic Market Sweep...", "thinking");
       const discoveryResult = await AIService.rigorousDiscoveryAI(strategy.investmentThesis);
       rawOpportunities = discoveryResult.data;
       
-      // تخزين النتائج الأولية في حمولة المهمة لضمان سلامة الاستئناف
+      // Store initial results in job payload for safe resumption
       if (this.activeJobId) {
         await supabase.from('active_jobs').update({ 
           payload: { ...strategy, discoveredLeads: rawOpportunities } 
         }).eq('id', this.activeJobId);
       }
       
-      await this.addThought(AgentRole.STRATEGIST, `تم اكتمال التنقيب (PHASE_DISCOVERY_COMPLETE): تم تحديد ${rawOpportunities.length} وحدة.`);
+      await this.addThought(AgentRole.STRATEGIST, `Discovery concluded (PHASE_DISCOVERY_COMPLETE): ${rawOpportunities.length} units identified.`);
     } else {
-      await this.addThought(AgentRole.STRATEGIST, "استئناف العمل من المرحلة 2: التدقيق الجنائي...", "resolved");
-      // استعادة النتائج من حمولة الجلسة السابقة
+      await this.addThought(AgentRole.STRATEGIST, "Resuming from Phase 2: Forensic Audit...", "resolved");
+      // Restore results from previous session payload
       const { data: jobData } = await supabase.from('active_jobs').select('payload').eq('id', this.activeJobId!).single();
       rawOpportunities = jobData?.payload?.discoveredLeads || [];
     }
 
-    // --- المرحلة 2: التدقيق الجنائي (Forensic Audit) ---
+    // --- Phase 2: Forensic Audit ---
     const auditedDomains: Domain[] = [];
     const alreadyAudited = this.thoughts
       .filter(t => t.message.includes("AUDIT_SUCCESS:"))
       .map(t => t.message.split(":")[1].trim());
 
     for (const opp of rawOpportunities) {
-      // تخطي النطاقات التي تم تدقيقها بنجاح في الجلسة السابقة
+      // Skip domains audited successfully in previous session
       if (alreadyAudited.includes(opp.name)) continue;
 
-      await this.addThought(AgentRole.AUDITOR, `تحليل جنائي معمق: ${opp.name}`, "thinking");
+      await this.addThought(AgentRole.AUDITOR, `In-depth forensic analysis: ${opp.name}`, "thinking");
       
       try {
         const auditResult = await AIService.evaluateDomainExpertAI(opp.name);
@@ -117,18 +117,18 @@ export class MasterBrainEngine {
                verificationStatus: auditResult.cached ? 'CROSS_REFERENCED' : 'AI_INFERRED'
             }
           });
-          await this.addThought(AgentRole.AUDITOR, `تم التدقيق بنجاح (AUDIT_SUCCESS): ${opp.name}`);
+          await this.addThought(AgentRole.AUDITOR, `Audit successful (AUDIT_SUCCESS): ${opp.name}`);
         } else {
-          await this.addThought(AgentRole.AUDITOR, `تم رفض النطاق (AUDIT_REJECTED): ${opp.name} لم يتجاوز عتبة السيولة.`);
+          await this.addThought(AgentRole.AUDITOR, `Domain rejected (AUDIT_REJECTED): ${opp.name} failed liquidity threshold.`);
         }
       } catch (e) {
-        await this.addThought(AgentRole.AUDITOR, `انقطاع التدقيق: ${opp.name}. بانتظار استئناف الجلسة.`, 'failed');
-        throw e; // رفع الخطأ للسماح للمستخدم بتبديل المفتاح أو الاستئناف لاحقاً
+        await this.addThought(AgentRole.AUDITOR, `Audit interrupted: ${opp.name}. Awaiting session resumption.`, 'failed');
+        throw e; // Bubble up to allow key rotation or retry
       }
     }
 
-    // --- المرحلة 3: الإنهاء (Finalization) ---
-    await this.addThought(AgentRole.STRATEGIST, "اكتمل البروتوكول. يتم الآن حقن الأصول في الخزينة.", "resolved");
+    // --- Phase 3: Finalization ---
+    await this.addThought(AgentRole.STRATEGIST, "Protocol complete. Injecting assets into vault.", "resolved");
     await this.persistState(this.thoughts, 'completed');
     return auditedDomains;
   }
@@ -136,8 +136,8 @@ export class MasterBrainEngine {
   async analyzeNegotiation(domainName: string, buyerMessage: string): Promise<NegotiationBattleCard> {
     const result = await generateStructuredAI<NegotiationBattleCard>(
       'gemini-3-flash-preview',
-      "خبير استراتيجيات التفاوض النخبوي.",
-      `حلل الرسالة التالية: ${buyerMessage} للنطاق ${domainName}`,
+      "Elite negotiation strategy expert.",
+      `Analyze the following message: ${buyerMessage} for domain ${domainName}`,
       {
         type: Type.OBJECT,
         properties: {
@@ -156,7 +156,7 @@ export class MasterBrainEngine {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `قم بصياغة ورقة شروط مهنية (Term Sheet) للنطاق ${domain.name} بسعر $${domain.price}.`
+      contents: `Draft a professional Term Sheet for domain ${domain.name} priced at $${domain.price}.`
     });
     return response.text || '';
   }

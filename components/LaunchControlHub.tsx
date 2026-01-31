@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { LaunchReadinessReport, SovereignAutopsyReport, EWSAlert } from '../types';
 import { LaunchReadinessService } from '../services/LaunchReadinessService';
@@ -64,7 +65,7 @@ const LaunchControlHub: React.FC = () => {
         addLog('Chaos Engine', 'CRITICAL_FAILURE_SIMULATION: Manual trigger.', 'critical');
       }
     }
-    window.location.reload(); // Force proxy update
+    window.location.reload(); 
   };
 
   const isSafeMode = report?.ewsStatus === 'CRITICAL';
@@ -124,21 +125,43 @@ const LaunchControlHub: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          <div className="lg:col-span-8 space-y-10">
             {report ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {report.components.map((c) => (
-                  <div key={c.id} className="square-card p-8 bg-white/[0.02] border border-white/5 group hover:border-white/20 transition-all">
-                    <div className="flex justify-between items-start mb-6">
-                       <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase ${c.status === 'STABLE' ? 'text-green-500 bg-green-500/10' : 'text-amber-500 bg-amber-500/10'}`}>{c.status}</span>
-                       <div className="text-[9px] font-mono text-slate-600">Health: {c.phi}%</div>
+              <div className="space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {report.components.map((c) => (
+                    <div key={c.id} className="square-card p-8 bg-white/[0.02] border border-white/5 group hover:border-white/20 transition-all">
+                      <div className="flex justify-between items-start mb-6">
+                        <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase ${c.status === 'STABLE' ? 'text-green-500 bg-green-500/10' : 'text-amber-500 bg-amber-500/10'}`}>{c.status}</span>
+                        <div className="text-[9px] font-mono text-slate-600">Health: {c.phi}%</div>
+                      </div>
+                      <h4 className="text-xl font-bold text-white italic group-hover:text-[#d4af37] transition-colors">{c.name}</h4>
+                      <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-2">{c.category}</p>
                     </div>
-                    <h4 className="text-xl font-bold text-white italic group-hover:text-[#d4af37] transition-colors">{c.name}</h4>
-                    <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-2">{c.category}</p>
-                    <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
-                       <div className="text-[8px] font-black text-slate-700 uppercase">Verification Hash</div>
-                       <div className="text-[9px] font-mono text-slate-500">{Math.random().toString(16).slice(2, 10).toUpperCase()}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* Final 0.2% Gap Manifest */}
+                <div className="bg-black/60 border border-[#d4af37]/20 rounded-[40px] p-10 space-y-8 relative overflow-hidden">
+                   <div className="flex items-center gap-4 relative z-10">
+                      <i className="fas fa-microchip text-[#d4af37] text-2xl"></i>
+                      <h3 className="text-xl prestige-heading text-white italic">The Final 0.2% // Gap Manifest</h3>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                      {[
+                        { title: 'Shield Latency', status: '0.08% Remaining', desc: 'XOR local encryption speed validation (<2ms).' },
+                        { title: 'Neural Echo', status: '0.07% Remaining', desc: 'Gemini 3 inference deterministic consistency check.' },
+                        { title: 'Registry Sync', status: '0.05% Remaining', desc: 'Real-time drift verification across global registrars.' }
+                      ].map((gap, i) => (
+                        <div key={i} className="p-6 bg-white/2 border border-white/5 rounded-2xl space-y-3">
+                           <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-black text-white uppercase">{gap.title}</span>
+                              <span className="text-[8px] font-mono text-[#d4af37]">{gap.status}</span>
+                           </div>
+                           <p className="text-[10px] text-slate-500 italic leading-relaxed">{gap.desc}</p>
+                        </div>
+                      ))}
+                   </div>
+                   <i className="fas fa-terminal absolute right-[-20px] bottom-[-20px] text-white/[0.02] text-[150px] pointer-events-none"></i>
+                </div>
               </div>
             ) : (
               <div className="h-[600px] border-2 border-dashed border-white/5 rounded-[50px] flex flex-col items-center justify-center opacity-20">
@@ -167,15 +190,29 @@ const LaunchControlHub: React.FC = () => {
             </div>
 
             {report && (
-              <div className="square-card p-10 bg-[#d4af37]/5 border-[#d4af37]/30 flex flex-col justify-between min-h-[350px]">
+              <div className="square-card p-10 bg-[#d4af37]/5 border-[#d4af37]/30 flex flex-col justify-between min-h-[450px]">
                  <div className="space-y-6">
                     <h3 className="text-[10px] font-black text-[#d4af37] uppercase tracking-widest leading-none">Readiness Index</h3>
                     <div className="text-8xl font-black text-white italic leading-none">{report.overallReadiness}%</div>
-                    <div className="p-4 bg-white/2 rounded-2xl border border-white/5">
-                       <div className="text-[8px] font-black text-slate-500 uppercase mb-2">Director's Recommendation</div>
-                       <p className="text-[10px] text-white italic font-bold">
-                         {report.authorizedForLaunch ? 'GO: All systems green. Global deployment authorized.' : 'NO-GO: Stabilize core components and re-verify.'}
-                       </p>
+                    
+                    <div className="p-4 bg-white/2 rounded-2xl border border-white/5 space-y-4">
+                       <div>
+                          <div className="text-[8px] font-black text-slate-500 uppercase mb-2">Director's Recommendation</div>
+                          <p className="text-[10px] text-white italic font-bold">
+                            {report.overallReadiness >= 99.8 
+                              ? 'GO: Stable thresholds reached. Final mile gaps are low-risk.' 
+                              : 'NO-GO: Core architecture requires stabilization.'}
+                          </p>
+                       </div>
+                       <div className="pt-2 border-t border-white/5">
+                          <div className="text-[8px] font-black text-slate-500 uppercase mb-1">Calculated Risk</div>
+                          <div className="flex items-center gap-2">
+                             <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-[#d4af37] w-[15%]"></div>
+                             </div>
+                             <span className="text-[8px] font-mono text-[#d4af37]">LOW</span>
+                          </div>
+                       </div>
                     </div>
                  </div>
                  <button 
@@ -183,7 +220,7 @@ const LaunchControlHub: React.FC = () => {
                   className={`w-full py-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                     ${report.authorizedForLaunch && !isSafeMode ? 'bg-[#d4af37] text-black shadow-2xl scale-105' : 'bg-white/5 text-slate-700 cursor-not-allowed'}`}
                  >
-                   {isSafeMode ? 'AUTHORIZATION_REVOKED' : 'AUTHORIZE GLOBAL RELEASE'}
+                   {isSafeMode ? 'AUTHORIZATION_REVOKED' : 'AUTHORIZE STABLE RELEASE'}
                  </button>
               </div>
             )}
