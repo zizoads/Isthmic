@@ -11,25 +11,6 @@ const AuthForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // وظيفة اللصق الذكية من الحافظة
-  const handlePaste = async (target: 'email' | 'password' | 'name') => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (target === 'email') setEmail(text);
-      if (target === 'password') setPassword(text);
-      if (target === 'name') setName(text);
-      addLog('System', `Data pasted into ${target} field.`, 'info');
-    } catch (err) {
-      addLog('System', 'Clipboard access denied.', 'warning');
-    }
-  };
-
-  const quickFill = (e: string, p: string) => {
-    setEmail(e);
-    setPassword(p);
-    addLog('Auth', 'Identity credentials pre-filled from ledger.', 'info');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -80,64 +61,31 @@ const AuthForm: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
-              <div className="relative group">
-                <input 
-                  type="text" 
-                  required 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-                  placeholder="Full Legal Name"
-                />
-                <button 
-                  type="button"
-                  onClick={() => handlePaste('name')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
-                  title="Paste from clipboard"
-                >
-                  <i className="fas fa-paste text-xs"></i>
-                </button>
-              </div>
+              <input 
+                type="text" 
+                required 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+                placeholder="Full Legal Name"
+              />
             )}
-            
-            <div className="relative group">
-              <input 
-                type="email" 
-                required 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-                placeholder="Sovereign Email Address"
-              />
-              <button 
-                type="button"
-                onClick={() => handlePaste('email')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
-                title="Paste from clipboard"
-              >
-                <i className="fas fa-paste text-xs"></i>
-              </button>
-            </div>
-
-            <div className="relative group">
-              <input 
-                type="password" 
-                required 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-                placeholder="Security Keyphrase"
-              />
-              <button 
-                type="button"
-                onClick={() => handlePaste('password')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#d4af37] transition-colors p-2"
-                title="Paste from clipboard"
-              >
-                <i className="fas fa-paste text-xs"></i>
-              </button>
-            </div>
-
+            <input 
+              type="email" 
+              required 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+              placeholder="Sovereign Email Address"
+            />
+            <input 
+              type="password" 
+              required 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+              placeholder="Security Keyphrase"
+            />
             <button 
               type="submit" 
               disabled={isLoading}
@@ -147,18 +95,6 @@ const AuthForm: React.FC = () => {
               <span>{isLogin ? 'ESTABLISH LINK' : 'INITIATE PROTOCOL'}</span>
             </button>
           </form>
-
-          <div className="pt-8 border-t border-white/5">
-             <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Identity Ledger // Quick Fill</div>
-             <div className="flex flex-wrap justify-center gap-3">
-                <button 
-                  onClick={() => quickFill('azeddinebeldjilali9@gmail.com', 'admin123')}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-all"
-                >
-                  <i className="fas fa-user-shield mr-2"></i> Sovereign Admin
-                </button>
-             </div>
-          </div>
 
           <div className="pt-6 space-y-6">
             <button 

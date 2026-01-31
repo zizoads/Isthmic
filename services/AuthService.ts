@@ -2,8 +2,13 @@
 import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
 
+/**
+ * AuthService: نظام إدارة الهوية السيادية.
+ * يتم التحكم في الصلاحيات من خلال "الهوية الجذرية" (Root Identity).
+ */
 export class AuthService {
-  private static BOOTSTRAP_OWNER = 'azeddinebeldjilali9@gmail.com';
+  // الهوية الجذرية الوحيدة للمنظومة - لا يمكن تغييرها إلا من الكود المصدري
+  private static readonly ROOT_ADMIN_IDENTITY = 'azeddinebeldjilali9@gmail.com';
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
     try {
@@ -14,17 +19,19 @@ export class AuthService {
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create identity.");
+      if (!authData.user) throw new Error("IDENTITY_CREATION_FAILED");
 
-      const role = (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase()) ? 'Admin' : 'Executive';
+      // التحقق الصارم: إذا لم يكن الإيميل هو إيميل المالك، فهو مستخدم عادي (Analyst)
+      const isRoot = email.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
+      const initialRole = isRoot ? 'Admin' : 'Analyst';
+      const initialTier = isRoot ? 'Sovereign' : 'Free';
       
-      // Attempt to create profile
       await supabase.from('profiles').upsert([{
         id: authData.user.id,
         name: name,
         email: email,
-        role: role,
-        subscription_tier: 'Free',
+        role: initialRole,
+        subscription_tier: initialTier,
         usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
         created_at: new Date().toISOString()
       }]);
@@ -37,8 +44,8 @@ export class AuthService {
           id: authData.user.id,
           name,
           email,
-          role: role as any,
-          subscriptionTier: 'Free',
+          role: initialRole as any,
+          subscriptionTier: initialTier as any,
           usageStats: { scansThisMonth: 0, auditsThisMonth: 0 },
           preferences: { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
           createdAt: authData.user.created_at,
@@ -58,35 +65,15 @@ export class AuthService {
         password: pass,
       });
 
-      if (error) {
-        // Provide more granular error feedback
-        if (error.message.includes('Email not confirmed')) {
-          throw new Error("IDENTITY_NOT_VERIFIED: Please check your email for the confirmation link.");
-        }
-        throw error;
-      }
+      if (error) throw error;
 
-      // Profile Recovery Logic: If auth succeeds but profile is missing
       let { data: profileData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      if (!profileData) {
-        const fallbackRole = (email.toLowerCase() === this.BOOTSTRAP_OWNER.toLowerCase() ? 'Admin' : 'Executive');
-        const newProfile = {
-          id: data.user.id,
-          name: data.user.user_metadata?.display_name || 'Sovereign User',
-          email: email,
-          role: fallbackRole,
-          subscription_tier: 'Free',
-          usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
-          created_at: new Date().toISOString()
-        };
-        await supabase.from('profiles').insert([newProfile]);
-        profileData = newProfile;
-      }
+      if (!profileData) throw new Error("REGISTRY_NOT_FOUND");
 
       return {
         id: data.user.id,
@@ -103,12 +90,5 @@ export class AuthService {
     } catch (error: any) {
       throw error;
     }
-  }
-
-  static async resetPassword(email: string): Promise<void> {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
-    });
-    if (error) throw error;
   }
 }
