@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../services/SupabaseClient';
 import { useDomainContext } from '../../context/DomainContext';
@@ -218,7 +219,7 @@ const AdminHub: React.FC = () => {
                       <div className="text-slate-600 shrink-0">[{log.timestamp}]</div>
                       <div className="flex-1">
                          <span className="text-[#d4af37] font-black uppercase">{log.actorName}</span>
-                         <span className="text-slate-500 mx-3">>></span>
+                         <span className="text-slate-500 mx-3">{" >> "}</span>
                          <span className="text-white italic">{log.description}</span>
                       </div>
                       <div className={`text-[10px] font-black uppercase ${

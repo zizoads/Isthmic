@@ -68,7 +68,7 @@ const OsintIntelligencePanel: React.FC<Props> = ({ lang }) => {
                     <div className="text-[9px] font-black text-slate-400 uppercase mb-3">{lang === 'ar' ? 'سجل الـ DNS المستخلص' : 'EXTRACTED DNS LOG'}</div>
                     <div className="space-y-2">
                        {data.dnsSummary?.map((log: string, i: number) => (
-                          <div key={i} className="text-[10px] font-mono text-indigo-400 leading-tight">>> {log}</div>
+                          <div key={i} className="text-[10px] font-mono text-indigo-400 leading-tight">{" >> "}{log}</div>
                        ))}
                     </div>
                  </div>
