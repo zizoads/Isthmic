@@ -2,7 +2,7 @@
 export const translations = {
   en: {
     intelligence: {
-      hub_title: "Intelligence Hub",
+      hub_title: "Sovereign Intelligence Hub",
       command_post: "Command Post",
       logic_narrative: "Logic Narrative",
       autonomous_core: "Autonomous Core",
@@ -10,6 +10,7 @@ export const translations = {
       core_calibration: "Core Calibration",
       pulse_status: "Pulse Status",
       domain_found: "Secured Alpha: {{domainName}}",
+      domain_narrative: "Domain Narrative: {{domainName}}",
       logic_desc: "Strategic intent analysis for {{sector}}",
       resumingSession: "RESUME PROTOCOL",
       tabs: {
@@ -25,7 +26,6 @@ export const translations = {
       retry: "Soft Reboot",
       save: "Secure Context"
     },
-    // Global Dashboard Keys
     searchPlaceholder: "Describe the market gap or niche you want to explore...",
     startInference: "Start Inference",
     evaluation: "Evaluation",
@@ -95,7 +95,7 @@ export const translations = {
   },
   ar: {
     intelligence: {
-      hub_title: "مركز الاستخبارات",
+      hub_title: "مركز الاستخبارات السيادي",
       command_post: "مركز القيادة",
       logic_narrative: "سرد المنطق",
       autonomous_core: "النواة المستقلة",
@@ -103,6 +103,7 @@ export const translations = {
       core_calibration: "معايرة النواة",
       pulse_status: "حالة النبض",
       domain_found: "تم تأمين ألفا: {{domainName}}",
+      domain_narrative: "سرد النطاق: {{domainName}}",
       logic_desc: "تحليل النوايا الاستراتيجية لقطاع {{sector}}",
       resumingSession: "استئناف البروتوكول",
       tabs: {

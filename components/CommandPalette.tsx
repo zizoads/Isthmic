@@ -39,7 +39,8 @@ const CommandPalette: React.FC<Props> = ({ setActiveTab, onSearchDomain }) => {
     { label: 'Acquisition Desk', icon: 'fa-crosshairs', action: () => setActiveTab(AgentType.ACQUISITION), category: 'Navigation' },
     { label: 'Operations Hub', icon: 'fa-layer-group', action: () => setActiveTab(AgentType.OPERATIONS), category: 'Navigation' },
     { label: 'Liquidation Engine', icon: 'fa-money-bill-wave', action: () => setActiveTab(AgentType.LIQUIDATION), category: 'Navigation' },
-    { label: 'Executive Suite', icon: 'fa-file-signature', action: () => setActiveTab(AgentType.MANAGEMENT), category: 'Navigation' },
+    { label: 'Executive Suite', icon: 'fa-user-tie', action: () => setActiveTab(AgentType.MANAGEMENT), category: 'Navigation' },
+    { label: 'Arabic Lab (Falcon)', icon: 'fa-falcon', action: () => setActiveTab(AgentType.ARABIC_LAB), category: 'Experimental' },
   ], [setActiveTab]);
 
   const filteredItems = useMemo(() => {

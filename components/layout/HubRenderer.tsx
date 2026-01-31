@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AgentType, Domain, PlatformStats, ServiceIntegration } from '../../types';
 import IntelligenceHub from '../hubs/IntelligenceHub';
@@ -7,6 +8,7 @@ import LiquidationEngine from '../hubs/LiquidationEngine';
 import ExecutiveSuite from '../hubs/ExecutiveSuite';
 import CodeAuditorHub from '../hubs/CodeAuditorHub';
 import AdminHub from '../hubs/AdminHub';
+import ArabicLabTester from '../ArabicLabTester';
 import ProtocolErrorBoundary from '../ui/ProtocolErrorBoundary';
 
 interface Props {
@@ -39,6 +41,8 @@ const HubRenderer: React.FC<Props> = ({
         return <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />;
       case AgentType.CODE_AUDITOR:
         return <CodeAuditorHub />;
+      case AgentType.ARABIC_LAB:
+        return <ArabicLabTester />;
       case AgentType.ADMIN:
         return <AdminHub />;
       case AgentType.OPERATIONS:

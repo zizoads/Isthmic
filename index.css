@@ -1,5 +1,5 @@
 
-/* Isthmic Pro - Sovereign Prestige System v5.1 (RTL Edition) */
+/* Isthmic Pro - Sovereign Prestige System v5.2 (Linguistic Integrity Edition) */
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@200;400;700;900&display=swap');
 
@@ -20,8 +20,7 @@
 
 /* Global RTL Configuration */
 [dir="rtl"] {
-  font-family: var(--font-arabic);
-  text-align: right;
+  font-family: var(--font-arabic), var(--font-sans);
 }
 
 [dir="rtl"] .prestige-heading, 
@@ -29,32 +28,38 @@
   font-family: var(--font-arabic);
   font-weight: 900;
   letter-spacing: -0.01em;
+  text-align: right;
 }
 
-/* Technical Data Preservation - The "Force LTR" exceptions */
+/* Technical Data Preservation - LTR-in-RTL contexts */
 .force-ltr,
 .recharts-wrapper,
 .data-mono,
 .domain-name-display,
-.financial-value {
+.financial-value,
+.ltr-inline {
   direction: ltr !important;
   unicode-bidi: bidi-override;
   text-align: left !important;
 }
 
-[dir="rtl"] .force-ltr {
-  text-align: right !important; /* Keep aligned to context but content flow is LTR */
+/* Inline data spans in RTL sentences */
+[dir="rtl"] .ltr-inline {
+  display: inline-block;
+  margin: 0 4px;
+  text-align: center !important;
+  vertical-align: baseline;
 }
 
-/* RTL Spacing & Border Normalization */
+/* RTL Normalization for Tailwind-like classes */
 [dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
 [dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
 [dir="rtl"] .pl-10 { padding-right: 2.5rem; padding-left: 0; }
-[dir="rtl"] .border-l-2 { border-right-width: 2px; border-left-width: 0; }
+[dir="rtl"] .pr-10 { padding-left: 2.5rem; padding-right: 0; }
+[dir="rtl"] .border-l-2, [dir="rtl"] .border-l-4 { border-right-width: inherit; border-left-width: 0; border-right-style: solid; border-right-color: inherit; }
 [dir="rtl"] .border-r-2 { border-left-width: 2px; border-right-width: 0; }
 
-/* ... existing index.css content ... */
-
+/* ... Rest of existing styling ... */
 * {
   margin: 0;
   padding: 0;

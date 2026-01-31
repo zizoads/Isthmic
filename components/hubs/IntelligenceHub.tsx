@@ -35,9 +35,18 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   ];
 
   return (
-    <div className="space-y-12" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <header className="space-y-4">
+        <div className="flex items-center gap-4">
+           <div className="w-2 h-8 bg-[#c5a059]"></div>
+           <h1 className="text-4xl lg:text-7xl prestige-heading text-white italic leading-none">
+             {t('intelligence.hub_title')}
+           </h1>
+        </div>
+      </header>
+
       {/* Sovereign Tab Bar */}
-      <div className="flex bg-white/5 backdrop-blur-2xl p-1.5 rounded-[24px] border border-white/5 w-fit mx-auto lg:mx-0 shadow-2xl">
+      <div className={`flex bg-white/5 backdrop-blur-2xl p-1.5 rounded-[24px] border border-white/5 w-fit shadow-2xl ${lang === 'ar' ? 'mr-0 ml-auto lg:mr-0' : 'mx-auto lg:mx-0'}`}>
         {tabs.map(tab => (
           <button 
             key={tab.id}
@@ -52,7 +61,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
       </div>
 
       {currentWorkflow && (
-        <div className="max-w-4xl mx-auto lg:mx-0">
+        <div className={`max-w-4xl ${lang === 'ar' ? 'mr-0' : 'mx-auto lg:mx-0'}`}>
           <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
         </div>
       )}
