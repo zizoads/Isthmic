@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AgentType, ActivityLog } from '../../types';
 import CommandPalette from '../CommandPalette';
@@ -28,7 +29,6 @@ const MainLayout: React.FC<Props> = ({
     { id: AgentType.MANAGEMENT, label: 'Executive', icon: 'fa-user-tie' }
   ];
 
-  // التحقق من صلاحيات المسؤول لإضافة خيار الإدارة
   const isAdmin = activeProfile?.role === 'Admin';
 
   const handleDismiss = (id: string) => {
@@ -36,7 +36,8 @@ const MainLayout: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0a0c] text-foreground font-sans overflow-hidden select-none">
+    /* Fix: Removed 'select-none' class to allow text selection/copying */
+    <div className="flex h-screen bg-[#0a0a0c] text-foreground font-sans overflow-hidden">
       <CommandPalette setActiveTab={setActiveHub} onSearchDomain={onSearchDomain} />
       <SonnerNotification notifications={activityLogs} onDismiss={handleDismiss} />
       <TickerTape lang={lang} />
@@ -65,7 +66,6 @@ const MainLayout: React.FC<Props> = ({
             </button>
           ))}
 
-          {/* زر المسؤول يظهر فقط للـ Admin */}
           {isAdmin && (
             <div className="mt-4 pt-4 border-t border-white/5">
               <button 

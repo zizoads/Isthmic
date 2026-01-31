@@ -47,7 +47,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   
-  // استعادة الاستراتيجية من الدرع السيادي (تخزين محلي مشفر)
   const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
     return SovereignShield.recover<PlatformStrategy>('strategy_draft') || {
       id: 'default', totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: ''
@@ -63,7 +62,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   });
 
-  // تحديث الدرع السيادي تلقائياً عند تغير الاستراتيجية
   useEffect(() => {
     if (activeProfile) SovereignShield.protect('strategy_draft', strategy);
   }, [strategy, activeProfile]);
@@ -99,9 +97,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try { await supabase.from('active_jobs').delete().eq('id', id); } catch (e) {}
   }, []);
 
-  /**
-   * بروتوكول تحميل بيئة العمل السيادية (Workspace Load Protocol)
-   */
   const loadWorkspace = useCallback(async (uid: string) => {
     try {
       setIsSyncing(true);
@@ -124,7 +119,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         SovereignShield.protect('strategy_draft', sRes.data);
       }
       
-      // استعادة المهام المنقطعة (Context Resumption)
       if (jRes.data && jRes.data.length > 0) {
         setActiveJobs(jRes.data);
         addLog('Core', `ZOMBIE_CONTEXT_DETECTED: Job ${jRes.data[0].id} found.`, 'warning', 'RESUME', jRes.data[0].id, resumeJob);
@@ -139,9 +133,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [addLog, resumeJob]);
 
+  // Enhanced Persistence Protocol: Listening to Auth State changes
   useEffect(() => {
-    const init = async () => {
+    const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session?.user) {
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (profile) {
@@ -152,10 +148,39 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profile.id}`
           });
           await loadWorkspace(profile.id);
-        } else { setIsInitialLoading(false); }
-      } else { setIsInitialLoading(false); }
+        } else {
+          setIsInitialLoading(false);
+        }
+      } else {
+        setIsInitialLoading(false);
+      }
     };
-    init();
+
+    initializeAuth();
+
+    // Listener for Auth events (ensures persistence across browser tabs and refreshes)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        if (profile) {
+          setActiveProfile({
+            id: profile.id, email: profile.email, name: profile.name, role: profile.role,
+            subscriptionTier: profile.subscription_tier, usageStats: profile.usage_stats,
+            preferences: profile.preferences, createdAt: profile.created_at, isSyncEnabled: true,
+            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profile.id}`
+          });
+          loadWorkspace(profile.id);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setActiveProfile(null);
+        setDomains([]);
+        setIsInitialLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [loadWorkspace]);
 
   const updateDomain = useCallback(async (domain: Domain) => {

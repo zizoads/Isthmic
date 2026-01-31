@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children: React.ReactNode;
+  children: ReactNode;
   fallbackName?: string;
 }
 
@@ -13,9 +13,9 @@ interface State {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Fix: Extending React.Component explicitly to ensure inheritance of setState and props in all environments
-class ProtocolErrorBoundary extends React.Component<Props, State> {
-  // Fix: Initializing state property with explicit type and default values
+// Use explicit Component import to ensure inheritance is correctly resolved by the TypeScript compiler
+class ProtocolErrorBoundary extends Component<Props, State> {
+  // Explicitly initialize state property
   public state: State = {
     hasError: false,
     error: null
@@ -25,17 +25,17 @@ class ProtocolErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
-  // Fix: Explicitly typed ErrorInfo using React.ErrorInfo to avoid property resolution errors
-  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  // Use ErrorInfo from the imported react types
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
   private handleReset = () => {
-    // Fix: setState is now correctly recognized as a member of the inherited React.Component class
+    // setState is correctly inherited from Component
     this.setState({ hasError: false, error: null });
   };
 
-  // Fix: render method utilizing inherited this.state and this.props which are now properly scoped
+  // render method accessing state and props from the inherited class
   public render() {
     if (this.state.hasError) {
       return (

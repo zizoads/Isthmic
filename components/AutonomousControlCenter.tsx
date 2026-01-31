@@ -94,6 +94,7 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
              <div className="w-3 h-3 bg-[#c5a059]"></div>
              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Autonomous Core</span>
           </div>
+          {/* Fix: Removed Arabic "سرد النطاق" text */}
           <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic">Logic Narrative</h2>
         </div>
         
