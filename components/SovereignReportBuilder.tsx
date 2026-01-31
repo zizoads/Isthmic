@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Domain, PlatformStats, ReportSection } from '../types';
 import { ReportService } from '../services/ReportService';
@@ -23,7 +22,8 @@ const SovereignReportBuilder: React.FC<Props> = ({ stats, domains, lang }) => {
 
   const handleSynthesize = async () => {
     setIsSynthesizing(true);
-    const sectors = Array.from(new Set(domains.map(d => d.sector || 'Uncategorized')));
+    // Fix: Explicitly typing the Set and Array.from result to ensure sectors is string[] and not unknown[].
+    const sectors: string[] = Array.from(new Set<string>(domains.map(d => d.sector || 'Uncategorized')));
     const report = await generateExecutiveReportAI(stats, sectors);
     setNarrative(report.summary);
     setIsSynthesizing(false);

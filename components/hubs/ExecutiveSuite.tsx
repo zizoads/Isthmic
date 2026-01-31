@@ -1,9 +1,10 @@
-
 import React, { useState, useRef } from 'react';
 import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
 import SovereignReportBuilder from '../SovereignReportBuilder';
-import { Domain, PlatformStats, ServiceIntegration } from '../../types';
+import AutopsyLab from '../AutopsyLab';
+import LaunchControlHub from '../LaunchControlHub';
+import { Domain, PlatformStats, ServiceIntegration, SovereignAutopsyReport } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { NotificationService } from '../../services/NotificationService';
 
@@ -17,8 +18,9 @@ interface Props {
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
   const { activeProfile, exportVault, importVault, wipeLocalVault, monetization, addLog, setActiveProfile } = useDomainContext();
-  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'autopsy' | 'launch' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
+  // Removed unused autopsies state to fix type error when passing it to LaunchControlHub which doesn't accept props
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!activeProfile) return null;
@@ -46,7 +48,6 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
   };
 
   const currentPlan = monetization.plans[activeProfile.subscriptionTier];
-  const connectedCount = integrations.filter(i => i.status === 'connected').length;
 
   return (
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -56,7 +57,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
         <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
           <div className="relative group">
             <div className="w-32 h-32 rounded-[40px] border-2 border-[#c5a059]/30 p-1.5 transition-transform duration-700 group-hover:rotate-6">
-              <img src={activeProfile.avatar} className="w-full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
+              <img src={activeProfile.avatar} className="full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
             </div>
             <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-[#111113] rounded-full"></div>
           </div>
@@ -72,17 +73,19 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
             </div>
           </div>
 
-          <div className="flex bg-[#0a0a0c] p-2 rounded-3xl border border-white/5 shadow-2xl">
+          <div className="flex bg-[#0a0a0c] p-2 rounded-3xl border border-white/5 shadow-2xl overflow-x-auto max-w-full">
             {[
               { id: 'profile', label: 'Identity', icon: 'fa-user-tie' },
               { id: 'integrations', label: 'Gateways', icon: 'fa-plug' },
               { id: 'reports', label: 'Briefing', icon: 'fa-file-signature' },
+              { id: 'autopsy', label: 'Autopsy', icon: 'fa-dna' },
+              { id: 'launch', label: 'Launch', icon: 'fa-rocket' },
               { id: 'vault', label: 'Vault', icon: 'fa-vault' }
             ].map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)} 
-                className={`flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all
+                className={`flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all flex-shrink-0
                   ${activeTab === tab.id ? 'bg-[#c5a059] text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
               >
                 <i className={`fas ${tab.icon} text-sm`}></i>
@@ -150,6 +153,9 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
 
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
         {activeTab === 'reports' && <SovereignReportBuilder stats={stats} domains={domains} lang={lang} />}
+        {activeTab === 'autopsy' && <AutopsyLab />}
+        {/* Fixed Type Error: LaunchControlHub does not accept an autopsies prop */}
+        {activeTab === 'launch' && <LaunchControlHub />}
         
         {activeTab === 'vault' && (
           <div className="max-w-5xl mx-auto space-y-12 animate-precision">
@@ -159,7 +165,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                       <div className="w-16 h-16 bg-[#c5a059]/10 rounded-3xl flex items-center justify-center text-[#c5a059] border border-[#c5a059]/20"><i className="fas fa-vault text-2xl"></i></div>
                       <div><h3 className="text-3xl prestige-heading text-white italic">Client-Side Vault Logic</h3><p className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.2em] mt-1">Status: Fully Sovereign</p></div>
                    </div>
-                   <div className="flex flex-wrap gap-6 pt-6">
+                   <div className="flex wrap gap-6 pt-6">
                       <button onClick={exportVault} className="bg-white text-black px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl flex items-center gap-4"><i className="fas fa-file-export"></i> Export Command Backup</button>
                       <button onClick={() => fileInputRef.current?.click()} className="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-4"><i className="fas fa-file-import"></i> Restore Environment</button>
                       <input type="file" ref={fileInputRef} onChange={handleFileImport} className="hidden" accept=".json" />

@@ -1,18 +1,14 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 /**
  * Isthmic Pro - Sovereign Cloud Connection
- * تم تصحيح الرابط بناءً على البيانات المكتشفة: weqtcsfynvqconvldmhw
+ * Phase Final: Enhanced with Resilience Wrapper for EWS testing.
  */
 
-// الرابط الصحيح (بدون حرف c الزائد)
 const SUPABASE_URL = 'https://weqtcsfynvqconvldmhw.supabase.co'.trim(); 
-
-// المفتاح الجديد (sb_publishable...)
 const SUPABASE_ANON_KEY = 'sb_publishable_fTs-sBuPk0GVRtObWe01wQ_o6MxQkso'.trim(); 
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+const rawClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -24,11 +20,35 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 /**
- * دالة لفحص حالة الاتصال بالخادم يدوياً مع تشخيص دقيق
+ * Resilience Proxy: Allows the platform to simulate production failures and latency
+ * to verify the integrity of the Early Warning System (EWS).
  */
+export const supabase = new Proxy(rawClient, {
+  get(target, prop, receiver) {
+    const original = Reflect.get(target, prop, receiver);
+    
+    // Check for Chaos Mode simulation
+    const simulatedLatency = localStorage.getItem('isthmic_chaos_latency');
+    const shouldFail = localStorage.getItem('isthmic_chaos_failure') === 'true';
+
+    if (typeof original === 'function' && (prop === 'from' || prop === 'auth')) {
+      return (...args: any[]) => {
+        if (shouldFail) throw new Error("SIMULATED_DB_FAILURE: Chaos Mode Active");
+        
+        if (simulatedLatency) {
+          const ms = parseInt(simulatedLatency);
+          return new Promise(resolve => setTimeout(() => resolve(original.apply(target, args)), ms));
+        }
+        
+        return original.apply(target, args);
+      };
+    }
+    return original;
+  }
+});
+
 export const checkSupabaseConnection = async () => {
   try {
-    // محاولة جلب الجلسة الحالية للتأكد من أن الخادم يستجيب
     const { data, error } = await supabase.auth.getSession();
     if (error && error.message.includes('fetch')) return false;
     return true;
