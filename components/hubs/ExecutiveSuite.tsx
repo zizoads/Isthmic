@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
 import SovereignReportBuilder from '../SovereignReportBuilder';
+import AnalyticsDashboard from '../AnalyticsDashboard';
 import { Domain, PlatformStats, ServiceIntegration } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { NotificationService } from '../../services/NotificationService';
@@ -15,8 +16,8 @@ interface Props {
 }
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang }) => {
-  const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile, setIsTourOpen } = useDomainContext();
-  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
+  const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile, logout } = useDomainContext();
+  const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'integrations' | 'reports' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +49,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
 
   const availableTabs = [
     { id: 'profile', label: lang === 'ar' ? 'الهوية' : 'Identity', icon: 'fa-user-tie' },
+    { id: 'stats', label: lang === 'ar' ? 'الأداء' : 'Performance', icon: 'fa-chart-pie' },
     { id: 'integrations', label: lang === 'ar' ? 'بوابات الربط' : 'Gateways', icon: 'fa-plug' },
     { id: 'reports', label: lang === 'ar' ? 'التقارير' : 'Briefing', icon: 'fa-file-signature' },
     { id: 'vault', label: lang === 'ar' ? 'الخزنة' : 'Vault', icon: 'fa-vault' }
@@ -57,16 +59,16 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
 
-      <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-10 lg:p-14 overflow-hidden shadow-2xl">
+      <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-8 lg:p-14 overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
           <div className="relative group">
             <div className="w-32 h-32 rounded-[40px] border-2 border-[#c5a059]/30 p-1.5 transition-transform duration-700 group-hover:rotate-6">
-              <img src={activeProfile.avatar} className="full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
+              <img src={activeProfile.avatar} className="w-full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
             </div>
             <div className="absolute -bottom-2 -right-2 w-8 h-8 border-4 border-[#111113] rounded-full bg-green-500"></div>
           </div>
           
-          <div className="flex-1 space-y-4 text-center lg:text-right">
+          <div className="flex-1 space-y-4 text-center lg:text-left">
             <h2 className="text-4xl lg:text-6xl prestige-heading text-white italic leading-none">
               {activeProfile.name}
             </h2>
@@ -74,10 +76,16 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
               <button onClick={() => setShowPricing(true)} className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.3em] bg-[#c5a059]/10 px-4 py-1.5 rounded-full border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all">
                 Access: {activeProfile.subscriptionTier}
               </button>
+              <button 
+                onClick={() => logout()}
+                className="text-red-500 text-[10px] font-black uppercase tracking-[0.3em] bg-red-500/10 px-4 py-1.5 rounded-full border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+              >
+                <i className="fas fa-power-off mr-2"></i> Terminate Session
+              </button>
             </div>
           </div>
 
-          <div className="flex bg-[#0a0a0c] p-2 rounded-3xl border border-white/5 shadow-2xl overflow-x-auto max-w-full">
+          <div className="flex bg-[#0a0a0c] p-2 rounded-3xl border border-white/5 shadow-2xl overflow-x-auto max-w-full no-scrollbar">
             {availableTabs.map(tab => (
               <button 
                 key={tab.id}
@@ -149,6 +157,12 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
           </div>
         )}
 
+        {activeTab === 'stats' && (
+          <div className="animate-slide-up">
+            <AnalyticsDashboard stats={stats} lang={lang} />
+          </div>
+        )}
+
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} lang={lang} />}
         {activeTab === 'reports' && <SovereignReportBuilder stats={stats} domains={domains} lang={lang} />}
         
@@ -160,7 +174,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
                       <div className="w-16 h-16 bg-[#c5a059]/10 rounded-3xl flex items-center justify-center text-[#c5a059] border border-[#c5a059]/20"><i className="fas fa-vault text-2xl"></i></div>
                       <div><h3 className="text-3xl prestige-heading text-white italic">Client-Side Vault Logic</h3><p className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.2em] mt-1">Status: Fully Sovereign</p></div>
                    </div>
-                   <div className="flex wrap gap-6 pt-6">
+                   <div className="flex flex-wrap gap-6 pt-6">
                       <button onClick={exportVault} className="bg-white text-black px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-2xl flex items-center gap-4"><i className="fas fa-file-export"></i> Export Command Backup</button>
                       <button onClick={() => fileInputRef.current?.click()} className="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-4"><i className="fas fa-file-import"></i> Restore Environment</button>
                       <input type="file" ref={fileInputRef} onChange={handleFileImport} className="hidden" accept=".json" />

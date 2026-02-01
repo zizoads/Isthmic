@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 /**
  * Isthmic Pro - Sovereign Cloud Connection
  * Phase Final: Enhanced with Resilience Wrapper for EWS testing.
+ * v2.1: Robust persistence config for cross-session continuity.
  */
 
 const SUPABASE_URL = 'https://weqtcsfynvqconvldmhw.supabase.co'.trim(); 
@@ -13,7 +14,9 @@ const rawClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storage: window.localStorage,
+    storageKey: 'isthmic_auth_anchor'
   },
   global: {
     headers: { 'x-application-name': 'isthmic-pro' }
@@ -26,7 +29,6 @@ const rawClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
  */
 const createFailureSimulator = () => {
   const simulator: any = {
-    // Standard Supabase execution methods should return an error object
     then: (onfulfilled: any) => Promise.resolve(onfulfilled({ data: null, error: { message: "SIMULATED_DB_FAILURE: Chaos Mode Active", code: "500" } })),
     select: () => simulator,
     insert: () => simulator,
@@ -79,7 +81,6 @@ export const supabase = new Proxy(rawClient, {
       return original;
     }
 
-    // Check for Chaos Mode simulation
     const shouldFail = localStorage.getItem('isthmic_chaos_failure') === 'true';
 
     if (prop === 'from') {
@@ -92,19 +93,13 @@ export const supabase = new Proxy(rawClient, {
       };
     }
 
-    if (prop === 'auth') {
-      // For auth, we return the auth client normally but could intercept specific calls if needed.
-      // Currently, we let auth through so the user can stay logged in even during a simulated DB failure.
-      return original;
-    }
-
     return original.bind(target);
   }
 });
 
 export const checkSupabaseConnection = async () => {
   try {
-    const { data, error } = await rawClient.auth.getSession();
+    const { data: { session }, error } = await rawClient.auth.getSession();
     if (error && error.message.includes('fetch')) return false;
     return true;
   } catch (err) {

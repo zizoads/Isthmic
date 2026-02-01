@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { PlatformStats, ActivityLog, PlatformStrategy, AgentType } from '../types';
-import AnalyticsDashboard from './AnalyticsDashboard';
+import { PlatformStats, ActivityLog, PlatformStrategy } from '../types';
 import { translations } from '../translations';
 import { useDomainContext } from '../context/DomainContext';
 
@@ -99,8 +98,6 @@ const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, 
             </div>
          </div>
       </section>
-      
-      {stats.totalDiscovered > 0 && <AnalyticsDashboard stats={stats} lang={lang} />}
     </div>
   );
 };
