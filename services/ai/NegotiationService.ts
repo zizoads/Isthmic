@@ -1,19 +1,39 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport } from "../../types";
+import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage } from "../../types";
 import { safeAICall } from "./base";
 import { NEGOTIATION_AUDIT_SCHEMA } from "./schemas";
 import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
- * v2.0: Multi-Engine Logic (Gemini + Falcon-Arabic).
+ * v2.1: Multi-Engine Logic + Sliding Window History Management.
  */
 export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
+  private static readonly MAX_CONTEXT_MESSAGES = 15; // Sliding window size
 
   private static isArabic(text: string): boolean {
     return /[\u0600-\u06FF]/.test(text);
+  }
+
+  /**
+   * P1 Remediation: Compresses history to ensure the core logic stays within peak performance thresholds.
+   */
+  private static compressHistory(messages: NegotiationMessage[]): string {
+    // Keep the first message (usually the opening) and the last N messages
+    if (messages.length <= this.MAX_CONTEXT_MESSAGES) {
+      return messages.map(m => `[${m.sender.toUpperCase()}]: ${m.content}`).join('\n');
+    }
+
+    const opening = messages[0];
+    const recent = messages.slice(-(this.MAX_CONTEXT_MESSAGES - 1));
+    
+    return [
+      `[OPENING_CONTEXT]: ${opening.content}`,
+      `... [TRUNCATED ${messages.length - this.MAX_CONTEXT_MESSAGES} MESSAGES FOR OPTIMIZATION] ...`,
+      ...recent.map(m => `[${m.sender.toUpperCase()}]: ${m.content}`)
+    ].join('\n');
   }
 
   static async auditMessageDeep(
@@ -27,12 +47,9 @@ export class NegotiationService {
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
-      const historyContext = thread.messages
-        .slice(-10)
-        .map(m => `[${m.sender.toUpperCase()}]: ${m.content}`)
-        .join('\n');
+      // Applying Sliding Window Compression
+      const historyContext = this.compressHistory(thread.messages);
 
-      // Execute primary audit (Gemini) and specialized linguistic audit (Falcon) in parallel
       const [geminiResponse, falconInsight] = await Promise.all([
         ai.models.generateContent({
           model: this.MODEL_PRO,
@@ -40,9 +57,8 @@ export class NegotiationService {
             System: You are a Forensic Negotiation Lead. 
             Mission: Perform a 4-layer audit on a signal for domain "${domainName}".
             
-            Linguistic Analysis: Detect emotional micro-markers.
-            Strategic Analysis: Evaluate Nash Equilibrium state.
-            Contextual History:
+            Strategic Analysis: Evaluate leverage and Nash Equilibrium.
+            Contextual History (Compressed Window):
             ${historyContext}
             
             Incoming Signal:
@@ -59,10 +75,8 @@ export class NegotiationService {
 
       const result = JSON.parse(geminiResponse.text || '{}');
 
-      // Inject Falcon findings if available
       if (falconInsight && result.insight) {
         result.insight.culturalNuance = falconInsight.culturalNuance;
-        // Optionally refine intent if Falcon detected something cultural Gemini missed
         if (falconInsight.sentiment.includes("Aggressive")) {
            result.insight.sentimentScore = Math.min(result.insight.sentimentScore, 30);
         }
@@ -84,10 +98,14 @@ export class NegotiationService {
   ): Promise<string> {
     return safeAICall(async () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const historyContext = this.compressHistory(thread.messages);
+      
       const response = await ai.models.generateContent({
         model: this.MODEL_PRO,
         contents: `Draft a game-theory optimized counter-offer for "${domainName}". 
-        Floor: $${floorPrice}. Context: ${JSON.stringify(thread.messages.slice(-3))}`
+        Floor: $${floorPrice}. 
+        Compressed History Context:
+        ${historyContext}`
       });
       return response.text || "Protocol synthesis failed.";
     });

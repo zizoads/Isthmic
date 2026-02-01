@@ -13,9 +13,11 @@ const AdminHub: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [activeView, setActiveView] = useState<'overview' | 'users' | 'audit' | 'resilience' | 'diagnostics'>('overview');
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [isAborting, setIsAborting] = useState(false);
   
   // Sovereign Protection: Absolute lock to Root email
   const isAuthorized = activeProfile?.role === 'Admin' && activeProfile?.email.toLowerCase() === 'azeddinebeldjilali9@gmail.com';
+  const isSafeMode = localStorage.getItem('isthmic_chaos_failure') === 'true';
 
   const fetchData = async () => {
     if (!isAuthorized) return;
@@ -30,6 +32,21 @@ const AdminHub: React.FC = () => {
     } catch (e) {
       addLog('Admin', 'Failed to sync sovereign registry.', 'critical');
     }
+  };
+
+  const handleEmergencyAbort = () => {
+    setIsAborting(true);
+    setTimeout(() => {
+      localStorage.setItem('isthmic_chaos_failure', 'true');
+      addLog('ABORT_SYSTEM', 'EMERGENCY_ABORT_TRIGGERED: Reverting to safe-mode.', 'critical');
+      window.location.reload();
+    }, 1500);
+  };
+
+  const handleRecovery = () => {
+    localStorage.removeItem('isthmic_chaos_failure');
+    addLog('RECOVERY', 'SYSTEM_STABILIZED: Exiting safe-mode.', 'success');
+    window.location.reload();
   };
 
   const updateUserRole = async (userId: string, newRole: string, newTier: string) => {
@@ -77,9 +94,27 @@ const AdminHub: React.FC = () => {
       <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-10 lg:p-14 overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start gap-10">
           <div className="text-left space-y-4">
-            <h2 className="text-4xl lg:text-7xl prestige-heading text-white italic leading-none">
-              Sovereign Command Center
-            </h2>
+            <div className="flex items-center gap-6">
+              <h2 className="text-4xl lg:text-7xl prestige-heading text-white italic leading-none">
+                Sovereign Hub
+              </h2>
+              {isSafeMode ? (
+                <button 
+                  onClick={handleRecovery}
+                  className="px-6 py-2 bg-green-500 text-black text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse"
+                >
+                  RECOVERY_MODE_ACTIVE
+                </button>
+              ) : (
+                <button 
+                  onClick={handleEmergencyAbort}
+                  disabled={isAborting}
+                  className="px-6 py-2 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                >
+                  {isAborting ? 'ABORTING...' : 'EMERGENCY_ABORT'}
+                </button>
+              )}
+            </div>
             <div className="flex bg-[#0a0a0c] p-1.5 rounded-2xl border border-white/5 shadow-xl mt-4 overflow-x-auto max-w-full no-scrollbar">
                {[
                  { id: 'overview', label: 'SYSTEM_OVERVIEW' },
@@ -120,7 +155,7 @@ const AdminHub: React.FC = () => {
               <div className={`text-2xl font-black italic ${systemHealth.status === 'NOMINAL' ? 'text-green-500' : 'text-red-500'}`}>
                 {systemHealth.status}
               </div>
-              <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-green-500 w-full animate-shimmer"></div></div>
+              <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className={`h-full w-full animate-shimmer ${isSafeMode ? 'bg-red-500' : 'bg-green-500'}`}></div></div>
            </div>
            <div className="square-card p-10 space-y-6">
               <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total AI Inference</div>
@@ -129,8 +164,8 @@ const AdminHub: React.FC = () => {
            </div>
            <div className="square-card p-10 space-y-6 bg-[#d4af37]/5 border-[#d4af37]/20">
               <div className="text-[10px] font-black text-[#d4af37] uppercase tracking-widest">Security Gates</div>
-              <div className="text-3xl font-black text-white italic">LOCKED</div>
-              <i className="fas fa-lock text-[#d4af37] opacity-20"></i>
+              <div className="text-3xl font-black text-white italic">{isSafeMode ? 'LOCKED' : 'NOMINAL'}</div>
+              <i className={`fas ${isSafeMode ? 'fa-lock' : 'fa-unlock'} text-[#d4af37] opacity-20`}></i>
            </div>
         </div>
       )}

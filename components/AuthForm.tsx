@@ -7,6 +7,7 @@ const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -15,6 +16,14 @@ const AuthForm: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
+
+    // Sovereign Access Control: Invite Code validation for new units
+    if (!isLogin && inviteCode !== 'ISTHMIC-BETA-2025') {
+      setErrorMessage("INVALID_INVITE_CODE: Access restricted to authorized Beta units.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         await login(email, password);
@@ -61,14 +70,24 @@ const AuthForm: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
-              <input 
-                type="text" 
-                required 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-                placeholder="Full Legal Name"
-              />
+              <>
+                <input 
+                  type="text" 
+                  required 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
+                  placeholder="Full Legal Name"
+                />
+                <input 
+                  type="text" 
+                  required 
+                  value={inviteCode} 
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  className="w-full bg-indigo-500/5 border border-indigo-500/20 p-5 rounded-2xl outline-none text-[#d4af37] font-black uppercase tracking-widest focus:border-[#d4af37] transition-all text-center placeholder:text-indigo-500/40"
+                  placeholder="Sovereign Invite Code"
+                />
+              </>
             )}
             <input 
               type="email" 

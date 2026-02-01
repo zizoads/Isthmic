@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Domain, PlatformStrategy, ServiceIntegration, ActivityLog, PlatformStats, UserProfile, ActiveJob, PlatformMonetizationSettings } from '../types';
 import { supabase, checkSupabaseConnection } from '../services/SupabaseClient';
 import { AuthService } from '../services/AuthService';
@@ -51,6 +51,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   
+  // Use a ref for logs to prevent heavy re-renders when logging high-frequency AI steps
+  const logsRef = useRef<ActivityLog[]>([]);
+
   const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
     return SovereignShield.recover<PlatformStrategy>('strategy_draft') || {
       id: 'default', totalBudget: 50000, riskTolerance: 'Balanced', autoPilot: false, investmentThesis: ''
@@ -75,7 +78,13 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       id: crypto.randomUUID(), workspaceId: 'sys', time: new Date().toLocaleTimeString(), 
       agent, message, type, actionLabel, actionPayload, onAction
     };
-    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+    
+    // Efficiently update logs while maintaining historical reference
+    setActivityLogs(prev => {
+      const updated = [newLog, ...prev].slice(0, 100);
+      logsRef.current = updated;
+      return updated;
+    });
   }, []);
 
   const saveJob = useCallback(async (job: ActiveJob) => {
