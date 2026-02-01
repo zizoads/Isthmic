@@ -1,5 +1,5 @@
 
-export { getAIClient, safeAICall } from "./ai/base";
+export { safeAICall } from "./ai/base";
 export { performOsintInvestigationAI, checkTrademarkRiskAI } from "./ai/ForensicService";
 export { rigorousDiscoveryAI, getDropSniperListAI, analyzeSnipeOpportunityAI, registrarInquiryAI, findLocalBuyersAI } from "./ai/DiscoveryService";
 export { evaluateDomainExpertAI, debateDomainStrategyAI, generateExecutiveReportAI, nexusPrimeIntelligenceAI } from "./ai/AnalysisService";
