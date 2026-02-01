@@ -11,11 +11,10 @@ interface Props {
   domains: Domain[];
   stats: PlatformStats;
   integrations: ServiceIntegration[];
-  onConnect: (id: string, key: string) => void;
   lang: 'ar' | 'en';
 }
 
-const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
+const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang }) => {
   const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile, setIsTourOpen } = useDomainContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
@@ -47,12 +46,11 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
 
   const currentPlan = monetization.plans[activeProfile.subscriptionTier];
 
-  // Clean UI: Only user-level executive tools
   const availableTabs = [
-    { id: 'profile', label: 'Identity', icon: 'fa-user-tie' },
-    { id: 'integrations', label: 'Gateways', icon: 'fa-plug' },
-    { id: 'reports', label: 'Briefing', icon: 'fa-file-signature' },
-    { id: 'vault', label: 'Vault', icon: 'fa-vault' }
+    { id: 'profile', label: lang === 'ar' ? 'الهوية' : 'Identity', icon: 'fa-user-tie' },
+    { id: 'integrations', label: lang === 'ar' ? 'بوابات الربط' : 'Gateways', icon: 'fa-plug' },
+    { id: 'reports', label: lang === 'ar' ? 'التقارير' : 'Briefing', icon: 'fa-file-signature' },
+    { id: 'vault', label: lang === 'ar' ? 'الخزنة' : 'Vault', icon: 'fa-vault' }
   ];
 
   return (
@@ -88,7 +86,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                   ${activeTab === tab.id ? 'bg-[#d4af37] text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
               >
                 <i className={`fas ${tab.icon} text-sm`}></i>
-                <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap">{tab.label}</span>
               </button>
             ))}
           </div>
@@ -113,21 +111,6 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                       {activeProfile.usageStats.scansThisMonth} / {currentPlan.maxScans} Scans Used
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="square-card p-10 lg:p-14 bg-gradient-to-r from-indigo-900/10 to-transparent">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                  <div className="space-y-2">
-                    <h3 className="text-xl prestige-heading text-white italic">Platform Walkthrough</h3>
-                    <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Replay the sovereign command center orientation.</p>
-                  </div>
-                  <button 
-                    onClick={() => setIsTourOpen(true)}
-                    className="bg-white text-black px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d4af37] hover:text-white transition-all shadow-2xl flex items-center gap-3"
-                  >
-                    <i className="fas fa-play-circle text-sm"></i> Replay Tour
-                  </button>
                 </div>
               </div>
 
@@ -166,7 +149,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
           </div>
         )}
 
-        {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
+        {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} lang={lang} />}
         {activeTab === 'reports' && <SovereignReportBuilder stats={stats} domains={domains} lang={lang} />}
         
         {activeTab === 'vault' && (

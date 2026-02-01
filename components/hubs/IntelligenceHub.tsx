@@ -34,6 +34,13 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
     { id: 'feedback', label: t('intelligence.tabs.neural'), icon: 'fa-brain' }
   ];
 
+  const navigateToKeySetup = () => {
+    // Navigate to Executive Suite via global hub change if needed, 
+    // or provide instructions. For now, since MasterBrain is within strategy subtab, 
+    // we assume the user should go to Executive Suite from the sidebar.
+    addLog('System', lang === 'ar' ? 'يرجى الانتقال إلى الجناح التنفيذي (Executive) لإدارة المفاتيح.' : 'Please navigate to Executive Suite to manage API keys.', 'info');
+  };
+
   return (
     <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <header className="space-y-4">
@@ -45,7 +52,6 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         </div>
       </header>
 
-      {/* Sovereign Tab Bar */}
       <div className={`flex bg-white/5 backdrop-blur-2xl p-1.5 rounded-[24px] border border-white/5 w-fit shadow-2xl ${lang === 'ar' ? 'mr-0 ml-auto lg:mr-0' : 'mx-auto lg:mx-0'}`}>
         {tabs.map(tab => (
           <button 
@@ -79,7 +85,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
         )}
         
         {subTab === 'nexus' && <div className="glass-panel p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
-        {subTab === 'strategy' && <div className="glass-panel p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
+        {subTab === 'strategy' && <div className="glass-panel p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} onNavigateToKeys={navigateToKeySetup} /></div>}
         {subTab === 'feedback' && <div className="glass-panel p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
       </div>
     </div>

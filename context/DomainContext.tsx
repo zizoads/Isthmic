@@ -37,6 +37,7 @@ export interface DomainContextType {
   updateMonetization: (settings: PlatformMonetizationSettings) => Promise<void>;
   updateDomain: (domain: Domain) => Promise<void>;
   setTourStatus: (completed: boolean) => Promise<void>;
+  connectService: (provider: string, key: string) => Promise<void>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -51,7 +52,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [integrations, setIntegrations] = useState<ServiceIntegration[]>([]);
   
-  // Use a ref for logs to prevent heavy re-renders when logging high-frequency AI steps
   const logsRef = useRef<ActivityLog[]>([]);
 
   const [strategy, setStrategy] = useState<PlatformStrategy>(() => {
@@ -79,13 +79,38 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       agent, message, type, actionLabel, actionPayload, onAction
     };
     
-    // Efficiently update logs while maintaining historical reference
     setActivityLogs(prev => {
       const updated = [newLog, ...prev].slice(0, 100);
       logsRef.current = updated;
       return updated;
     });
   }, []);
+
+  const connectService = useCallback(async (provider: string, key: string) => {
+    if (!activeProfile) return;
+    try {
+      const newIntegration: Partial<ServiceIntegration> = {
+        workspaceId: activeProfile.id,
+        provider: provider as any,
+        name: provider.toUpperCase(),
+        status: 'connected',
+        key: key
+      };
+
+      const { error } = await supabase.from('integrations').upsert([newIntegration]);
+      if (error) throw error;
+
+      setIntegrations(prev => {
+        const idx = prev.findIndex(i => i.provider === provider);
+        if (idx >= 0) return [...prev.slice(0, idx), { ...prev[idx], ...newIntegration } as ServiceIntegration, ...prev.slice(idx + 1)];
+        return [...prev, newIntegration as ServiceIntegration];
+      });
+
+      addLog('Shield', `Gateway ${provider} successfully anchored.`, 'success');
+    } catch (e: any) {
+      addLog('Shield', `Failed to anchor gateway: ${e.message}`, 'critical');
+    }
+  }, [activeProfile, addLog]);
 
   const saveJob = useCallback(async (job: ActiveJob) => {
     setActiveJobs(prev => {
@@ -278,8 +303,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const value = useMemo(() => ({
     activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, setIsTourOpen,
     activityLogs, setActivityLogs, integrations, isEmailConfirmed: true, monetization,
-    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, setTourStatus
-  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob, setTourStatus]);
+    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, setTourStatus, connectService
+  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob, setTourStatus, connectService]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };

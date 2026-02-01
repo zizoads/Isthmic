@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { PlatformStats, ActivityLog, PlatformStrategy } from '../types';
+import { PlatformStats, ActivityLog, PlatformStrategy, AgentType } from '../types';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import { translations } from '../translations';
+import { useDomainContext } from '../context/DomainContext';
 
 interface Props {
   stats: PlatformStats;
@@ -13,39 +14,24 @@ interface Props {
   onCancelScan?: () => void;
   isScanning?: boolean;
   lang: 'ar' | 'en';
+  onNavigateToKeys?: () => void;
 }
 
-const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, setStrategy, onInitiateScan, onCancelScan, isScanning, lang }) => {
+const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, setStrategy, onInitiateScan, onCancelScan, isScanning, lang, onNavigateToKeys }) => {
   const t = translations[lang];
+  const { integrations } = useDomainContext();
   const [isKeyConnected, setIsKeyConnected] = useState(false);
   const [quotaWarning, setQuotaWarning] = useState(false);
 
   useEffect(() => {
-    const checkKey = async () => {
-      if ((window as any).aistudio) {
-        const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-        setIsKeyConnected(hasKey);
-      }
-    };
-    checkKey();
+    const hasGemini = integrations.some(i => i.provider === 'google' && i.status === 'connected');
+    setIsKeyConnected(hasGemini);
     
     const hasQuotaError = activityLogs.some(log => 
       log.type === 'critical' && (log.message.includes('Quota') || log.message.includes('تجاوزت'))
     );
     setQuotaWarning(hasQuotaError);
-  }, [activityLogs]);
-
-  const handleOpenKeyDialog = async () => {
-    try {
-      if ((window as any).aistudio) {
-        await (window as any).aistudio.openSelectKey();
-        setIsKeyConnected(true);
-        setQuotaWarning(false);
-      }
-    } catch (e) {
-      console.error("Key selection failed", e);
-    }
-  };
+  }, [activityLogs, integrations]);
 
   return (
     <div className="space-y-8 lg:space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -54,17 +40,20 @@ const MasterBrainDashboard: React.FC<Props> = ({ stats, activityLogs, strategy, 
       }`}>
          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
-               <button onClick={handleOpenKeyDialog} className={`w-20 h-20 rounded-[24px] flex items-center justify-center text-2xl transition-all duration-700 ${quotaWarning ? 'bg-red-600 text-white animate-pulse' : isKeyConnected ? 'bg-[#c5a059] text-black scale-105' : 'bg-white/5 text-slate-500 hover:bg-white hover:text-black'}`}>
+               <button onClick={onNavigateToKeys} className={`w-20 h-20 rounded-[24px] flex items-center justify-center text-2xl transition-all duration-700 ${quotaWarning ? 'bg-red-600 text-white animate-pulse' : isKeyConnected ? 'bg-[#c5a059] text-black scale-105 shadow-xl shadow-[#c5a059]/20' : 'bg-white/5 text-slate-500 hover:bg-white hover:text-black'}`}>
                   <i className={`fas ${quotaWarning ? 'fa-exclamation-triangle' : isKeyConnected ? 'fa-bolt' : 'fa-key'}`}></i>
                </button>
                <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
                   <h4 className={`prestige-heading text-2xl lg:text-3xl italic mb-1 ${quotaWarning ? 'text-red-500' : 'text-white'}`}>
                     {quotaWarning ? (lang === 'ar' ? 'تم استنفاد حصة المفتاح' : 'Key Quota Exhausted') : (lang === 'ar' ? 'التحكم في المفتاح السيادي' : 'Sovereign Key Control')}
                   </h4>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black">
+                     {isKeyConnected ? (lang === 'ar' ? 'الاتصال مستقر وآمن' : 'CONNECTION STABLE & SECURE') : (lang === 'ar' ? 'بانتظار حقن مفتاح الذكاء' : 'AWAITING NEURAL KEY INJECTION')}
+                  </p>
                </div>
             </div>
-            <button onClick={handleOpenKeyDialog} className="px-6 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-black transition-all">
-              {lang === 'ar' ? 'تبديل المفتاح' : 'Switch Key'}
+            <button onClick={onNavigateToKeys} className="px-10 py-4 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-black transition-all">
+              {isKeyConnected ? (lang === 'ar' ? 'إدارة البوابات' : 'Manage Gateways') : (lang === 'ar' ? 'إضافة مفتاح الآن' : 'Add Key Now')}
             </button>
          </div>
       </section>

@@ -29,10 +29,6 @@ const HubRenderer: React.FC<Props> = ({
     addLog('Inspector', `Inspecting ${d.name}...`, 'info');
   };
 
-  const handleConnect = (id: string, key: string) => {
-    addLog('Integrations', `Configuring gateway ${id}...`, 'info');
-  };
-
   const renderHub = () => {
     switch (activeHub) {
       case AgentType.INTELLIGENCE:
@@ -50,7 +46,7 @@ const HubRenderer: React.FC<Props> = ({
       case AgentType.LIQUIDATION:
         return <LiquidationEngine domains={domains} setDomains={setDomains} lang={lang} />;
       case AgentType.MANAGEMENT:
-        return <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} onConnect={handleConnect} lang={lang} />;
+        return <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} lang={lang} />;
       default:
         return <IntelligenceHub stats={stats} lang={lang} isScanning={false} onInitiateScan={() => {}} />;
     }
