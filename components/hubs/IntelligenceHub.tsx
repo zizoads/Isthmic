@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import MasterBrainDashboard from '../MasterBrainDashboard';
 import NexusPrimeDashboard from '../NexusPrimeDashboard';
 import FeedbackDashboard from '../FeedbackDashboard';
+import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
 import WorkflowIndicator from '../WorkflowIndicator';
 import { PlatformStats, WorkflowState } from '../../types';
@@ -33,52 +34,59 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
     { id: 'feedback', label: t('intelligence.tabs.neural'), icon: 'fa-brain' }
   ];
 
+  const navigateToKeySetup = () => {
+    // Navigate to Executive Suite via global hub change if needed, 
+    // or provide instructions. For now, since MasterBrain is within strategy subtab, 
+    // we assume the user should go to Executive Suite from the sidebar.
+    addLog('System', lang === 'ar' ? 'يرجى الانتقال إلى الجناح التنفيذي (Executive) لإدارة المفاتيح.' : 'Please navigate to Executive Suite to manage API keys.', 'info');
+  };
+
   return (
-    <div className="space-y-6 lg:space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <header className="space-y-2 lg:space-y-4">
-        <div className="flex items-center gap-3 lg:gap-4">
-           <div className="w-1.5 lg:w-2 h-6 lg:h-8 bg-[#c5a059]"></div>
-           <h1 className="text-2xl lg:text-5xl prestige-heading text-white italic leading-none">
+    <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <header className="space-y-4">
+        <div className="flex items-center gap-4">
+           <div className="w-2 h-8 bg-[#c5a059]"></div>
+           <h1 className="text-4xl lg:text-7xl prestige-heading text-white italic leading-none">
              {t('intelligence.hub_title')}
            </h1>
         </div>
       </header>
 
-      {/* Responsive Horizontal Tabs */}
-      <div className="scroll-x-mobile bg-white/5 backdrop-blur-2xl p-1 rounded-[20px] border border-white/5 w-full shadow-xl">
+      <div className={`flex bg-white/5 backdrop-blur-2xl p-1.5 rounded-[24px] border border-white/5 w-fit shadow-2xl ${lang === 'ar' ? 'mr-0 ml-auto lg:mr-0' : 'mx-auto lg:mx-0'}`}>
         {tabs.map(tab => (
           <button 
             key={tab.id}
             onClick={() => setSubTab(tab.id as any)} 
-            className={`px-6 py-2.5 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-3 whitespace-nowrap
-              ${subTab === tab.id ? 'bg-white text-black shadow-lg scale-105' : 'text-slate-500 hover:text-white'}`}
+            className={`px-8 py-3 rounded-[18px] text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-3
+              ${subTab === tab.id ? 'bg-white text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
           >
             <i className={`fas ${tab.icon} text-[10px]`}></i>
-            {tab.label}
+            <span className="hidden sm:inline" dangerouslySetInnerHTML={{ __html: tab.label }}></span>
           </button>
         ))}
       </div>
 
       {currentWorkflow && (
-        <div className="w-full">
+        <div className={`max-w-4xl ${lang === 'ar' ? 'mr-0' : 'mx-auto lg:mx-0'}`}>
           <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
         </div>
       )}
 
-      <div className="animate-fade-in space-y-8 lg:space-y-12">
+      <div className="animate-fade-in space-y-12">
         {subTab === 'sovereign' && (
-          <div className="flex flex-col gap-8 lg:gap-12">
+          <div className="space-y-12">
             <AutonomousControlCenter 
                 strategy={strategy} 
                 onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
                 lang={lang} 
             />
+            <MarketMomentumChart lang={lang} />
           </div>
         )}
         
-        {subTab === 'nexus' && <div className="glass-panel p-6 lg:p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
-        {subTab === 'strategy' && <div className="glass-panel p-6 lg:p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
-        {subTab === 'feedback' && <div className="glass-panel p-6 lg:p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
+        {subTab === 'nexus' && <div className="glass-panel p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
+        {subTab === 'strategy' && <div className="glass-panel p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} onNavigateToKeys={navigateToKeySetup} /></div>}
+        {subTab === 'feedback' && <div className="glass-panel p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
       </div>
     </div>
   );

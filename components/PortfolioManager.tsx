@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Domain } from '../types';
 import { generateBrandIdentityAI, getMarketSignalsAI } from '../services/geminiService';
@@ -40,6 +41,7 @@ const PortfolioManager: React.FC<Props> = ({ domains, setDomains, lang }) => {
     if (!selectedDomain) return;
     setLoading(true);
     try {
+      // Fix: Ensure the returned identity object is correctly typed for Domain.brandAssets
       const brand = await generateBrandIdentityAI(selectedDomain.name, selectedDomain.sector || 'Technology');
       setDomains(prev => prev.map(d => d.id === selectedDomain.id ? { ...d, brandAssets: brand } : d));
       setSelectedDomain({ ...selectedDomain, brandAssets: brand });

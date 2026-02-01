@@ -15,7 +15,6 @@ const AdminHub: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [isAborting, setIsAborting] = useState(false);
   
-  // Sovereign Protection: Absolute lock to Root email
   const isAuthorized = activeProfile?.role === 'Admin' && activeProfile?.email.toLowerCase() === 'azeddinebeldjilali9@gmail.com';
   const isSafeMode = localStorage.getItem('isthmic_chaos_failure') === 'true';
 
@@ -52,14 +51,19 @@ const AdminHub: React.FC = () => {
   const updateUserRole = async (userId: string, newRole: string, newTier: string) => {
     setIsUpdating(userId);
     try {
+      // Logic mapped to SQL schema: role and subscription_tier
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole, subscription_tier: newTier })
+        .update({ 
+          role: newRole, 
+          subscription_tier: newTier,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
       
       if (error) throw error;
       
-      addLog('Admin', `Privileges elevated for user ${userId} to ${newRole}`, 'success');
+      addLog('Admin', `Privileges elevated for user ${userId} to ${newRole} [${newTier}]`, 'success');
       await fetchData();
     } catch (e: any) {
       addLog('Admin', `Privilege update failed: ${e.message}`, 'critical');
@@ -87,7 +91,6 @@ const AdminHub: React.FC = () => {
   }
 
   const systemHealth = LaunchReadinessService.monitorTelemetry(activityLogs);
-  const totalValue = users.reduce((acc, u) => acc + (u.usage_stats?.scansThisMonth || 0), 0);
 
   return (
     <div className="space-y-12 animate-precision pb-24" dir="ltr">
@@ -101,232 +104,134 @@ const AdminHub: React.FC = () => {
               {isSafeMode ? (
                 <button 
                   onClick={handleRecovery}
-                  className="px-6 py-2 bg-green-500 text-black text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse"
+                  className="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest animate-pulse"
                 >
-                  RECOVERY_MODE_ACTIVE
+                  RECOVER SYSTEM
                 </button>
               ) : (
                 <button 
                   onClick={handleEmergencyAbort}
                   disabled={isAborting}
-                  className="px-6 py-2 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                  className="bg-red-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all"
                 >
-                  {isAborting ? 'ABORTING...' : 'EMERGENCY_ABORT'}
+                  {isAborting ? 'ABORTING...' : 'EMERGENCY ABORT'}
                 </button>
               )}
             </div>
-            <div className="flex bg-[#0a0a0c] p-1.5 rounded-2xl border border-white/5 shadow-xl mt-4 overflow-x-auto max-w-full no-scrollbar">
-               {[
-                 { id: 'overview', label: 'SYSTEM_OVERVIEW' },
-                 { id: 'users', label: 'PRIVILEGE_VAULT' },
-                 { id: 'diagnostics', label: 'PLATFORM_LAUNCH' },
-                 { id: 'audit', label: 'FORENSIC_LOGS' },
-                 { id: 'resilience', label: 'NETWORK_PHI' }
-               ].map(tab => (
-                 <button 
-                   key={tab.id}
-                   onClick={() => setActiveView(tab.id as any)}
-                   className={`px-8 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap
-                     ${activeView === tab.id ? 'bg-[#d4af37] text-black shadow-lg' : 'text-slate-500 hover:text-white'}
-                   `}
-                 >
-                   {tab.label}
-                 </button>
-               ))}
-            </div>
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">
+              Master Node Governance & Infrastructure Integrity
+            </p>
           </div>
-          <div className="bg-[#d4af37]/10 border border-[#d4af37]/20 p-6 rounded-3xl text-right">
-             <div className="text-[9px] font-black text-[#d4af37] uppercase tracking-widest mb-1">Authenticated Admin</div>
-             <div className="text-xl font-bold text-white italic truncate max-w-[250px]">{activeProfile?.email}</div>
+
+          <div className="flex bg-[#0a0a0c] p-1.5 rounded-[22px] border border-white/5 shadow-2xl overflow-x-auto max-w-full">
+            {[
+              { id: 'overview', label: 'OVERVIEW', icon: 'fa-gauge-high' },
+              { id: 'users', label: 'REGISTRY', icon: 'fa-users' },
+              { id: 'audit', label: 'AUDIT_LOGS', icon: 'fa-list-check' },
+              { id: 'resilience', label: 'RESILIENCE', icon: 'fa-shield-halved' },
+              { id: 'diagnostics', label: 'LAB', icon: 'fa-microscope' }
+            ].map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveView(tab.id as any)} 
+                className={`flex items-center gap-3 px-6 py-3 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap
+                  ${activeView === tab.id ? 'bg-[#d4af37] text-black shadow-xl' : 'text-slate-500 hover:text-white'}`}
+              >
+                <i className={`fas ${tab.icon}`}></i>
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
-        <i className="fas fa-shield-halved absolute right-[-50px] top-[-50px] text-white/[0.01] text-[350px] pointer-events-none rotate-12"></i>
+        <i className="fas fa-tower-broadcast absolute right-[-40px] top-[-40px] text-white/[0.02] text-[280px] -rotate-12"></i>
       </section>
 
-      {activeView === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up">
-           <div className="square-card p-10 space-y-6">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Identities</div>
-              <div className="text-6xl font-black text-white italic">{users.length}</div>
-              <div className="text-[9px] text-indigo-400 font-bold uppercase underline">Manage Global Access</div>
-           </div>
-           <div className="square-card p-10 space-y-6">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Platform Pulse</div>
-              <div className={`text-2xl font-black italic ${systemHealth.status === 'NOMINAL' ? 'text-green-500' : 'text-red-500'}`}>
-                {systemHealth.status}
-              </div>
-              <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className={`h-full w-full animate-shimmer ${isSafeMode ? 'bg-red-500' : 'bg-green-500'}`}></div></div>
-           </div>
-           <div className="square-card p-10 space-y-6">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total AI Inference</div>
-              <div className="text-4xl font-black text-white italic">{totalValue.toLocaleString()} <span className="text-xs text-slate-600">UNITS</span></div>
-              <div className="text-[9px] text-slate-600 font-bold uppercase tracking-tighter">Aggregated across all profiles</div>
-           </div>
-           <div className="square-card p-10 space-y-6 bg-[#d4af37]/5 border-[#d4af37]/20">
-              <div className="text-[10px] font-black text-[#d4af37] uppercase tracking-widest">Security Gates</div>
-              <div className="text-3xl font-black text-white italic">{isSafeMode ? 'LOCKED' : 'NOMINAL'}</div>
-              <i className={`fas ${isSafeMode ? 'fa-lock' : 'fa-unlock'} text-[#d4af37] opacity-20`}></i>
-           </div>
-        </div>
-      )}
+      <div className="min-h-[600px] animate-slide-up">
+        {activeView === 'overview' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+             <div className="square-card p-10 bg-indigo-500/10 border-indigo-500/20 text-center">
+                <div className="text-[10px] font-black text-indigo-400 uppercase mb-4 tracking-widest">Total Nodes</div>
+                <div className="text-5xl font-black text-white italic">{users.length}</div>
+             </div>
+             <div className="square-card p-10 bg-[#d4af37]/10 border-[#d4af37]/20 text-center">
+                <div className="text-[10px] font-black text-[#d4af37] uppercase mb-4 tracking-widest">System Health</div>
+                <div className={`text-5xl font-black italic ${systemHealth.status === 'NOMINAL' ? 'text-green-500' : 'text-red-500'}`}>
+                   {systemHealth.status}
+                </div>
+             </div>
+          </div>
+        )}
 
-      {activeView === 'diagnostics' && (
-        <div className="animate-slide-up space-y-20">
-           <div className="p-10 border-2 border-[#d4af37]/10 rounded-[60px] bg-[#d4af37]/5">
-              <h3 className="text-2xl prestige-heading text-white mb-10 text-center italic">Institutional Deployment Controls</h3>
-              <LaunchControlHub />
-           </div>
-           <div className="p-10 border-2 border-indigo-500/10 rounded-[60px] bg-indigo-500/5">
-              <h3 className="text-2xl prestige-heading text-white mb-10 text-center italic">Forensic Code Autopsy Lab</h3>
-              <AutopsyLab />
-           </div>
-        </div>
-      )}
-
-      {activeView === 'users' && (
-        <div className="square-card flex flex-col h-[700px] bg-[#0a0a0c] animate-slide-up overflow-hidden">
-           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-              <h3 className="text-xl prestige-heading text-white italic">Identity Privilege Registry</h3>
-              <button onClick={fetchData} className="text-[9px] font-black text-[#d4af37] uppercase tracking-widest">Force Cloud Sync</button>
-           </div>
-           <div className="flex-1 overflow-y-auto no-scrollbar">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[9px] font-black text-slate-600 uppercase tracking-widest border-b border-white/5 bg-black/40 sticky top-0 z-10">
-                    <th className="p-8">Sovereign Identity</th>
-                    <th className="p-8 text-center">Role / Authorization</th>
-                    <th className="p-8 text-center">Inference Tier</th>
-                    <th className="p-8 text-right">Administrative Protocol</th>
+        {activeView === 'users' && (
+          <div className="glass-panel overflow-hidden">
+            <table className="w-full text-left font-mono text-[10px]">
+              <thead className="bg-white/5 text-slate-500 uppercase">
+                <tr>
+                  <th className="p-6">Identity</th>
+                  <th className="p-6">Role</th>
+                  <th className="p-6">Tier</th>
+                  <th className="p-6">Inferences</th>
+                  <th className="p-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {users.map(u => (
+                  <tr key={u.id} className="hover:bg-white/2 transition-colors">
+                    <td className="p-6">
+                      <div className="text-white font-bold">{u.name}</div>
+                      <div className="text-slate-500 italic">{u.email}</div>
+                    </td>
+                    <td className="p-6">
+                       <span className={`px-3 py-1 rounded-full ${u.role === 'Admin' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-slate-400'}`}>
+                         {u.role}
+                       </span>
+                    </td>
+                    <td className="p-6 text-white">{u.subscription_tier}</td>
+                    <td className="p-6 text-slate-400">{u.usage_stats?.scansThisMonth || 0}</td>
+                    <td className="p-6">
+                       <div className="flex gap-2">
+                          <button 
+                            title="Elevate to Root Admin"
+                            onClick={() => updateUserRole(u.id, 'Admin', 'Sovereign')}
+                            disabled={isUpdating === u.id || (u.role === 'Admin' && u.subscription_tier === 'Sovereign')}
+                            className="bg-white/5 p-2 rounded hover:bg-white/10 text-[#d4af37] disabled:opacity-30"
+                          >
+                             <i className="fas fa-crown"></i>
+                          </button>
+                          <button 
+                            title="Downgrade to Free Analyst"
+                            onClick={() => updateUserRole(u.id, 'Analyst', 'Free')}
+                            disabled={isUpdating === u.id || (u.email === 'azeddinebeldjilali9@gmail.com')}
+                            className="bg-white/5 p-2 rounded hover:bg-white/10 text-slate-500 disabled:opacity-30"
+                          >
+                             <i className="fas fa-user-minus"></i>
+                          </button>
+                       </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {users.map(u => (
-                    <tr key={u.id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="p-8">
-                        <div className="font-bold text-white text-base">{u.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono italic">{u.email}</div>
-                      </td>
-                      <td className="p-8 text-center">
-                         <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                           u.role === 'Admin' ? 'bg-[#d4af37] text-black shadow-lg shadow-[#d4af37]/20' : 
-                           u.role === 'Executive' ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-500'
-                         }`}>
-                           {u.role}
-                         </span>
-                      </td>
-                      <td className="p-8 text-center">
-                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{u.subscription_tier}</span>
-                      </td>
-                      <td className="p-8 text-right space-x-2">
-                          {u.email !== activeProfile?.email && (
-                            <div className="flex justify-end gap-2">
-                              <button 
-                                disabled={isUpdating === u.id}
-                                onClick={() => updateUserRole(u.id, 'Executive', 'Pro')}
-                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-slate-400 hover:bg-white hover:text-black transition-all"
-                              >
-                                Make Executive
-                              </button>
-                              <button 
-                                disabled={isUpdating === u.id}
-                                onClick={() => updateUserRole(u.id, 'Admin', 'Sovereign')}
-                                className="px-4 py-2 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-xl text-[8px] font-black uppercase text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-all"
-                              >
-                                {isUpdating === u.id ? '...' : 'Promote Admin'}
-                              </button>
-                              <button 
-                                disabled={isUpdating === u.id}
-                                onClick={() => updateUserRole(u.id, 'Analyst', 'Free')}
-                                className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[8px] font-black uppercase text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                              >
-                                Revoke
-                              </button>
-                            </div>
-                          )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-           </div>
-        </div>
-      )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {activeView === 'audit' && (
-        <div className="square-card h-[700px] flex flex-col animate-slide-up overflow-hidden">
-           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-              <h3 className="text-xl prestige-heading text-white italic">Forensic Integrity Logs</h3>
-              <div className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Monitoring Real-Time Activity</div>
-           </div>
-           <div className="flex-1 overflow-y-auto p-0 no-scrollbar">
-              <div className="bg-black/20 p-8 space-y-4">
-                 {auditLogs.map((log, i) => (
-                   <div key={i} className="flex gap-8 p-6 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-indigo-500/30 transition-all font-mono text-xs">
-                      <div className="text-slate-600 shrink-0">[{log.timestamp}]</div>
-                      <div className="flex-1">
-                         <span className="text-[#d4af37] font-black uppercase">{log.actorName}</span>
-                         <span className="text-slate-500 mx-3">{" >> "}</span>
-                         <span className="text-white italic">{log.description}</span>
-                      </div>
-                      <div className={`text-[10px] font-black uppercase ${
-                        log.severity === 'critical' ? 'text-red-500' : 'text-slate-600'
-                      }`}>{log.severity}</div>
-                   </div>
-                 ))}
-                 {auditLogs.length === 0 && (
-                   <div className="py-40 text-center opacity-10">
-                      <i className="fas fa-terminal text-6xl mb-6"></i>
-                      <p className="text-[10px] font-black uppercase tracking-[0.5em]">No Forensic Signals Recorded</p>
-                   </div>
-                 )}
-              </div>
-           </div>
-        </div>
-      )}
+        {activeView === 'audit' && (
+          <div className="glass-panel p-10 space-y-4">
+             {auditLogs.map(log => (
+               <div key={log.id} className="flex gap-6 items-start border-b border-white/5 pb-4">
+                  <span className="text-slate-600 font-mono text-[9px] mt-1">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                  <div className="flex-1">
+                     <div className="text-white font-bold text-xs uppercase tracking-tighter">{log.actorName}</div>
+                     <p className="text-slate-400 text-[11px] italic mt-1">"{log.description}"</p>
+                  </div>
+               </div>
+             ))}
+          </div>
+        )}
 
-      {activeView === 'resilience' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
-           <div className="square-card p-12 bg-[#050505] space-y-10">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-10 border-b border-white/5 pb-4">Early Warning System (EWS)</h3>
-              <div className="space-y-8">
-                 {systemHealth.alerts.map(alert => (
-                   <div key={alert.id} className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-start gap-6 group">
-                      <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white text-xl animate-pulse">
-                         <i className="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div className="flex-1">
-                         <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-sm font-black text-white uppercase">{alert.type}</h4>
-                            <span className="text-[8px] font-mono text-slate-600">{alert.timestamp}</span>
-                         </div>
-                         <p className="text-xs text-slate-400 italic">"{alert.metric} from {alert.source}"</p>
-                      </div>
-                   </div>
-                 ))}
-                 {systemHealth.alerts.length === 0 && (
-                   <div className="p-10 border-2 border-dashed border-white/5 rounded-[40px] text-center opacity-30 italic text-sm">
-                      -- NO_ANOMALIES_DETECTED --
-                   </div>
-                 )}
-              </div>
-           </div>
-
-           <div className="square-card p-12 bg-gradient-to-br from-[#0a0a0c] to-[#111113] flex flex-col justify-center items-center space-y-8">
-              <div className="relative w-64 h-64 flex items-center justify-center">
-                 <div className="absolute inset-0 border-4 border-white/5 rounded-full"></div>
-                 <div className="absolute inset-0 border-t-4 border-[#d4af37] rounded-full animate-spin"></div>
-                 <div className="text-center">
-                    <div className="text-6xl font-black text-white italic">0.999</div>
-                    <div className="text-[9px] font-black text-[#d4af37] uppercase tracking-widest mt-2">Stability Coeff.</div>
-                 </div>
-              </div>
-              <p className="text-[10px] text-slate-500 text-center leading-relaxed font-mono uppercase tracking-widest">
-                 Platform logic is currently executing within FAANG-grade parameters.<br/>
-                 Redundancy active. Cloud anchors secure.
-              </p>
-           </div>
-        </div>
-      )}
+        {activeView === 'resilience' && <LaunchControlHub />}
+        {activeView === 'diagnostics' && <AutopsyLab />}
+      </div>
     </div>
   );
 };
