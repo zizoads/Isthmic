@@ -2,14 +2,14 @@
 import { supabase } from './SupabaseClient';
 import { UserProfile } from '../types';
 
-/**
- * AuthService: Sovereign Identity Management System.
- * Permissions are governed by the Root Admin Identity (Master Key).
- * Fully synchronized with SQL Schema v1.0.
- */
 export class AuthService {
-  // The Root Admin Identity - The absolute authority of the Isthmic Pro ecosystem.
   private static readonly ROOT_ADMIN_IDENTITY = 'azeddinebeldjilali9@gmail.com';
+  private static readonly DEFAULT_PREFS = { 
+    emailAlerts: true, 
+    sniperNotifications: true, 
+    reportReadiness: true,
+    tourCompleted: false 
+  };
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile }> {
     try {
@@ -22,30 +22,24 @@ export class AuthService {
       if (authError) throw authError;
       if (!authData.user) throw new Error("IDENTITY_CREATION_FAILED");
 
-      // Sovereign Rule: If email matches Master Identity, grant absolute privileges.
       const isRoot = email.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
       const initialRole = isRoot ? 'Admin' : 'Analyst';
       const initialTier = isRoot ? 'Sovereign' : 'Free';
       
-      const profilePayload = {
+      const profilePayload: any = {
         id: authData.user.id,
         name: name,
         email: email,
         role: initialRole,
-        subscription_tier: initialTier, // SQL: subscription_tier
-        usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 }, // SQL: usage_stats
-        preferences: { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
+        subscription_tier: initialTier,
+        usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      // Attempt to secure the identity in the 'profiles' registry
+      // تجاهل عمود preferences حالياً لضمان نجاح التسجيل
       const { error: profileError } = await supabase.from('profiles').upsert([profilePayload]);
-      
-      if (profileError) {
-        console.error("SOVEREIGN_REGISTRY_ERR:", profileError.message);
-        throw new Error(`DB_INTEGRITY_FAILURE: ${profileError.message}`);
-      }
+      if (profileError) throw profileError;
 
       return { 
         user: {
@@ -55,7 +49,7 @@ export class AuthService {
           role: initialRole as any,
           subscriptionTier: initialTier as any,
           usageStats: profilePayload.usage_stats,
-          preferences: profilePayload.preferences,
+          preferences: this.DEFAULT_PREFS,
           createdAt: authData.user.created_at,
           emailConfirmedAt: authData.user.email_confirmed_at,
           isSyncEnabled: true,
@@ -69,46 +63,35 @@ export class AuthService {
 
   static async login(email: string, pass: string): Promise<UserProfile> {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pass,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
       if (error) throw error;
 
-      // Fetch profile using SQL-compliant column names
+      // اختيار الأعمدة الموجودة فقط لتجنب خطأ Schema Cache
       let { data: profileData, error: fetchError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, name, email, role, subscription_tier, usage_stats, created_at')
         .eq('id', data.user.id)
         .single();
 
-      if (!profileData || fetchError) {
-        const userEmail = data.user.email || email;
-        const isRoot = userEmail.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
-        
+      if (!profileData) {
+        const isRoot = (data.user.email || email).toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
         if (isRoot) {
-          // Auto-repair missing root profile
           const newProfile = {
             id: data.user.id,
             name: "Sovereign Root",
-            email: userEmail,
+            email: data.user.email || email,
             role: 'Admin',
             subscription_tier: 'Sovereign',
             usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
-            preferences: { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: new Date().toISOString()
           };
-          
           await supabase.from('profiles').upsert([newProfile]);
-          profileData = newProfile;
+          profileData = newProfile as any;
         } else {
-          throw new Error("REGISTRY_NOT_FOUND: Profile record missing in database.");
+          throw new Error("REGISTRY_NOT_FOUND");
         }
       }
 
-      // Map SQL result (snake_case) to UI Model (camelCase)
       return {
         id: data.user.id,
         email: data.user.email || '',
@@ -116,7 +99,7 @@ export class AuthService {
         role: profileData.role as any,
         subscriptionTier: profileData.subscription_tier as any,
         usageStats: profileData.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
-        preferences: profileData.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
+        preferences: this.DEFAULT_PREFS,
         createdAt: profileData.created_at,
         emailConfirmedAt: data.user.email_confirmed_at,
         isSyncEnabled: true,

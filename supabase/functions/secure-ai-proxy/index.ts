@@ -2,7 +2,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { GoogleGenAI } from "https://esm.sh/@google/genai@1.38.0"
 
-// Fix: Declare Deno global for environments where types aren't explicitly loaded
 declare const Deno: any;
 
 const corsHeaders = {
@@ -11,27 +10,32 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // التعامل مع طلبات CORS التمهيدية
+  // التعامل مع طلبات التحقق من الاتصال (CORS)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { model, contents, config } = await req.json()
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set in Supabase project secrets");
+    }
 
-    // تهيئة SDK باستخدام المفتاح المخزن في أسرار Supabase
-    // ملاحظة: يتم جلب المفتاح حصرياً من البيئة الآمنة للدالة
-    const ai = new GoogleGenAI({ apiKey: Deno.env.get("GEMINI_API_KEY") || "" })
+    const ai = new GoogleGenAI({ apiKey });
 
-    // تنفيذ الطلب عبر نموذج Gemini
-    const response = await ai.models.generateContent({
+    const result = await ai.models.generateContent({
       model: model || 'gemini-3-flash-preview',
       contents: contents,
       config: config
     })
 
+    // استخراج النص يدوياً لضمان وصوله للواجهة بشكل سليم
+    const textOutput = result.text || result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({ ...result, text: textOutput }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

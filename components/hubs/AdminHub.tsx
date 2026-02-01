@@ -21,8 +21,9 @@ const AdminHub: React.FC = () => {
   const fetchData = async () => {
     if (!isAuthorized) return;
     try {
+      // إصلاح: اختيار الأعمدة الصريحة فقط
       const [usersRes, auditRes] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('id, name, email, role, subscription_tier, usage_stats, created_at').order('created_at', { ascending: false }),
         supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100)
       ]);
       
@@ -51,7 +52,6 @@ const AdminHub: React.FC = () => {
   const updateUserRole = async (userId: string, newRole: string, newTier: string) => {
     setIsUpdating(userId);
     try {
-      // Logic mapped to SQL schema: role and subscription_tier
       const { error } = await supabase
         .from('profiles')
         .update({ 
