@@ -7,32 +7,34 @@ import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
- * v2.1: Multi-Engine Logic + Sliding Window History Management.
+ * v2.2: Optimized for Production with Adaptive Sliding Window.
  */
 export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
-  private static readonly MAX_CONTEXT_MESSAGES = 15; // Sliding window size
+  public static readonly MAX_CONTEXT_MESSAGES = 15;
 
   private static isArabic(text: string): boolean {
     return /[\u0600-\u06FF]/.test(text);
   }
 
   /**
-   * P1 Remediation: Compresses history to ensure the core logic stays within peak performance thresholds.
+   * Compresses history to ensure peak neural performance.
+   * Keeps the 'Global Anchor' (First message) and a sliding window of recent messages.
    */
   private static compressHistory(messages: NegotiationMessage[]): string {
-    // Keep the first message (usually the opening) and the last N messages
+    if (!messages || messages.length === 0) return "No prior context.";
+    
     if (messages.length <= this.MAX_CONTEXT_MESSAGES) {
-      return messages.map(m => `[${m.sender.toUpperCase()}]: ${m.content}`).join('\n');
+      return messages.map(m => `[${m.sender.toUpperCase()}]: ${m.content.slice(0, 1000)}`).join('\n');
     }
 
     const opening = messages[0];
-    const recent = messages.slice(-(this.MAX_CONTEXT_MESSAGES - 1));
+    const slidingWindow = messages.slice(-(this.MAX_CONTEXT_MESSAGES - 1));
     
     return [
-      `[OPENING_CONTEXT]: ${opening.content}`,
-      `... [TRUNCATED ${messages.length - this.MAX_CONTEXT_MESSAGES} MESSAGES FOR OPTIMIZATION] ...`,
-      ...recent.map(m => `[${m.sender.toUpperCase()}]: ${m.content}`)
+      `[GLOBAL_ANCHOR]: ${opening.content.slice(0, 1000)}`,
+      `... [SYSTEM_REDACTION: ${messages.length - this.MAX_CONTEXT_MESSAGES} messages moved to deep memory for performance] ...`,
+      ...slidingWindow.map(m => `[${m.sender.toUpperCase()}]: ${m.content.slice(0, 1000)}`)
     ].join('\n');
   }
 
@@ -42,26 +44,26 @@ export class NegotiationService {
     domainName: string
   ): Promise<{ insight: MessageAuditInsight, report: FAANGNegotiationReport }> {
     return safeAICall(async () => {
-      const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 2000);
+      const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 3000);
       const isArabicInput = this.isArabic(sanitizedMessage);
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
-      // Applying Sliding Window Compression
+      // Multi-Agent Context Injection
       const historyContext = this.compressHistory(thread.messages);
 
       const [geminiResponse, falconInsight] = await Promise.all([
         ai.models.generateContent({
           model: this.MODEL_PRO,
           contents: `
-            System: You are a Forensic Negotiation Lead. 
-            Mission: Perform a 4-layer audit on a signal for domain "${domainName}".
+            System: Chief Forensic Negotiator. 
+            Target: Digital Asset "${domainName}".
+            Task: Perform 4-layer audit on incoming signal.
             
-            Strategic Analysis: Evaluate leverage and Nash Equilibrium.
-            Contextual History (Compressed Window):
+            Operational Context (Sliding Window History):
             ${historyContext}
             
-            Incoming Signal:
+            Current Incoming Signal:
             "${sanitizedMessage}"
           `,
           config: {
@@ -78,17 +80,12 @@ export class NegotiationService {
       if (falconInsight && result.insight) {
         result.insight.culturalNuance = falconInsight.culturalNuance;
         if (falconInsight.sentiment.includes("Aggressive")) {
-           result.insight.sentimentScore = Math.min(result.insight.sentimentScore, 30);
+           result.insight.sentimentScore = Math.min(result.insight.sentimentScore, 25);
         }
       }
 
       return result;
     });
-  }
-
-  static async auditMessage(thread: NegotiationThread, newMessage: string): Promise<MessageAuditInsight> {
-    const result = await this.auditMessageDeep(thread, newMessage, "Context_Unknown");
-    return result.insight;
   }
 
   static async generateStrategicCounter(
@@ -102,9 +99,9 @@ export class NegotiationService {
       
       const response = await ai.models.generateContent({
         model: this.MODEL_PRO,
-        contents: `Draft a game-theory optimized counter-offer for "${domainName}". 
-        Floor: $${floorPrice}. 
-        Compressed History Context:
+        contents: `Draft a high-conversion, game-theory optimized response for "${domainName}". 
+        Absolute floor price: $${floorPrice}. 
+        Strategic Context:
         ${historyContext}`
       });
       return response.text || "Protocol synthesis failed.";

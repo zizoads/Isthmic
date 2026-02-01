@@ -11,7 +11,7 @@ interface Props {
 }
 
 const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
-  const { addLog } = useDomainContext();
+  const { addLog, updateDomain } = useDomainContext();
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -57,11 +57,14 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
         messages: [...thread.messages, incoming]
       };
 
-      setDomains(prev => prev.map(d => 
-        d.id === selectedDomain.id ? { ...d, negotiationThread: updatedThread, status: 'negotiating' } : d
-      ));
+      const updatedDomain = { ...selectedDomain, negotiationThread: updatedThread, status: 'negotiating' as const };
+
+      setDomains(prev => prev.map(d => d.id === selectedDomain.id ? updatedDomain : d));
+      setSelectedDomain(updatedDomain);
       
-      setSelectedDomain(prev => prev ? { ...prev, negotiationThread: updatedThread } : null);
+      // Production Sync: Save to Supabase
+      await updateDomain(updatedDomain);
+      
       setNewMessage('');
       addLog('Auditor', `Deep Audit Complete. Current Leverage: ${report.leverageScore}%`, 'success');
     } catch (e) {
@@ -95,10 +98,13 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
         messages: [...selectedDomain.negotiationThread.messages, aiMsg]
       };
 
-      setDomains(prev => prev.map(d => 
-        d.id === selectedDomain.id ? { ...d, negotiationThread: updatedThread } : d
-      ));
-      setSelectedDomain(prev => prev ? { ...prev, negotiationThread: updatedThread } : null);
+      const updatedDomain = { ...selectedDomain, negotiationThread: updatedThread };
+
+      setDomains(prev => prev.map(d => d.id === selectedDomain.id ? updatedDomain : d));
+      setSelectedDomain(updatedDomain);
+      
+      // Production Sync
+      await updateDomain(updatedDomain);
     } catch (e) {
       addLog('Strategist', 'Synthesis failed.', 'warning');
     } finally {
@@ -119,6 +125,9 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
       </div>
     </div>
   );
+
+  const messageCount = selectedDomain?.negotiationThread?.messages.length || 0;
+  const isWindowFull = messageCount > NegotiationService.MAX_CONTEXT_MESSAGES;
 
   return (
     <div className="grid grid-cols-12 gap-8 h-[850px] animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -151,8 +160,16 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
             <header className="p-6 bg-white/2 border-b border-white/5 flex justify-between items-center">
               <div>
                 <h4 className="text-white font-black text-xl italic">{selectedDomain.name}</h4>
-                <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1 flex items-center gap-2">
-                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Logic_Link_Encrypted
+                <div className="flex items-center gap-4 mt-1">
+                   <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Logic_Link_Active
+                   </div>
+                   <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isWindowFull ? 'bg-amber-500' : 'bg-indigo-500'}`}></div>
+                      <span className="text-[8px] font-black text-slate-400 uppercase">
+                        Window: {messageCount}/{NegotiationService.MAX_CONTEXT_MESSAGES} {isWindowFull && "(Optimized)"}
+                      </span>
+                   </div>
                 </div>
               </div>
               <button 
