@@ -4,6 +4,8 @@ import { AgentType, ActivityLog } from '../../types';
 import CommandPalette from '../CommandPalette';
 import SonnerNotification from '../SonnerNotification';
 import TickerTape from '../TickerTape';
+import MobileBottomNav from './MobileBottomNav';
+import MobileMenuDrawer from './MobileMenuDrawer';
 import { useDomainContext } from '../../context/DomainContext';
 
 interface Props {
@@ -53,15 +55,7 @@ const MainLayout: React.FC<Props> = ({
 
   const handleNavClick = (id: AgentType) => {
     setActiveHub(id);
-    if (window.innerWidth < 1024) {
-      setIsMobileMenuOpen(false); // إغلاق تلقائي على الهاتف
-    }
-  };
-
-  const handleLogout = async () => {
-    if (confirm(lang === 'ar' ? 'هل أنت متأكد من تسجيل الخروج؟' : 'Are you sure you want to logout?')) {
-      await logout();
-    }
+    if (window.innerWidth < 1024) setIsMobileMenuOpen(false);
   };
 
   return (
@@ -71,34 +65,8 @@ const MainLayout: React.FC<Props> = ({
       <TickerTape lang={lang} />
       <div className="noise-bg"></div>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black/60 backdrop-blur-xl border-b border-white/5 z-[60] flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#d4af37] rounded-xl flex items-center justify-center text-black font-serif text-xl italic">I</div>
-          <span className="text-sm font-serif italic text-white">Isthmic.</span>
-        </div>
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="w-10 h-10 flex items-center justify-center text-white bg-white/5 rounded-xl border border-white/10"
-        >
-          <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
-        </button>
-      </div>
-
-      {/* Backdrop for Mobile */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[51]"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Navigation */}
-      <aside className={`
-        fixed inset-y-0 left-0 w-72 border-r border-white/5 bg-[#0a0a0c] lg:bg-black/60 p-8 flex flex-col z-[55] backdrop-blur-3xl transition-transform duration-500
-        lg:relative lg:translate-x-0
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-      `} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Sidebar - Hidden on mobile */}
+      <aside className={`mobile-hide fixed inset-y-0 left-0 w-72 border-r border-white/5 bg-black/60 p-8 flex flex-col z-50 backdrop-blur-3xl transition-all duration-500`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <div className="flex items-center gap-4 mb-12">
            <div className="w-12 h-12 bg-[#d4af37] rounded-2xl flex items-center justify-center text-black font-serif text-2xl italic shadow-2xl">I</div>
            <div>
@@ -119,49 +87,42 @@ const MainLayout: React.FC<Props> = ({
               {item.label}
             </button>
           ))}
-
-          {isAdmin && (
-            <button 
-              onClick={() => handleNavClick(AgentType.ADMIN)}
-              className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold uppercase text-[9px] tracking-widest mt-4 border border-[#d4af37]/20
-                ${activeHub === AgentType.ADMIN ? 'bg-[#d4af37] text-black shadow-xl' : 'text-[#d4af37] hover:bg-[#d4af37]/10'}`}
-            >
-              <i className="fas fa-user-shield text-sm"></i>
-              {lang === 'ar' ? 'لوحة المسؤول' : 'Admin Panel'}
-            </button>
-          )}
         </nav>
 
-        {/* User Actions / Logout */}
-        <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
-           <div className="flex items-center gap-3 px-4 py-2">
-              <div className="w-8 h-8 rounded-full border border-[#d4af37]/30 p-0.5">
-                <img src={activeProfile?.avatar} className="w-full h-full rounded-full object-cover" alt="User" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-black text-white truncate">{activeProfile?.name}</div>
-                <div className="text-[8px] text-slate-500 truncate">{activeProfile?.subscriptionTier}</div>
-              </div>
-           </div>
-           
-           <button 
-             onClick={handleLogout}
-             className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all group"
-           >
-              <span className="text-[9px] font-black uppercase tracking-widest">
-                {lang === 'ar' ? 'تسجيل الخروج' : 'Terminate Link'}
-              </span>
-              <i className="fas fa-power-off text-sm"></i>
-           </button>
-        </div>
+        {isAdmin && (
+          <button 
+            onClick={() => handleNavClick(AgentType.ADMIN)}
+            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold uppercase text-[9px] tracking-widest mt-auto border border-[#d4af37]/20
+              ${activeHub === AgentType.ADMIN ? 'bg-[#d4af37] text-black shadow-xl' : 'text-[#d4af37] hover:bg-[#d4af37]/10'}`}
+          >
+            <i className="fas fa-user-shield text-sm"></i>
+            {lang === 'ar' ? 'لوحة المسؤول' : 'Admin Panel'}
+          </button>
+        )}
       </aside>
 
       {/* Main Workspace */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-12 bg-transparent relative pb-40 mt-16 lg:mt-0">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-12 bg-transparent relative pb-32 lg:pb-40 safe-bottom">
+        <div className="max-w-7xl mx-auto space-y-8 lg:space-y-12">
           {children}
         </div>
       </main>
+
+      {/* Mobile Controls */}
+      <MobileBottomNav 
+        activeHub={activeHub} 
+        setActiveHub={handleNavClick} 
+        onOpenMenu={() => setIsMobileMenuOpen(true)}
+        lang={lang} 
+      />
+      <MobileMenuDrawer 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)}
+        setActiveHub={handleNavClick}
+        activeProfile={activeProfile}
+        logout={logout}
+        lang={lang}
+      />
     </div>
   );
 };

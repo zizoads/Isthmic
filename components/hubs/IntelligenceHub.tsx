@@ -34,17 +34,18 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   ];
 
   return (
-    <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <header className="space-y-4">
-        <div className="flex items-center gap-4">
-           <div className="w-2 h-8 bg-[#c5a059]"></div>
-           <h1 className="text-3xl lg:text-5xl prestige-heading text-white italic leading-none">
+    <div className="space-y-6 lg:space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <header className="space-y-2 lg:space-y-4">
+        <div className="flex items-center gap-3 lg:gap-4">
+           <div className="w-1.5 lg:w-2 h-6 lg:h-8 bg-[#c5a059]"></div>
+           <h1 className="text-2xl lg:text-5xl prestige-heading text-white italic leading-none">
              {t('intelligence.hub_title')}
            </h1>
         </div>
       </header>
 
-      <div className="flex bg-white/5 backdrop-blur-2xl p-1 rounded-[20px] border border-white/5 w-fit shadow-xl overflow-x-auto no-scrollbar max-w-full">
+      {/* Responsive Horizontal Tabs */}
+      <div className="scroll-x-mobile bg-white/5 backdrop-blur-2xl p-1 rounded-[20px] border border-white/5 w-full shadow-xl">
         {tabs.map(tab => (
           <button 
             key={tab.id}
@@ -59,26 +60,25 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
       </div>
 
       {currentWorkflow && (
-        <div className="max-w-4xl">
+        <div className="w-full">
           <WorkflowIndicator workflow={currentWorkflow} lang={lang} />
         </div>
       )}
 
-      <div className="animate-fade-in space-y-12">
+      <div className="animate-fade-in space-y-8 lg:space-y-12">
         {subTab === 'sovereign' && (
-          <div className="space-y-12">
+          <div className="flex flex-col gap-8 lg:gap-12">
             <AutonomousControlCenter 
                 strategy={strategy} 
                 onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 
                 lang={lang} 
             />
-            {/* تم نقل MomentumChart إلى مساحة الخصوصية لتنظيف الواجهة العامة */}
           </div>
         )}
         
-        {subTab === 'nexus' && <div className="glass-panel p-8 lg:p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
-        {subTab === 'strategy' && <div className="glass-panel p-8 lg:p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
-        {subTab === 'feedback' && <div className="glass-panel p-8 lg:p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
+        {subTab === 'nexus' && <div className="glass-panel p-6 lg:p-12"><NexusPrimeDashboard lang={lang} addLog={addLog} setDomains={setDomains} /></div>}
+        {subTab === 'strategy' && <div className="glass-panel p-6 lg:p-12"><MasterBrainDashboard stats={stats} activityLogs={activityLogs} strategy={strategy} setStrategy={setStrategy} lang={lang} onInitiateScan={onInitiateScan} isScanning={isScanning} /></div>}
+        {subTab === 'feedback' && <div className="glass-panel p-6 lg:p-12"><FeedbackDashboard domains={[]} stats={stats} /></div>}
       </div>
     </div>
   );
