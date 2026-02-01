@@ -10,7 +10,10 @@ const LaunchControlHub: React.FC = () => {
   const [report, setReport] = useState<LaunchReadinessReport | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState<EWSAlert[]>([]);
-  const [showChaosPanel, setShowChaosPanel] = useState(false);
+  const [showChaosPanel, setShowChaosPanel] = useState(true); // Default to visible for testing
+
+  const isFailureInjected = localStorage.getItem('isthmic_chaos_failure') === 'true';
+  const isLatencyInjected = !!localStorage.getItem('isthmic_chaos_latency');
 
   // EWS Telemetry Loop
   useEffect(() => {
@@ -58,30 +61,27 @@ const LaunchControlHub: React.FC = () => {
       if (current) localStorage.removeItem('isthmic_chaos_latency');
       else localStorage.setItem('isthmic_chaos_latency', '3500');
     } else {
-      const current = localStorage.getItem('isthmic_chaos_failure');
-      if (current === 'true') localStorage.setItem('isthmic_chaos_failure', 'false');
-      else {
-        localStorage.setItem('isthmic_chaos_failure', 'true');
-        addLog('Chaos Engine', 'CRITICAL_FAILURE_SIMULATION: Manual trigger.', 'critical');
-      }
+      const current = localStorage.getItem('isthmic_chaos_failure') === 'true';
+      localStorage.setItem('isthmic_chaos_failure', (!current).toString());
+      addLog('Chaos Engine', !current ? 'CRITICAL_FAILURE_SIMULATION: Manual trigger.' : 'SYSTEM_RECOVERY_TRIGGERED', !current ? 'critical' : 'success');
     }
     window.location.reload(); 
   };
 
-  const isSafeMode = report?.ewsStatus === 'CRITICAL';
+  const isSafeMode = report?.ewsStatus === 'CRITICAL' || isFailureInjected;
 
   return (
     <div className="space-y-12 animate-precision">
       {isSafeMode && (
-        <div className="bg-red-600 p-4 text-center text-[10px] font-black uppercase tracking-[0.5em] text-white animate-pulse">
-          SYSTEM_SAFE_MODE_ACTIVE // AI_INFERENCE_THROTTLED
+        <div className="bg-red-600 p-4 text-center text-[10px] font-black uppercase tracking-[0.5em] text-white animate-pulse shadow-[0_0_30px_rgba(220,38,38,0.5)]">
+          SYSTEM_SAFE_MODE_ACTIVE // AI_INFERENCE_THROTTLED // EWS_LOCKED
         </div>
       )}
 
       <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 border-b border-white/10 pb-12">
         <div className="space-y-4">
            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full shadow-[0_0_15px] ${report?.authorizedForLaunch ? 'bg-green-500 shadow-green-500' : 'bg-red-600 shadow-red-600 animate-pulse'}`}></div>
+              <div className={`w-3 h-3 rounded-full shadow-[0_0_15px] ${report?.authorizedForLaunch && !isFailureInjected ? 'bg-green-500 shadow-green-500' : 'bg-red-600 shadow-red-600 animate-pulse'}`}></div>
               <span className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-500">Mission Registry // Isthmic Pro v13.0</span>
            </div>
            <h2 className="text-5xl lg:text-7xl prestige-heading text-white italic leading-none">Command_Post</h2>
@@ -90,9 +90,9 @@ const LaunchControlHub: React.FC = () => {
         <div className="flex gap-4">
            <button 
              onClick={() => setShowChaosPanel(!showChaosPanel)}
-             className="px-6 py-4 bg-white/5 border border-white/10 text-slate-500 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:text-white"
+             className={`px-6 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${showChaosPanel ? 'bg-red-500/10 border-red-500/40 text-red-500' : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'}`}
            >
-              {showChaosPanel ? 'Hide Simulator' : 'Chaos Deck'}
+              {showChaosPanel ? 'Hide Simulator' : 'Open Chaos Deck'}
            </button>
            <button 
              onClick={runFullVerification}
@@ -106,17 +106,36 @@ const LaunchControlHub: React.FC = () => {
       </header>
 
       {showChaosPanel && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-red-900/10 border border-red-500/20 p-8 rounded-[40px] animate-slide-up">
-           <div className="space-y-4">
-              <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest">Chaos Injection Deck</h4>
-              <p className="text-xs text-slate-500 italic uppercase">Validate EWS response times and safe-mode transitions.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-red-900/10 border border-red-500/20 p-10 rounded-[48px] animate-slide-up shadow-2xl">
+           <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                 <div className="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center text-white text-xl"><i className="fas fa-biohazard"></i></div>
+                 <h4 className="text-xl font-black text-red-500 uppercase tracking-widest">Chaos Injection Deck</h4>
+              </div>
+              <p className="text-sm text-slate-400 italic leading-relaxed">
+                 Use these controls to simulate systemic degradation. This allows the Root Admin to verify that the **Early Warning System (EWS)** correctly detects anomalies and transitions the UI into Safe Mode.
+              </p>
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                 <span className="text-[8px] font-black text-slate-600 uppercase">Shortcut Protocol</span>
+                 <div className="text-xs text-[#d4af37] font-mono mt-1">CTRL + SHIFT + X (Global Toggle)</div>
+              </div>
            </div>
-           <div className="flex gap-4 justify-end items-center">
-              <button onClick={() => toggleChaos('latency')} className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase border ${localStorage.getItem('isthmic_chaos_latency') ? 'bg-red-600 text-white' : 'bg-white/5 text-slate-500'}`}>
-                Inject Latency (3.5s)
+           <div className="flex flex-col gap-4 justify-center">
+              <button 
+                onClick={() => toggleChaos('latency')} 
+                className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-10
+                  ${isLatencyInjected ? 'bg-red-600 text-white border-red-400' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`}
+              >
+                <span>Inject Latency Spikes (3.5s)</span>
+                {isLatencyInjected ? <i className="fas fa-check-circle"></i> : <i className="fas fa-circle-notch opacity-20"></i>}
               </button>
-              <button onClick={() => toggleChaos('failure')} className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase border ${localStorage.getItem('isthmic_chaos_failure') === 'true' ? 'bg-red-600 text-white' : 'bg-white/5 text-slate-500'}`}>
-                Inject DB Failure
+              <button 
+                onClick={() => toggleChaos('failure')} 
+                className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-10
+                  ${isFailureInjected ? 'bg-red-600 text-white border-red-400 shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`}
+              >
+                <span>Simulate Total Database Failure</span>
+                {isFailureInjected ? <i className="fas fa-bolt text-yellow-300"></i> : <i className="fas fa-power-off opacity-20"></i>}
               </button>
            </div>
         </div>
@@ -128,10 +147,12 @@ const LaunchControlHub: React.FC = () => {
               <div className="space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {report.components.map((c) => (
-                    <div key={c.id} className="square-card p-8 bg-white/[0.02] border border-white/5 group hover:border-white/20 transition-all">
+                    <div key={c.id} className={`square-card p-8 transition-all duration-700 ${isFailureInjected ? 'bg-red-500/5 border-red-500/20 opacity-50 grayscale' : 'bg-white/[0.02] border-white/5 group hover:border-white/20'}`}>
                       <div className="flex justify-between items-start mb-6">
-                        <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase ${c.status === 'STABLE' ? 'text-green-500 bg-green-500/10' : 'text-amber-500 bg-amber-500/10'}`}>{c.status}</span>
-                        <div className="text-[9px] font-mono text-slate-600">Health: {c.phi}%</div>
+                        <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase ${c.status === 'STABLE' && !isFailureInjected ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'}`}>
+                          {isFailureInjected ? 'OFFLINE' : c.status}
+                        </span>
+                        <div className="text-[9px] font-mono text-slate-600">Health: {isFailureInjected ? 0 : c.phi}%</div>
                       </div>
                       <h4 className="text-xl font-bold text-white italic group-hover:text-[#d4af37] transition-colors">{c.name}</h4>
                       <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-2">{c.category}</p>
@@ -172,18 +193,28 @@ const LaunchControlHub: React.FC = () => {
          </div>
 
          <div className="lg:col-span-4 space-y-8">
-            <div className={`square-card p-10 transition-all duration-700 ${isSafeMode ? 'bg-red-900/30 border-red-500' : 'bg-black/60 border-white/5'}`}>
+            <div className={`square-card p-10 transition-all duration-700 ${isSafeMode ? 'bg-red-900/30 border-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)]' : 'bg-black/60 border-white/5'}`}>
                <div className="flex justify-between items-center mb-10">
                   <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">EWS Pulse</h3>
-                  <div className={`w-3 h-3 rounded-full ${report?.ewsStatus === 'NOMINAL' ? 'bg-green-500 shadow-[0_0_10px_green]' : 'bg-red-500 animate-ping'}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${report?.ewsStatus === 'NOMINAL' && !isFailureInjected ? 'bg-green-500 shadow-[0_0_10px_green]' : 'bg-red-500 animate-ping'}`}></div>
                </div>
                <div className="space-y-6">
-                  {liveAlerts.length > 0 ? liveAlerts.map(a => (
-                    <div key={a.id} className="p-5 bg-white/2 border border-white/10 rounded-2xl animate-slide-up">
-                       <div className="text-[9px] font-black uppercase text-red-500 mb-1">{a.type}</div>
-                       <div className="text-xs text-white italic font-medium">{a.metric} recorded from {a.source}</div>
-                    </div>
-                  )) : (
+                  {liveAlerts.length > 0 || isFailureInjected ? (
+                    <>
+                      {isFailureInjected && (
+                        <div className="p-5 bg-red-600/20 border border-red-500/40 rounded-2xl animate-pulse">
+                           <div className="text-[9px] font-black uppercase text-red-400 mb-1">SYSTEMIC_FAILURE</div>
+                           <div className="text-xs text-white italic font-medium">Database proxy interception active. All queries blocked.</div>
+                        </div>
+                      )}
+                      {liveAlerts.map(a => (
+                        <div key={a.id} className="p-5 bg-white/2 border border-white/10 rounded-2xl animate-slide-up">
+                           <div className="text-[9px] font-black uppercase text-red-500 mb-1">{a.type}</div>
+                           <div className="text-xs text-white italic font-medium">{a.metric} recorded from {a.source}</div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
                     <div className="text-center py-10 opacity-30 italic text-xs">// Network_Nominal</div>
                   )}
                </div>
@@ -193,24 +224,26 @@ const LaunchControlHub: React.FC = () => {
               <div className="square-card p-10 bg-[#d4af37]/5 border-[#d4af37]/30 flex flex-col justify-between min-h-[450px]">
                  <div className="space-y-6">
                     <h3 className="text-[10px] font-black text-[#d4af37] uppercase tracking-widest leading-none">Readiness Index</h3>
-                    <div className="text-8xl font-black text-white italic leading-none">{report.overallReadiness}%</div>
+                    <div className={`text-8xl font-black italic leading-none transition-all duration-1000 ${isFailureInjected ? 'text-red-500' : 'text-white'}`}>
+                       {isFailureInjected ? '00' : report.overallReadiness}%
+                    </div>
                     
                     <div className="p-4 bg-white/2 rounded-2xl border border-white/5 space-y-4">
                        <div>
                           <div className="text-[8px] font-black text-slate-500 uppercase mb-2">Director's Recommendation</div>
                           <p className="text-[10px] text-white italic font-bold">
-                            {report.overallReadiness >= 99.8 
+                            {isFailureInjected ? 'ABORT: Infrastructure failure detected.' : (report.overallReadiness >= 99.8 
                               ? 'GO: Stable thresholds reached. Final mile gaps are low-risk.' 
-                              : 'NO-GO: Core architecture requires stabilization.'}
+                              : 'NO-GO: Core architecture requires stabilization.')}
                           </p>
                        </div>
                        <div className="pt-2 border-t border-white/5">
                           <div className="text-[8px] font-black text-slate-500 uppercase mb-1">Calculated Risk</div>
                           <div className="flex items-center gap-2">
                              <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-[#d4af37] w-[15%]"></div>
+                                <div className={`h-full ${isFailureInjected ? 'bg-red-500 w-full' : 'bg-[#d4af37] w-[15%]'}`}></div>
                              </div>
-                             <span className="text-[8px] font-mono text-[#d4af37]">LOW</span>
+                             <span className={`text-[8px] font-mono ${isFailureInjected ? 'text-red-500 font-black' : 'text-[#d4af37]'}`}>{isFailureInjected ? 'CRITICAL' : 'LOW'}</span>
                           </div>
                        </div>
                     </div>

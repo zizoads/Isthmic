@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AgentType, ActivityLog } from '../../types';
 import CommandPalette from '../CommandPalette';
 import SonnerNotification from '../SonnerNotification';
@@ -18,8 +18,21 @@ interface Props {
 const MainLayout: React.FC<Props> = ({ 
   activeHub, setActiveHub, activityLogs, lang, children, onSearchDomain 
 }) => {
-  const { setActivityLogs, activeProfile } = useDomainContext();
+  const { setActivityLogs, activeProfile, addLog } = useDomainContext();
   
+  useEffect(() => {
+    const handleChaosShortcut = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+        const current = localStorage.getItem('isthmic_chaos_failure') === 'true';
+        localStorage.setItem('isthmic_chaos_failure', (!current).toString());
+        addLog('Chaos_Engine', !current ? 'PROTOCOL_X_ACTIVATED: Systematic failure injected.' : 'RECOVERY_INITIATED: System stabilization active.', !current ? 'critical' : 'success');
+        window.location.reload();
+      }
+    };
+    window.addEventListener('keydown', handleChaosShortcut);
+    return () => window.removeEventListener('keydown', handleChaosShortcut);
+  }, [addLog]);
+
   const navItems = [
     { id: AgentType.INTELLIGENCE, label: 'Intelligence', icon: 'fa-brain' },
     { id: AgentType.ACQUISITION, label: 'Acquisition', icon: 'fa-crosshairs' },
@@ -36,14 +49,13 @@ const MainLayout: React.FC<Props> = ({
   };
 
   return (
-    /* Fix: Removed 'select-none' class to allow text selection/copying */
     <div className="flex h-screen bg-[#0a0a0c] text-foreground font-sans overflow-hidden">
       <CommandPalette setActiveTab={setActiveHub} onSearchDomain={onSearchDomain} />
       <SonnerNotification notifications={activityLogs} onDismiss={handleDismiss} />
       <TickerTape lang={lang} />
       <div className="noise-bg"></div>
 
-      {/* Sidebar Nav - The Column of Authority */}
+      {/* Sidebar Nav */}
       <aside className="w-72 border-r border-white/5 bg-black/60 p-10 flex flex-col gap-12 z-50 backdrop-blur-3xl">
         <div className="flex items-center gap-6 group cursor-pointer">
            <div className="w-14 h-14 bg-[#d4af37] rounded-3xl flex items-center justify-center text-black font-serif text-3xl italic shadow-2xl shadow-[#d4af37]/20 transition-transform duration-700 group-hover:rotate-12">I</div>
@@ -84,10 +96,10 @@ const MainLayout: React.FC<Props> = ({
            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[32px] space-y-4">
               <div className="flex justify-between items-center">
                  <span className="text-[8px] font-black uppercase text-slate-500 tracking-widest">Network Pulse</span>
-                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                 <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px] ${localStorage.getItem('isthmic_chaos_failure') === 'true' ? 'bg-red-500 shadow-red-500' : 'bg-green-500 shadow-green-500'}`}></div>
               </div>
               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                 <div className="h-full bg-[#d4af37] w-3/4 animate-shimmer"></div>
+                 <div className={`h-full w-3/4 animate-shimmer ${localStorage.getItem('isthmic_chaos_failure') === 'true' ? 'bg-red-500' : 'bg-[#d4af37]'}`}></div>
               </div>
            </div>
            
@@ -97,7 +109,7 @@ const MainLayout: React.FC<Props> = ({
         </div>
       </aside>
 
-      {/* Main Workspace - The Light Table */}
+      {/* Main Workspace */}
       <main className="flex-1 overflow-y-auto custom-scrollbar p-12 lg:p-20 bg-transparent relative pb-40">
         <div className="max-w-7xl mx-auto animate-prestige">
           {children}
