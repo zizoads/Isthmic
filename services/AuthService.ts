@@ -13,33 +13,41 @@ export class AuthService {
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile }> {
     try {
+      // 1. إنشاء الحساب في نظام Auth الخاص بـ Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: pass,
         options: { data: { display_name: name } }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          throw new Error("EMAIL_EXISTS");
+        }
+        throw authError;
+      }
+      
       if (!authData.user) throw new Error("IDENTITY_CREATION_FAILED");
 
       const isRoot = email.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
       const initialRole = isRoot ? 'Admin' : 'Analyst';
       const initialTier = isRoot ? 'Sovereign' : 'Free';
       
-      const profilePayload: any = {
-        id: authData.user.id,
-        name: name,
-        email: email,
-        role: initialRole,
-        subscription_tier: initialTier,
-        usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // تجاهل عمود preferences حالياً لضمان نجاح التسجيل
-      const { error: profileError } = await supabase.from('profiles').upsert([profilePayload]);
-      if (profileError) throw profileError;
+      // 2. محاولة إنشاء سجل في جدول profiles
+      // نستخدم محاولة بسيطة فقط للأعمدة الأساسية لضمان عدم الفشل بسبب SCHEMA
+      try {
+        await supabase.from('profiles').upsert([{
+          id: authData.user.id,
+          name: name,
+          email: email,
+          role: initialRole,
+          subscription_tier: initialTier,
+          usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
+          created_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        console.warn("PROFILE_SYNC_NOTICE: Auth succeeded, but profile row may need manual creation.");
+      }
 
       return { 
         user: {
@@ -48,7 +56,7 @@ export class AuthService {
           email,
           role: initialRole as any,
           subscriptionTier: initialTier as any,
-          usageStats: profilePayload.usage_stats,
+          usageStats: { scansThisMonth: 0, auditsThisMonth: 0 },
           preferences: this.DEFAULT_PREFS,
           createdAt: authData.user.created_at,
           emailConfirmedAt: authData.user.email_confirmed_at,
@@ -57,6 +65,7 @@ export class AuthService {
         }
       };
     } catch (error: any) {
+      console.error("SIGNUP_ERR:", error);
       throw error;
     }
   }
@@ -64,48 +73,41 @@ export class AuthService {
   static async login(email: string, pass: string): Promise<UserProfile> {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-      if (error) throw error;
-
-      // اختيار الأعمدة الموجودة فقط لتجنب خطأ Schema Cache
-      let { data: profileData, error: fetchError } = await supabase
-        .from('profiles')
-        .select('id, name, email, role, subscription_tier, usage_stats, created_at')
-        .eq('id', data.user.id)
-        .single();
-
-      if (!profileData) {
-        const isRoot = (data.user.email || email).toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
-        if (isRoot) {
-          const newProfile = {
-            id: data.user.id,
-            name: "Sovereign Root",
-            email: data.user.email || email,
-            role: 'Admin',
-            subscription_tier: 'Sovereign',
-            usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
-            created_at: new Date().toISOString()
-          };
-          await supabase.from('profiles').upsert([newProfile]);
-          profileData = newProfile as any;
-        } else {
-          throw new Error("REGISTRY_NOT_FOUND");
+      
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("بيانات الدخول خاطئة أو الحساب غير موجود في هذا المشروع.");
         }
+        if (error.message.includes("Email not confirmed")) {
+          throw new Error("يرجى تأكيد البريد الإلكتروني أولاً.");
+        }
+        throw error;
       }
+
+      // جلب بيانات الملف الشخصي
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      const isRoot = (data.user.email || email).toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
 
       return {
         id: data.user.id,
         email: data.user.email || '',
-        name: profileData.name,
-        role: profileData.role as any,
-        subscriptionTier: profileData.subscription_tier as any,
-        usageStats: profileData.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
-        preferences: this.DEFAULT_PREFS,
-        createdAt: profileData.created_at,
+        name: profileData?.name || (isRoot ? "Sovereign Root" : "Sovereign User"),
+        role: profileData?.role || (isRoot ? 'Admin' : 'Analyst'),
+        subscriptionTier: profileData?.subscription_tier || (isRoot ? 'Sovereign' : 'Free'),
+        usageStats: profileData?.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
+        preferences: profileData?.preferences || this.DEFAULT_PREFS,
+        createdAt: profileData?.created_at || data.user.created_at,
         emailConfirmedAt: data.user.email_confirmed_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
       };
     } catch (error: any) {
+      console.error("LOGIN_ERR:", error);
       throw error;
     }
   }

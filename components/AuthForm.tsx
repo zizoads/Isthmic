@@ -21,11 +21,12 @@ const AuthForm: React.FC = () => {
         await login(email, password);
       } else {
         await signup(name, email, password);
-        // Note: We no longer block user with confirmation message
-        // They will enter the app and see the grace period notice
+        setErrorMessage("Success! Link established. Please check email for confirmation (Grace period active).");
+        setIsLogin(true);
       }
     } catch (error: any) {
-      const msg = error.message || "Access Protocol Denied";
+      let msg = error.message || "Access Protocol Denied";
+      if (msg === "EMAIL_EXISTS") msg = "هذا البريد مسجل مسبقاً، جرب تسجيل الدخول.";
       setErrorMessage(msg);
       addLog('Auth', msg, 'critical');
     } finally {
@@ -52,8 +53,8 @@ const AuthForm: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up bg-red-500/10 border-red-500/20 text-red-500`}>
-              <i className="fas fa-shield-halved mr-2"></i> {errorMessage}
+            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up ${errorMessage.includes('Success') ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+              <i className={`fas ${errorMessage.includes('Success') ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {errorMessage}
             </div>
           )}
 

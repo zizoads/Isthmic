@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ProtocolErrorBoundaryProps {
   children?: ReactNode;
@@ -13,14 +13,16 @@ interface ProtocolErrorBoundaryState {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
-  // Fix: Explicitly initialize state and props through constructor to ensure TypeScript correctly resolves inherited members
+// Use Component directly from react to ensure correct type resolution for state and props
+class ProtocolErrorBoundary extends Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
+  // Explicitly define state as a class property to ensure TypeScript recognizes it on this type
+  public state: ProtocolErrorBoundaryState = {
+    hasError: false,
+    error: null
+  };
+
   constructor(props: ProtocolErrorBoundaryProps) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null
-    };
   }
 
   public static getDerivedStateFromError(error: Error): ProtocolErrorBoundaryState {
@@ -31,13 +33,14 @@ class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, 
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
+  // Use arrow function to maintain context and call inherited setState
   private handleReset = () => {
-    // Fix: Properly accessing setState from the base class
+    // Properly accessing setState from the base class
     this.setState({ hasError: false, error: null });
   };
 
   public render() {
-    // Fix: Properly accessing state and props from the base class
+    // Access inherited state and props from the Component base class
     const { hasError } = this.state;
     const { children, fallbackName } = this.props;
 
