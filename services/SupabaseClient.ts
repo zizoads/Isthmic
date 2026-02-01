@@ -3,11 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 
 /**
  * Isthmic Pro - Sovereign Cloud Connection
- * Phase Final: Enhanced with Resilience Wrapper for EWS testing.
- * v2.1: Robust persistence config for cross-session continuity.
+ * تم تحديث الرابط ليتوافق مع مشروعك الحالي: qssnxvnrmuyupvfeaswa
  */
 
-const SUPABASE_URL = 'https://weqtcsfynvqconvldmhw.supabase.co'.trim(); 
+const SUPABASE_URL = 'https://qssnxvnrmuyupvfeaswa.supabase.co'.trim(); 
 const SUPABASE_ANON_KEY = 'sb_publishable_fTs-sBuPk0GVRtObWe01wQ_o6MxQkso'.trim(); 
 
 const rawClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

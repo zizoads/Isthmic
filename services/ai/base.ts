@@ -4,7 +4,8 @@ import { supabase } from "../SupabaseClient";
 
 export async function safeAICall<T>(payload: any, retries = 2): Promise<T> {
   try {
-    const { data, error } = await supabase.functions.invoke('secure-ai-proxy', {
+    // تم تغيير الاسم هنا ليتطابق مع Slug الدالة في صورتك
+    const { data, error } = await supabase.functions.invoke('rapid-handler', {
       body: payload
     });
 
