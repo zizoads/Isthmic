@@ -1,8 +1,13 @@
 
-import { supabase } from "../SupabaseClient";
+import { GoogleGenAI } from "@google/genai";
+
+/**
+ * Sovereign AI Base: Direct SDK implementation.
+ * Bypasses intermediate Edge Functions to ensure high availability and protocol resilience.
+ */
 
 export async function safeAICall<T>(arg: any, retries = 2): Promise<T> {
-  // إذا كان الوسيط دالة منطقية (Logic Wrapper)
+  // If arg is a logic wrapper (function), execute it directly.
   if (typeof arg === 'function') {
     try {
       return await arg();
@@ -15,20 +20,19 @@ export async function safeAICall<T>(arg: any, retries = 2): Promise<T> {
     }
   }
 
-  // استدعاء الـ Edge Function مباشرة بالاسم الصحيح: rapid-handler
+  // Fallback direct SDK implementation for legacy structured calls if they pass a payload
   try {
-    const { data, error } = await supabase.functions.invoke('rapid-handler', {
-      body: arg
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: arg.model || 'gemini-3-flash-preview',
+      contents: arg.contents,
+      config: arg.config
     });
 
-    if (error) {
-      console.error("EDGE_FUNCTION_INVOKE_ERR:", error);
-      throw error;
-    }
+    if (!response) throw new Error("EMPTY_RESPONSE_FROM_SOVEREIGN_ENGINE");
 
-    if (!data) throw new Error("EMPTY_DATA_FROM_AI_PROXY");
-
-    return data as T;
+    // Return the response object to match expected behavior of legacy callers
+    return response as unknown as T;
   } catch (error: any) {
     if (retries > 0) {
       await new Promise(r => setTimeout(r, 1000));
@@ -49,25 +53,26 @@ export async function generateStructuredAI<T>(
 ): Promise<{ data: T, cached: boolean }> {
   if (signal?.aborted) throw new Error("Aborted");
 
-  const payload = {
-    model: modelName,
-    contents: prompt,
-    config: { 
-      systemInstruction, 
-      responseMimeType: "application/json", 
-      responseSchema: schema, 
-      tools,
-      toolConfig
-    }
-  };
-
-  const response = await safeAICall<any>(payload);
-  const text = response.text || "";
-  
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: { 
+        systemInstruction, 
+        responseMimeType: "application/json", 
+        responseSchema: schema, 
+        tools,
+        toolConfig
+      },
+    });
+
+    const text = response.text || "";
     const data = JSON.parse(text) as T;
     return { data, cached: false };
-  } catch (e) {
-    throw new Error("FAILED_TO_PARSE_AI_RESPONSE");
+  } catch (e: any) {
+    if (e.message === "Aborted") throw e;
+    console.error("SOVEREIGN_GEN_STRUCTURED_ERR:", e);
+    throw new Error("FAILED_TO_SYNTHESIZE_STRUCTURED_DATA");
   }
 }

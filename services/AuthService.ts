@@ -13,7 +13,7 @@ export class AuthService {
   
   static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile }> {
     try {
-      // 1. إنشاء الحساب في نظام Auth الخاص بـ Supabase
+      // 1. Create account in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: pass,
@@ -33,8 +33,7 @@ export class AuthService {
       const initialRole = isRoot ? 'Admin' : 'Analyst';
       const initialTier = isRoot ? 'Sovereign' : 'Free';
       
-      // 2. محاولة إنشاء سجل في جدول profiles
-      // نستخدم محاولة بسيطة فقط للأعمدة الأساسية لضمان عدم الفشل بسبب SCHEMA
+      // 2. Attempt profile generation
       try {
         await supabase.from('profiles').upsert([{
           id: authData.user.id,
@@ -46,7 +45,7 @@ export class AuthService {
           created_at: new Date().toISOString()
         }]);
       } catch (e) {
-        console.warn("PROFILE_SYNC_NOTICE: Auth succeeded, but profile row may need manual creation.");
+        console.warn("PROFILE_SYNC_NOTICE: Auth established, profile row pending manual sync.");
       }
 
       return { 
@@ -76,15 +75,13 @@ export class AuthService {
       
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          throw new Error("بيانات الدخول خاطئة أو الحساب غير موجود في هذا المشروع.");
+          throw new Error("Invalid credentials or account not found in this sovereign scope.");
         }
-        if (error.message.includes("Email not confirmed")) {
-          throw new Error("يرجى تأكيد البريد الإلكتروني أولاً.");
-        }
+        // Removed hard block on "Email not confirmed" to allow Grace Period logic in App.tsx
         throw error;
       }
 
-      // جلب بيانات الملف الشخصي
+      // Fetch Profile Data
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')

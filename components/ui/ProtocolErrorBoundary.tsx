@@ -1,3 +1,4 @@
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ProtocolErrorBoundaryProps {
@@ -13,16 +14,16 @@ interface ProtocolErrorBoundaryState {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Use Component directly from react to ensure correct type resolution for state and props
+// Explicitly extending Component from React to ensure state and props type resolution
 class ProtocolErrorBoundary extends Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
-  // Explicitly define state as a class property to ensure TypeScript recognizes it on this type
-  public state: ProtocolErrorBoundaryState = {
-    hasError: false,
-    error: null
-  };
-
+  // Standard constructor for class components to initialize state
   constructor(props: ProtocolErrorBoundaryProps) {
     super(props);
+    // Initializing state in the constructor to satisfy property assignment checks
+    this.state = {
+      hasError: false,
+      error: null
+    };
   }
 
   public static getDerivedStateFromError(error: Error): ProtocolErrorBoundaryState {
@@ -33,14 +34,13 @@ class ProtocolErrorBoundary extends Component<ProtocolErrorBoundaryProps, Protoc
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
-  // Use arrow function to maintain context and call inherited setState
+  // Bound handler via arrow function to ensure setState is accessible on 'this'
   private handleReset = () => {
-    // Properly accessing setState from the base class
     this.setState({ hasError: false, error: null });
   };
 
   public render() {
-    // Access inherited state and props from the Component base class
+    // Correctly accessing state and props which are inherited from the Component base class
     const { hasError } = this.state;
     const { children, fallbackName } = this.props;
 

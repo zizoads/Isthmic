@@ -21,12 +21,12 @@ const AuthForm: React.FC = () => {
         await login(email, password);
       } else {
         await signup(name, email, password);
-        setErrorMessage("Success! Link established. Please check email for confirmation (Grace period active).");
+        setErrorMessage("Identity Link Established. Check your email for verification.");
         setIsLogin(true);
       }
     } catch (error: any) {
       let msg = error.message || "Access Protocol Denied";
-      if (msg === "EMAIL_EXISTS") msg = "هذا البريد مسجل مسبقاً، جرب تسجيل الدخول.";
+      if (msg === "EMAIL_EXISTS") msg = "Identity exists in registry. Please utilize Master Login.";
       setErrorMessage(msg);
       addLog('Auth', msg, 'critical');
     } finally {
@@ -53,8 +53,8 @@ const AuthForm: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up ${errorMessage.includes('Success') ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-              <i className={`fas ${errorMessage.includes('Success') ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {errorMessage}
+            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up ${errorMessage.includes('Established') ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+              <i className={`fas ${errorMessage.includes('Established') ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {errorMessage}
             </div>
           )}
 
