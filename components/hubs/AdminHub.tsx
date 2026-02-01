@@ -4,16 +4,18 @@ import { supabase } from '../../services/SupabaseClient';
 import { useDomainContext } from '../../context/DomainContext';
 import { AuditLogEntry } from '../../types';
 import { LaunchReadinessService } from '../../services/LaunchReadinessService';
+import LaunchControlHub from '../LaunchControlHub';
+import AutopsyLab from '../AutopsyLab';
 
 const AdminHub: React.FC = () => {
   const { activeProfile, addLog, activityLogs } = useDomainContext();
   const [users, setUsers] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [activeView, setActiveView] = useState<'overview' | 'users' | 'audit' | 'resilience'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'users' | 'audit' | 'resilience' | 'diagnostics'>('overview');
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   
-  // حماية سيادية: التحقق من الرول والإيميل الجذري
-  const isAuthorized = activeProfile?.role === 'Admin' && activeProfile?.email === 'azeddinebeldjilali9@gmail.com';
+  // Sovereign Protection: Absolute lock to Root email
+  const isAuthorized = activeProfile?.role === 'Admin' && activeProfile?.email.toLowerCase() === 'azeddinebeldjilali9@gmail.com';
 
   const fetchData = async () => {
     if (!isAuthorized) return;
@@ -67,13 +69,11 @@ const AdminHub: React.FC = () => {
     );
   }
 
-  // حساب إحصائيات النظام
   const systemHealth = LaunchReadinessService.monitorTelemetry(activityLogs);
   const totalValue = users.reduce((acc, u) => acc + (u.usage_stats?.scansThisMonth || 0), 0);
 
   return (
     <div className="space-y-12 animate-precision pb-24" dir="ltr">
-      {/* Admin Header */}
       <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-10 lg:p-14 overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start gap-10">
           <div className="text-left space-y-4">
@@ -84,6 +84,7 @@ const AdminHub: React.FC = () => {
                {[
                  { id: 'overview', label: 'SYSTEM_OVERVIEW' },
                  { id: 'users', label: 'PRIVILEGE_VAULT' },
+                 { id: 'diagnostics', label: 'PLATFORM_LAUNCH' },
                  { id: 'audit', label: 'FORENSIC_LOGS' },
                  { id: 'resilience', label: 'NETWORK_PHI' }
                ].map(tab => (
@@ -107,7 +108,6 @@ const AdminHub: React.FC = () => {
         <i className="fas fa-shield-halved absolute right-[-50px] top-[-50px] text-white/[0.01] text-[350px] pointer-events-none rotate-12"></i>
       </section>
 
-      {/* Overview Dashboard */}
       {activeView === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up">
            <div className="square-card p-10 space-y-6">
@@ -135,7 +135,19 @@ const AdminHub: React.FC = () => {
         </div>
       )}
 
-      {/* User Management (Privilege Vault) */}
+      {activeView === 'diagnostics' && (
+        <div className="animate-slide-up space-y-20">
+           <div className="p-10 border-2 border-[#d4af37]/10 rounded-[60px] bg-[#d4af37]/5">
+              <h3 className="text-2xl prestige-heading text-white mb-10 text-center italic">Institutional Deployment Controls</h3>
+              <LaunchControlHub />
+           </div>
+           <div className="p-10 border-2 border-indigo-500/10 rounded-[60px] bg-indigo-500/5">
+              <h3 className="text-2xl prestige-heading text-white mb-10 text-center italic">Forensic Code Autopsy Lab</h3>
+              <AutopsyLab />
+           </div>
+        </div>
+      )}
+
       {activeView === 'users' && (
         <div className="square-card flex flex-col h-[700px] bg-[#0a0a0c] animate-slide-up overflow-hidden">
            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
@@ -205,7 +217,6 @@ const AdminHub: React.FC = () => {
         </div>
       )}
 
-      {/* Forensic Audit Logs */}
       {activeView === 'audit' && (
         <div className="square-card h-[700px] flex flex-col animate-slide-up overflow-hidden">
            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
@@ -238,7 +249,6 @@ const AdminHub: React.FC = () => {
         </div>
       )}
 
-      {/* Resilience Monitoring */}
       {activeView === 'resilience' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
            <div className="square-card p-12 bg-[#050505] space-y-10">

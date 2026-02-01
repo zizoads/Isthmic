@@ -1,9 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import IntegrationCenter from '../IntegrationCenter';
 import PricingTerminal from '../PricingTerminal';
 import SovereignReportBuilder from '../SovereignReportBuilder';
-import AutopsyLab from '../AutopsyLab';
-import LaunchControlHub from '../LaunchControlHub';
 import { Domain, PlatformStats, ServiceIntegration } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { NotificationService } from '../../services/NotificationService';
@@ -17,8 +16,8 @@ interface Props {
 }
 
 const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConnect, lang }) => {
-  const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile } = useDomainContext();
-  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'autopsy' | 'launch' | 'vault'>('profile');
+  const { activeProfile, exportVault, importVault, monetization, addLog, setActiveProfile, setIsTourOpen } = useDomainContext();
+  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'reports' | 'vault'>('profile');
   const [showPricing, setShowPricing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +47,14 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
 
   const currentPlan = monetization.plans[activeProfile.subscriptionTier];
 
+  // Clean UI: Only user-level executive tools
+  const availableTabs = [
+    { id: 'profile', label: 'Identity', icon: 'fa-user-tie' },
+    { id: 'integrations', label: 'Gateways', icon: 'fa-plug' },
+    { id: 'reports', label: 'Briefing', icon: 'fa-file-signature' },
+    { id: 'vault', label: 'Vault', icon: 'fa-vault' }
+  ];
+
   return (
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
@@ -58,7 +65,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
             <div className="w-32 h-32 rounded-[40px] border-2 border-[#c5a059]/30 p-1.5 transition-transform duration-700 group-hover:rotate-6">
               <img src={activeProfile.avatar} className="full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-[#111113] rounded-full"></div>
+            <div className="absolute -bottom-2 -right-2 w-8 h-8 border-4 border-[#111113] rounded-full bg-green-500"></div>
           </div>
           
           <div className="flex-1 space-y-4 text-center lg:text-right">
@@ -67,25 +74,18 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
             </h2>
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 items-center">
               <button onClick={() => setShowPricing(true)} className="text-[#c5a059] text-[10px] font-black uppercase tracking-[0.3em] bg-[#c5a059]/10 px-4 py-1.5 rounded-full border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all">
-                Access: {activeProfile.subscriptionTier} Tier
+                Access: {activeProfile.subscriptionTier}
               </button>
             </div>
           </div>
 
           <div className="flex bg-[#0a0a0c] p-2 rounded-3xl border border-white/5 shadow-2xl overflow-x-auto max-w-full">
-            {[
-              { id: 'profile', label: 'Identity', icon: 'fa-user-tie' },
-              { id: 'integrations', label: 'Gateways', icon: 'fa-plug' },
-              { id: 'reports', label: 'Briefing', icon: 'fa-file-signature' },
-              { id: 'autopsy', label: 'Autopsy', icon: 'fa-dna' },
-              { id: 'launch', label: 'Launch', icon: 'fa-rocket' },
-              { id: 'vault', label: 'Vault', icon: 'fa-vault' }
-            ].map(tab => (
+            {availableTabs.map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)} 
                 className={`flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all flex-shrink-0
-                  ${activeTab === tab.id ? 'bg-[#c5a059] text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
+                  ${activeTab === tab.id ? 'bg-[#d4af37] text-black shadow-xl scale-105' : 'text-slate-500 hover:text-white'}`}
               >
                 <i className={`fas ${tab.icon} text-sm`}></i>
                 <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
@@ -115,6 +115,22 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
                   </div>
                 </div>
               </div>
+
+              <div className="square-card p-10 lg:p-14 bg-gradient-to-r from-indigo-900/10 to-transparent">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                  <div className="space-y-2">
+                    <h3 className="text-xl prestige-heading text-white italic">Platform Walkthrough</h3>
+                    <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Replay the sovereign command center orientation.</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsTourOpen(true)}
+                    className="bg-white text-black px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d4af37] hover:text-white transition-all shadow-2xl flex items-center gap-3"
+                  >
+                    <i className="fas fa-play-circle text-sm"></i> Replay Tour
+                  </button>
+                </div>
+              </div>
+
               <div className="square-card p-10 lg:p-14">
                 <h3 className="text-xl prestige-heading text-white italic mb-10 border-b border-white/5 pb-6">Transactional Alerts</h3>
                 <div className="space-y-6">
@@ -152,8 +168,6 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, onConne
 
         {activeTab === 'integrations' && <IntegrationCenter integrations={integrations} onConnect={onConnect} lang={lang} />}
         {activeTab === 'reports' && <SovereignReportBuilder stats={stats} domains={domains} lang={lang} />}
-        {activeTab === 'autopsy' && <AutopsyLab />}
-        {activeTab === 'launch' && <LaunchControlHub />}
         
         {activeTab === 'vault' && (
           <div className="max-w-5_5xl mx-auto space-y-12 animate-precision">

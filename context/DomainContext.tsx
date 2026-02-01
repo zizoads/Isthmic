@@ -16,6 +16,8 @@ export interface DomainContextType {
   stats: PlatformStats;
   isInitialLoading: boolean;
   isSyncing: boolean;
+  isTourOpen: boolean;
+  setIsTourOpen: React.Dispatch<React.SetStateAction<boolean>>;
   activityLogs: ActivityLog[];
   setActivityLogs: React.Dispatch<React.SetStateAction<ActivityLog[]>>;
   integrations: ServiceIntegration[];
@@ -34,6 +36,7 @@ export interface DomainContextType {
   wipeLocalVault: () => Promise<void>;
   updateMonetization: (settings: PlatformMonetizationSettings) => Promise<void>;
   updateDomain: (domain: Domain) => Promise<void>;
+  setTourStatus: (completed: boolean) => Promise<void>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -41,6 +44,7 @@ const DomainContext = createContext<DomainContextType | undefined>(undefined);
 export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
@@ -97,6 +101,14 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try { await supabase.from('active_jobs').delete().eq('id', id); } catch (e) {}
   }, []);
 
+  const setTourStatus = useCallback(async (completed: boolean) => {
+    if (!activeProfile) return;
+    const nextPrefs = { ...activeProfile.preferences, tourCompleted: completed };
+    await supabase.from('profiles').update({ preferences: nextPrefs }).eq('id', activeProfile.id);
+    setActiveProfile({ ...activeProfile, preferences: nextPrefs });
+    if (completed) setIsTourOpen(false);
+  }, [activeProfile]);
+
   const loadWorkspace = useCallback(async (uid: string) => {
     try {
       setIsSyncing(true);
@@ -133,7 +145,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [addLog, resumeJob]);
 
-  // Enhanced Persistence Protocol: Listening to Auth State changes
   useEffect(() => {
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -158,7 +169,6 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     initializeAuth();
 
-    // Listener for Auth events (ensures persistence across browser tabs and refreshes)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
@@ -257,10 +267,10 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }), [domains, isSyncing]);
 
   const value = useMemo(() => ({
-    activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading, isSyncing,
+    activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, setIsTourOpen,
     activityLogs, setActivityLogs, integrations, isEmailConfirmed: true, monetization,
-    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain
-  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob]);
+    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, setTourStatus
+  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob, setTourStatus]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };

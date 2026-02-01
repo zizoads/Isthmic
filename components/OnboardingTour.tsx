@@ -94,7 +94,6 @@ const OnboardingTour: React.FC<Props> = ({ onComplete, lang }) => {
       <div className="absolute inset-0 bg-[#0a0a0c]/80 backdrop-blur-md" onClick={handleFinish}></div>
       
       <div className="relative w-full max-w-xl bg-[#111113] border border-white/10 rounded-[48px] p-10 lg:p-14 shadow-2xl overflow-hidden animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-        {/* Step Indicator */}
         <div className="flex justify-between items-center mb-10">
           <div className="flex gap-2">
             {steps.map((_, i) => (
@@ -106,7 +105,6 @@ const OnboardingTour: React.FC<Props> = ({ onComplete, lang }) => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="space-y-8 relative z-10">
           <div className="w-20 h-20 bg-[#c5a059]/10 border border-[#c5a059]/20 rounded-3xl flex items-center justify-center text-[#c5a059] text-3xl shadow-2xl">
             <i className={`fas ${steps[currentStep].icon}`}></i>
@@ -126,7 +124,7 @@ const OnboardingTour: React.FC<Props> = ({ onComplete, lang }) => {
               onClick={handleNext}
               className="flex-1 bg-white text-black py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] hover:text-white transition-all shadow-xl"
             >
-              {currentStep === steps.length - 1 ? (lang === 'ar' ? 'بدء العمل' : 'Begin Operations') : (lang === 'ar' ? 'التالي' : 'Next Step')}
+              {currentStep === steps.length - 1 ? (lang === 'ar' ? 'إغلاق' : 'Finish') : (lang === 'ar' ? 'التالي' : 'Next Step')}
             </button>
             {currentStep > 0 && (
               <button 
@@ -139,7 +137,6 @@ const OnboardingTour: React.FC<Props> = ({ onComplete, lang }) => {
           </div>
         </div>
 
-        {/* Background Decoration */}
         <i className={`fas ${steps[currentStep].icon} absolute right-[-40px] bottom-[-40px] text-white/[0.02] text-[250px] pointer-events-none rotate-12 transition-all duration-1000`}></i>
       </div>
     </div>

@@ -16,18 +16,20 @@ const App: React.FC = () => {
     integrations, 
     activeProfile, 
     isInitialLoading,
-    activityLogs
+    isTourOpen,
+    setIsTourOpen,
+    activityLogs,
+    setTourStatus
   } = useDomainContext();
   
   const [activeHub, setActiveHub] = useState<AgentType>(AgentType.INTELLIGENCE);
-  const [showTour, setShowTour] = useState(false);
   const lang = 'en';
 
   useEffect(() => {
-    if (activeProfile && !localStorage.getItem('isthmic_tour_complete')) {
-      setShowTour(true);
+    if (activeProfile && !activeProfile.preferences?.tourCompleted) {
+      setIsTourOpen(true);
     }
-  }, [activeProfile]);
+  }, [activeProfile, setIsTourOpen]);
 
   const handleSearchDomain = (name: string) => {
     setActiveHub(AgentType.ACQUISITION);
@@ -49,7 +51,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      {showTour && <OnboardingTour onComplete={() => setShowTour(false)} lang={lang} />}
+      {isTourOpen && <OnboardingTour onComplete={() => setTourStatus(true)} lang={lang} />}
       
       <MainLayout 
         activeHub={activeHub} 

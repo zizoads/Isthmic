@@ -196,6 +196,7 @@ export interface UserProfile {
     emailAlerts: boolean;
     sniperNotifications: boolean;
     reportReadiness: boolean;
+    tourCompleted?: boolean;
   };
   createdAt: string;
   isSyncEnabled: boolean;

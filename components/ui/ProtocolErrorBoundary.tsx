@@ -1,7 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children: ReactNode;
+  // Fix: Making children optional to resolve JSX prop checking issues where children are provided as content between tags
+  children?: ReactNode;
   fallbackName?: string;
 }
 
@@ -13,9 +14,9 @@ interface State {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Use explicit Component import to ensure inheritance is correctly resolved by the TypeScript compiler
+// Fix: Explicitly extending Component from react to ensure proper inheritance of setState and props
 class ProtocolErrorBoundary extends Component<Props, State> {
-  // Explicitly initialize state property
+  // Fix: Using class property for state initialization to ensure it is correctly recognized by the type checker
   public state: State = {
     hasError: false,
     error: null
@@ -25,19 +26,21 @@ class ProtocolErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  // Use ErrorInfo from the imported react types
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
   private handleReset = () => {
-    // setState is correctly inherited from Component
+    // Fix: setState is now correctly recognized as inherited from Component
     this.setState({ hasError: false, error: null });
   };
 
-  // render method accessing state and props from the inherited class
   public render() {
-    if (this.state.hasError) {
+    // Fix: Destructuring state and props to ensure clean access and resolve property existence errors
+    const { hasError } = this.state;
+    const { children, fallbackName } = this.props;
+
+    if (hasError) {
       return (
         <div className="flex flex-col items-center justify-center p-20 border-2 border-red-500/20 bg-red-500/5 rounded-[40px] animate-precision text-center space-y-8">
           <div className="w-20 h-20 bg-red-500/10 rounded-3xl flex items-center justify-center text-red-500 text-3xl shadow-2xl">
@@ -45,7 +48,7 @@ class ProtocolErrorBoundary extends Component<Props, State> {
           </div>
           <div className="space-y-4">
             <h3 className="text-[11px] font-black text-red-500 uppercase tracking-[0.4em]">Protocol Interruption</h3>
-            <h2 className="text-3xl prestige-heading text-white italic">"{this.props.fallbackName || 'Unit'} malfunction detected."</h2>
+            <h2 className="text-3xl prestige-heading text-white italic">"{fallbackName || 'Unit'} malfunction detected."</h2>
             <p className="text-slate-500 text-xs font-mono max-w-md mx-auto leading-relaxed">
               The internal logic engine encountered an unexpected state. Sovereign resilience protocol is now active.
             </p>
@@ -68,7 +71,7 @@ class ProtocolErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }
 

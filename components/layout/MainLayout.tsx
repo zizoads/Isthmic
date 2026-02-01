@@ -22,16 +22,19 @@ const MainLayout: React.FC<Props> = ({
   
   useEffect(() => {
     const handleChaosShortcut = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'X') {
-        const current = localStorage.getItem('isthmic_chaos_failure') === 'true';
-        localStorage.setItem('isthmic_chaos_failure', (!current).toString());
-        addLog('Chaos_Engine', !current ? 'PROTOCOL_X_ACTIVATED: Systematic failure injected.' : 'RECOVERY_INITIATED: System stabilization active.', !current ? 'critical' : 'success');
-        window.location.reload();
+      // Sovereign Rule: Only azeddinebeldjilali9@gmail.com can trigger systematic failure
+      if (activeProfile?.email.toLowerCase() === 'azeddinebeldjilali9@gmail.com') {
+        if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+          const current = localStorage.getItem('isthmic_chaos_failure') === 'true';
+          localStorage.setItem('isthmic_chaos_failure', (!current).toString());
+          addLog('Chaos_Engine', !current ? 'PROTOCOL_X_ACTIVATED: Systematic failure injected.' : 'RECOVERY_INITIATED: System stabilization active.', !current ? 'critical' : 'success');
+          window.location.reload();
+        }
       }
     };
     window.addEventListener('keydown', handleChaosShortcut);
     return () => window.removeEventListener('keydown', handleChaosShortcut);
-  }, [addLog]);
+  }, [addLog, activeProfile]);
 
   const navItems = [
     { id: AgentType.INTELLIGENCE, label: 'Intelligence', icon: 'fa-brain' },
