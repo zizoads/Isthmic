@@ -199,6 +199,7 @@ export interface UserProfile {
     tourCompleted?: boolean;
   };
   createdAt: string;
+  emailConfirmedAt?: string;
   isSyncEnabled: boolean;
   avatar: string;
 }

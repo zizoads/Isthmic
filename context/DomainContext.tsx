@@ -38,6 +38,7 @@ export interface DomainContextType {
   updateDomain: (domain: Domain) => Promise<void>;
   setTourStatus: (completed: boolean) => Promise<void>;
   connectService: (provider: string, key: string) => Promise<void>;
+  isGracePeriodOver: boolean;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -68,6 +69,18 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       Sovereign: { price: 199, maxScans: 1000, maxAudits: 500, features: ['Unlimited Potential', 'Custom AI Models'] }
     }
   });
+
+  const isGracePeriodOver = useMemo(() => {
+    if (!activeProfile) return false;
+    if (activeProfile.emailConfirmedAt) return false;
+    
+    const signupDate = new Date(activeProfile.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - signupDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays > 30;
+  }, [activeProfile]);
 
   useEffect(() => {
     if (activeProfile) SovereignShield.protect('strategy_draft', strategy);
@@ -189,7 +202,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setActiveProfile({
             id: profile.id, email: profile.email, name: profile.name, role: profile.role,
             subscriptionTier: profile.subscription_tier, usageStats: profile.usage_stats,
-            preferences: profile.preferences, createdAt: profile.created_at, isSyncEnabled: true,
+            preferences: profile.preferences, createdAt: profile.created_at, 
+            emailConfirmedAt: session.user.email_confirmed_at,
+            isSyncEnabled: true,
             avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profile.id}`
           });
           await loadWorkspace(profile.id);
@@ -210,7 +225,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setActiveProfile({
             id: profile.id, email: profile.email, name: profile.name, role: profile.role,
             subscriptionTier: profile.subscription_tier, usageStats: profile.usage_stats,
-            preferences: profile.preferences, createdAt: profile.created_at, isSyncEnabled: true,
+            preferences: profile.preferences, createdAt: profile.created_at, 
+            emailConfirmedAt: session.user.email_confirmed_at,
+            isSyncEnabled: true,
             avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profile.id}`
           });
           loadWorkspace(profile.id);
@@ -302,9 +319,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo(() => ({
     activeProfile, setActiveProfile, domains, setDomains, strategy, setStrategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, setIsTourOpen,
-    activityLogs, setActivityLogs, integrations, isEmailConfirmed: true, monetization,
-    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, setTourStatus, connectService
-  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob, setTourStatus, connectService]);
+    activityLogs, setActivityLogs, integrations, isEmailConfirmed: !!activeProfile?.emailConfirmedAt, monetization,
+    addLog, saveJob, clearJob, resumeJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, setTourStatus, connectService, isGracePeriodOver
+  }), [activeProfile, domains, strategy, activeJobs, stats, isInitialLoading, isSyncing, isTourOpen, activityLogs, integrations, monetization, addLog, saveJob, clearJob, logout, login, signup, trackUsage, exportVault, importVault, wipeLocalVault, updateMonetization, updateDomain, resumeJob, setTourStatus, connectService, isGracePeriodOver]);
 
   return <DomainContext.Provider value={value}>{children}</DomainContext.Provider>;
 };

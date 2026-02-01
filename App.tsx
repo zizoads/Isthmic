@@ -19,7 +19,9 @@ const App: React.FC = () => {
     isTourOpen,
     setIsTourOpen,
     activityLogs,
-    setTourStatus
+    setTourStatus,
+    isGracePeriodOver,
+    logout
   } = useDomainContext();
   
   const [activeHub, setActiveHub] = useState<AgentType>(AgentType.INTELLIGENCE);
@@ -47,6 +49,40 @@ const App: React.FC = () => {
 
   if (!activeProfile) {
     return <AuthForm />;
+  }
+
+  // Grace Period Enforcement UI
+  if (isGracePeriodOver) {
+    return (
+      <div className="h-screen bg-[#0a0a0c] flex items-center justify-center p-8">
+        <div className="max-w-2xl w-full bg-[#111113] border border-red-500/30 rounded-[48px] p-12 text-center space-y-10 shadow-2xl relative overflow-hidden">
+           <div className="w-24 h-24 bg-red-600/10 rounded-3xl flex items-center justify-center text-red-500 text-4xl mx-auto shadow-2xl animate-pulse">
+              <i className="fas fa-lock"></i>
+           </div>
+           <div className="space-y-4">
+              <h2 className="text-4xl prestige-heading text-white italic">Access Temporarily Suspended</h2>
+              <p className="text-slate-400 text-lg leading-relaxed italic">
+                 "Your 30-day grace period has expired. Sovereign security protocols require a confirmed email address to continue operations."
+              </p>
+           </div>
+           <div className="space-y-4 pt-6">
+              <button 
+                onClick={() => window.open('https://supabase.com/dashboard/auth/users', '_blank')}
+                className="prestige-btn prestige-btn-gold w-full py-5"
+              >
+                 RESEND CONFIRMATION LINK
+              </button>
+              <button 
+                onClick={logout}
+                className="w-full py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white"
+              >
+                 Switch Account / Logout
+              </button>
+           </div>
+           <i className="fas fa-shield-halved absolute right-[-40px] bottom-[-40px] text-white/[0.02] text-[200px] -rotate-12"></i>
+        </div>
+      </div>
+    );
   }
 
   return (

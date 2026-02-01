@@ -55,6 +55,14 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
     { id: 'vault', label: lang === 'ar' ? 'الخزنة' : 'Vault', icon: 'fa-vault' }
   ];
 
+  const getGraceDaysLeft = () => {
+    const signupDate = new Date(activeProfile.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - signupDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, 30 - diffDays);
+  };
+
   return (
     <div className="space-y-16 animate-precision pb-32" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
@@ -65,7 +73,7 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
             <div className="w-32 h-32 rounded-[40px] border-2 border-[#c5a059]/30 p-1.5 transition-transform duration-700 group-hover:rotate-6">
               <img src={activeProfile.avatar} className="w-full h-full rounded-[35px] object-cover" alt="Sovereign Avatar" />
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 border-4 border-[#111113] rounded-full bg-green-500"></div>
+            <div className={`absolute -bottom-2 -right-2 w-8 h-8 border-4 border-[#111113] rounded-full ${activeProfile.emailConfirmedAt ? 'bg-green-500' : 'bg-amber-500'}`}></div>
           </div>
           
           <div className="flex-1 space-y-4 text-center lg:text-left">
@@ -109,9 +117,20 @@ const ExecutiveSuite: React.FC<Props> = ({ domains, stats, integrations, lang })
               <div className="square-card p-10 lg:p-14">
                 <h3 className="text-xl prestige-heading text-white italic mb-10 border-b border-white/5 pb-6">Account Credentials</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sovereign Email</label>
                     <div className="text-white text-lg font-medium">{activeProfile.email}</div>
+                    {!activeProfile.emailConfirmedAt && (
+                      <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                         <div className="text-amber-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                            <i className="fas fa-exclamation-triangle"></i> Verification Pending
+                         </div>
+                         <p className="text-[10px] text-slate-500 italic mt-2">
+                           Grace period active. You have <span className="text-white font-bold">{getGraceDaysLeft()} days</span> remaining to confirm your identity.
+                         </p>
+                         <button className="mt-4 text-[9px] font-black text-white bg-amber-600 px-4 py-2 rounded-lg hover:bg-amber-500">RESEND NOW</button>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Subscription Quota</label>

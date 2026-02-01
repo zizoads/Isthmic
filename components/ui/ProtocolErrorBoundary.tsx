@@ -1,12 +1,11 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
-interface Props {
-  // Fix: Making children optional to resolve JSX prop checking issues where children are provided as content between tags
+interface ProtocolErrorBoundaryProps {
   children?: ReactNode;
   fallbackName?: string;
 }
 
-interface State {
+interface ProtocolErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
@@ -14,15 +13,17 @@ interface State {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Fix: Explicitly extending Component from react to ensure proper inheritance of setState and props
-class ProtocolErrorBoundary extends Component<Props, State> {
-  // Fix: Using class property for state initialization to ensure it is correctly recognized by the type checker
-  public state: State = {
-    hasError: false,
-    error: null
-  };
+class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
+  // Fix: Explicitly initialize state and props through constructor to ensure TypeScript correctly resolves inherited members
+  constructor(props: ProtocolErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null
+    };
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): ProtocolErrorBoundaryState {
     return { hasError: true, error };
   }
 
@@ -31,12 +32,12 @@ class ProtocolErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
-    // Fix: setState is now correctly recognized as inherited from Component
+    // Fix: Properly accessing setState from the base class
     this.setState({ hasError: false, error: null });
   };
 
   public render() {
-    // Fix: Destructuring state and props to ensure clean access and resolve property existence errors
+    // Fix: Properly accessing state and props from the base class
     const { hasError } = this.state;
     const { children, fallbackName } = this.props;
 
@@ -71,7 +72,7 @@ class ProtocolErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return children;
+    return children || null;
   }
 }
 

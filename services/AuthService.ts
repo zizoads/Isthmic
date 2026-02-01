@@ -10,7 +10,7 @@ export class AuthService {
   // The Root Admin Identity - The absolute authority of the Isthmic Pro ecosystem.
   private static readonly ROOT_ADMIN_IDENTITY = 'azeddinebeldjilali9@gmail.com';
   
-  static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile; needsConfirmation: boolean }> {
+  static async signup(name: string, email: string, pass: string): Promise<{ user?: UserProfile }> {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -39,10 +39,7 @@ export class AuthService {
       const { error: profileError } = await supabase.from('profiles').upsert([profilePayload]);
       if (profileError) console.error("SOVEREIGN_REGISTRY_ERR:", profileError.message);
 
-      const needsConfirmation = !authData.session && !authData.user.email_confirmed_at;
-
       return { 
-        needsConfirmation,
         user: {
           id: authData.user.id,
           name,
@@ -52,6 +49,7 @@ export class AuthService {
           usageStats: { scansThisMonth: 0, auditsThisMonth: 0 },
           preferences: { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
           createdAt: authData.user.created_at,
+          emailConfirmedAt: authData.user.email_confirmed_at,
           isSyncEnabled: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name}`
         }
@@ -76,15 +74,11 @@ export class AuthService {
         .eq('id', data.user.id)
         .single();
 
-      // SOVEREIGN RECOVERY PROTOCOL:
-      // If the auth user exists but the profile row is missing, auto-provision it.
-      // This is critical for the Root Admin identity to ensure they are never locked out.
       if (!profileData || fetchError) {
         const userEmail = data.user.email || email;
         const isRoot = userEmail.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
         
         if (isRoot) {
-          console.warn("RECOVERY_PROTOCOL: Auto-provisioning missing Root Admin profile.");
           const newProfile = {
             id: data.user.id,
             name: "Sovereign Root",
@@ -111,6 +105,7 @@ export class AuthService {
         usageStats: profileData.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
         preferences: profileData.preferences || { emailAlerts: true, sniperNotifications: true, reportReadiness: true },
         createdAt: data.user.created_at,
+        emailConfirmedAt: data.user.email_confirmed_at,
         isSyncEnabled: true,
         avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${data.user.id}`
       };
