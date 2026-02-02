@@ -42,6 +42,13 @@ export interface StrategicObjective {
 
 export type ObjectiveStatus = 'TRACKING' | 'ACHIEVED' | 'AT_RISK' | 'DEVIATED';
 
+export interface PerformanceTelemetry {
+  apiLatencyHistory: number[];
+  avgLatency: number;
+  inferenceSuccessRate: number;
+  lastPulseTimestamp: string;
+}
+
 export interface PlatformStats {
   totalDiscovered: number;
   totalPurchased: number;
@@ -51,6 +58,8 @@ export interface PlatformStats {
   estimatedPortfolioValue: number;
   alignmentVelocity: number;
   systemResilienceStatus: 'nominal' | 'syncing' | 'warning' | 'critical';
+  telemetry?: PerformanceTelemetry;
+  adaptiveThreshold: number; // العتبة الديناميكية الحالية (تتغير بناءً على الذكاء المحيط)
 }
 
 export interface TechnicalMetrics {
@@ -136,6 +145,27 @@ export interface NegotiationThread {
   currentState?: DealState;
 }
 
+// Fix: Add missing NegotiationBattleCard interface used in masterBrainEngine.ts
+export interface NegotiationBattleCard {
+  buyerMotive: string;
+  leveragePoints: string[];
+  suggestedCounter: number;
+  closingProbability: number;
+  sentimentScore: number;
+}
+
+// Fix: Add missing NegotiationSnapshot interface used in NegotiationService.ts
+export interface NegotiationSnapshot {
+  domainName: string;
+  currentState: DealStateEnum;
+  messageCount: number;
+  leverageScore: number;
+  lastBuyerIntent: string;
+  riskFlagsCount: number;
+  sentiment: number;
+  timestamp: string;
+}
+
 export interface Domain {
   id: string;
   workspaceId: string;
@@ -147,6 +177,8 @@ export interface Domain {
   justification?: string;
   probability?: number;
   strategicAlignmentScore?: number;
+  predictiveViabilityScore?: number; // درجة التنبؤ الاستباقية (Stage 4)
+  causalPenaltyReason?: string; // سبب العقوبة السببية المكتشف
   rejectionPatterns?: string[];
   technicalMetrics?: TechnicalMetrics;
   financials?: any;
@@ -157,14 +189,24 @@ export interface Domain {
   lastChecked?: string;
 }
 
+export interface CausalRejectionModel {
+  patternId: string;
+  reason: string;
+  causalLogicChain: string; // تسلسل المنطق السببي (لماذا تم الرفض فعلياً)
+  timestamp: string;
+  sector: string;
+  severityIndex: number; // مدى قوة تأثير هذا النمط (0.1 - 1.0)
+}
+
 export interface PlatformStrategy {
   id: string;
   totalBudget: number;
   riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
   autoPilot: boolean;
+  adaptiveThresholdEnabled: boolean; // تفعيل الفلتر الديناميكي
   investmentThesis: string;
   objectives?: StrategicObjective[];
-  rejectionPatterns?: RejectionPattern[];
+  causalRejectionModels?: CausalRejectionModel[]; // الذاكرة السببية الجديدة
 }
 
 export interface ActivityLog {
@@ -198,13 +240,6 @@ export interface ThinkingStep {
   action: string;
   finding: string;
   status: 'searching' | 'pending' | 'complete';
-}
-
-export interface RejectionPattern {
-  patternId: string;
-  reason: string;
-  timestamp: string;
-  sector: string;
 }
 
 export interface OutreachMessage {
@@ -277,14 +312,6 @@ export interface AgentThought {
   status: 'thinking' | 'resolved' | 'failed';
 }
 
-export interface NegotiationBattleCard {
-  buyerMotive: string;
-  leveragePoints: string[];
-  suggestedCounter: number;
-  closingProbability: number;
-  sentimentScore: number;
-}
-
 export interface ActiveJob {
   id: string;
   workspaceId: string;
@@ -331,15 +358,55 @@ export interface ResilienceMetrics {
   errorRate: number;
 }
 
-export interface NegotiationSnapshot {
-  domainName: string;
-  currentState: DealStateEnum;
-  messageCount: number;
-  leverageScore: number;
-  lastBuyerIntent: string;
-  riskFlagsCount: number;
-  sentiment: number;
-  timestamp: string;
+// Fix: Add missing AutomaticFix interface used in AutopsyService.ts and AutopsyLab.tsx
+export interface AutomaticFix {
+  id: string;
+  description: string;
+  patch: string;
+  confidence: number;
+  before: string;
+  after: string;
+}
+
+// Fix: Add missing FixImpactReport interface used in AutopsyService.ts
+export interface FixImpactReport {
+  before: SovereignAutopsyReport['metrics'];
+  after: SovereignAutopsyReport['metrics'];
+  improvementPercentage: number;
+  performanceGain: number;
+  readabilityGain: number;
+  maintainabilityGain: number;
+  isSuccessful: boolean;
+}
+
+// Fix: Add missing ProblemPattern interface
+export interface ProblemPattern {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  severity: string;
+  frequency: number;
+  globalRecommendation: string;
+}
+
+// Fix: Add missing ProblemCatalog interface used in AutopsyService.ts and AutopsyLab.tsx
+export interface ProblemCatalog {
+  institutionalHealthIndex: number;
+  patterns: ProblemPattern[];
+  lastUpdated: string;
+  totalFilesAnalyzed: number;
+}
+
+// Fix: Add missing ProjectExecutiveSummary interface used in AutopsyService.ts and AutopsyLab.tsx
+export interface ProjectExecutiveSummary {
+  projectHealthScore: number;
+  totalDebtHours: number;
+  debtTrend: 'UP' | 'DOWN' | 'STABLE';
+  improvedFiles: string[];
+  degradedFiles: string[];
+  strategicRisk: string;
+  faangReadinessIndex: number;
 }
 
 export interface SovereignAutopsyReport {
@@ -372,6 +439,7 @@ export interface SovereignAutopsyReport {
     decayProbability: number;
     nextCriticalFailurePoint: string;
   };
+  // Fix: Use AutomaticFix[] instead of any[] to ensure strict typing
   automaticFixes: AutomaticFix[];
   technicalDebt: {
     debtHours: number;
@@ -380,43 +448,8 @@ export interface SovereignAutopsyReport {
   };
   findings: any[];
   improvementRoadmap: any[];
+  // Fix: Use FixImpactReport instead of any to ensure strict typing
   impactReport?: FixImpactReport;
-}
-
-export interface AutomaticFix {
-  id: string;
-  description: string;
-  patch: string;
-  confidence: number;
-  before: string;
-  after: string;
-}
-
-export interface FixImpactReport {
-  before: any;
-  after: any;
-  improvementPercentage: number;
-  performanceGain: number;
-  readabilityGain: number;
-  maintainabilityGain: number;
-  isSuccessful: boolean;
-}
-
-export interface ProblemCatalog {
-  institutionalHealthIndex: number;
-  patterns: any[];
-  lastUpdated: string;
-  totalFilesAnalyzed: number;
-}
-
-export interface ProjectExecutiveSummary {
-  projectHealthScore: number;
-  totalDebtHours: number;
-  debtTrend: 'UP' | 'DOWN' | 'STABLE';
-  improvedFiles: string[];
-  degradedFiles: string[];
-  strategicRisk: string;
-  faangReadinessIndex: number;
 }
 
 export interface LaunchReadinessReport {

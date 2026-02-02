@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Domain, ThinkingStep, RejectionPattern } from '../types';
+import { Domain, ThinkingStep, CausalRejectionModel } from '../types';
 import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../services/geminiService';
 import { translations } from '../translations';
 import { useDomainContext } from '../context/DomainContext';
@@ -14,34 +14,34 @@ interface Props {
 
 const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
   const t = translations[lang];
-  const { trackUsage, strategy, setStrategy } = useDomainContext();
+  const { strategy, setStrategy } = useDomainContext();
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
-  const [isCached, setIsCached] = useState(false);
   const [liveSteps, setLiveSteps] = useState<ThinkingStep[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // وظيفة تسجيل التغذية الراجعة العصبية
-  const commitToNeuralMemory = (domain: Domain, reason: string) => {
-    const newPattern: RejectionPattern = {
+  // Stage 4: الذاكرة السببية المعززة
+  const commitToCausalMemory = (domain: Domain, reason: string, logicChain: string) => {
+    const newModel: CausalRejectionModel = {
       patternId: crypto.randomUUID(),
       reason: reason,
+      causalLogicChain: logicChain,
       timestamp: new Date().toISOString(),
-      sector: domain.sector || 'General'
+      sector: domain.sector || 'General',
+      severityIndex: 0.8
     };
     
     setStrategy(prev => ({
       ...prev,
-      rejectionPatterns: [newPattern, ...(prev.rejectionPatterns || [])].slice(0, 50) // حفظ آخر 50 نمطاً
+      causalRejectionModels: [newModel, ...(prev.causalRejectionModels || [])].slice(0, 50)
     }));
     
-    addLog('Master Brain', `Learned from rejection: ${reason}. System weights adjusted.`, 'info');
+    addLog('Master Brain', `Causal link secured: ${reason}. Future viable prediction adjusted.`, 'info');
   };
 
   const handleEvaluate = async (domain: Domain) => {
     setEvaluatingId(domain.id);
     setActiveAnalysis(null);
-    setIsCached(false);
     abortControllerRef.current = new AbortController();
 
     setLiveSteps([
@@ -58,11 +58,10 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
       if (response) {
         setLiveSteps(prev => prev.map(s => ({ ...s, status: 'complete' as const })));
         setActiveAnalysis(response.data);
-        setIsCached(response.cached);
         
-        // FEEDBACK LOOP ZERO: إذا كانت النتيجة ضعيفة، نغذي المنصة بالسبب فوراً
+        // Stage 4: استخراج السبب السببي في حالة الرفض
         if (response.data.probability < 0.5) {
-          commitToNeuralMemory(domain, response.data.justification);
+          commitToCausalMemory(domain, "Low Liquidity Score", response.data.justification);
         }
 
         setDomains(prev => prev.map(d => d.id === domain.id ? {
@@ -74,9 +73,7 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
         } : d));
       }
     } catch (e: any) {
-      if (e.message !== 'Aborted') {
-        addLog('System', 'Forensic audit failed.', 'critical');
-      }
+      if (e.message !== 'Aborted') addLog('System', 'Forensic audit failed.', 'critical');
     } finally {
       setEvaluatingId(null);
     }
@@ -91,7 +88,7 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
       <div className="lg:col-span-7 space-y-8">
         <header>
           <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic">FORENSIC AUDIT</h3>
-          <p className="text-[10px] text-slate-500 font-bold uppercase mt-2">Active Neural Feedback Loop: ENABLED</p>
+          <p className="text-[10px] text-indigo-500 font-bold uppercase mt-2">Causal Feedback Protocol: ACTIVE</p>
         </header>
 
         <div className="glass-panel overflow-hidden">
@@ -105,7 +102,6 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
                     <div className="font-black text-white text-lg italic">{domain.name}</div>
                     <div className="text-[9px] text-indigo-500 font-black uppercase mt-1">
                        Match: {domain.strategicAlignmentScore || 0}% 
-                       { (domain.strategicAlignmentScore || 0) >= 80 && <i className="fas fa-crown ml-2 text-amber-500"></i>}
                     </div>
                   </td>
                   <td className="px-10 py-8 text-right">
@@ -150,7 +146,7 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
             {activeAnalysis.probability < 0.5 && (
               <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-4">
                  <i className="fas fa-brain text-red-500"></i>
-                 <span className="text-[9px] font-black text-red-400 uppercase">Neural Penalty Applied</span>
+                 <span className="text-[9px] font-black text-red-400 uppercase">Causal Memory Injected</span>
               </div>
             )}
           </div>

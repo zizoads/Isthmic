@@ -1,7 +1,7 @@
 
 import { Type, GoogleGenAI } from "@google/genai";
 import { generateStructuredAI } from "./base";
-import { StrategicObjective, RejectionPattern } from "../../types";
+import { StrategicObjective, CausalRejectionModel } from "../../types";
 import { OrchestrationService } from "./OrchestrationService";
 
 export const rigorousDiscoveryAI = async (
@@ -9,14 +9,13 @@ export const rigorousDiscoveryAI = async (
   lang: 'ar' | 'en' = 'ar', 
   signal?: AbortSignal,
   objectives: StrategicObjective[] = [],
-  rejectionPatterns: RejectionPattern[] = [] // حقن ذاكرة الرفض
+  causalModels: CausalRejectionModel[] = [] // استخدام الذاكرة السببية
 ) => {
-  // 1. بناء السياق الاستراتيجي العصبي
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
   
-  // 2. دمج ذاكرة الرفض في التعليمات العليا لمنع تكرار الأخطاء
-  const rejectionContext = rejectionPatterns.length > 0 
-    ? `\nLEARNED NEGATIVE PATTERNS (CRITICAL - DO NOT REPEAT):\n${rejectionPatterns.map(p => `- Rejected: ${p.reason} (Sector: ${p.sector})`).join('\n')}`
+  // دمج المنطق السببي في التعليمات العليا
+  const causalContext = causalModels.length > 0 
+    ? `\nCAUSAL INTELLIGENCE (LEARNED FROM PREVIOUS REJECTIONS):\n${causalModels.map(m => `- Logic: ${m.causalLogicChain} (Impact: ${m.severityIndex})`).join('\n')}`
     : "";
 
   return generateStructuredAI<any[]>(
@@ -25,11 +24,11 @@ export const rigorousDiscoveryAI = async (
      Your task: Find high-potential domains based on market gaps. 
      MANDATORY COMPLIANCE:
      ${strategicContext}
-     ${rejectionContext}
+     ${causalContext}
      
-     Scoring: Assign strategicAlignmentScore (0-100) based on how well the asset fits the provided Objectives.
+     Scoring: Assign strategicAlignmentScore (0-100) based on Objectives synergy.
      Language: ${lang}`,
-    `Execute deep acquisition sweep for: ${prompt}. Evaluate synergy with objectives.`,
+    `Execute deep acquisition sweep for: ${prompt}.`,
     {
       type: Type.ARRAY,
       items: {
@@ -40,7 +39,7 @@ export const rigorousDiscoveryAI = async (
           sector: { type: Type.STRING },
           justification: { type: Type.STRING },
           probability: { type: Type.NUMBER },
-          strategicAlignmentScore: { type: Type.NUMBER, description: "Alignment with Commander Intent (0-100)" }
+          strategicAlignmentScore: { type: Type.NUMBER }
         }
       }
     },
@@ -55,11 +54,10 @@ export const getDropSniperListAI = async (
   objectives: StrategicObjective[] = []
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
-
   const res = await generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
     `Domain drop scouting agent. Neural Link Active: ${strategicContext}`,
-    `Find domains about to drop in the ${sector} industry. Rank by Strategic Alignment.`,
+    `Find domains about to drop in ${sector}. Rank by Strategic Alignment.`,
     {
       type: Type.ARRAY,
       items: {
@@ -116,20 +114,14 @@ export const registrarInquiryAI = async (domainName: string) => {
 
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
   const toolConfig = lat && lng ? {
     retrievalConfig: { latLng: { latitude: lat, longitude: lng } }
   } : undefined;
-
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
-    contents: `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}. Identify real businesses that could benefit from this domain.`,
-    config: {
-      tools: [{ googleMaps: {} }],
-      toolConfig
-    }
+    contents: `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}.`,
+    config: { tools: [{ googleMaps: {} }], toolConfig }
   });
-
   return {
     text: response.text || "",
     sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []

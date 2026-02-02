@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Domain, PlatformStrategy, PlatformStats, UserProfile, ServiceIntegration, PlanDetails, ActiveJob } from '../types';
+import { Domain, PlatformStrategy, PlatformStats, UserProfile, ServiceIntegration, PlanDetails, ActiveJob, PerformanceTelemetry, CausalRejectionModel } from '../types';
 import { OrchestrationService } from '../services/ai/OrchestrationService';
 
 export interface DomainContextType {
@@ -9,7 +9,7 @@ export interface DomainContextType {
   strategy: PlatformStrategy;
   setStrategy: React.Dispatch<React.SetStateAction<PlatformStrategy>>;
   stats: PlatformStats;
-  addLog: (agent: string, msg: string, type?: 'info' | 'success' | 'warning' | 'critical') => void;
+  addLog: (agent: string, msg: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
   activityLogs: any[];
   setActivityLogs: React.Dispatch<React.SetStateAction<any[]>>;
   integrations: ServiceIntegration[];
@@ -50,8 +50,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     totalBudget: 50000,
     riskTolerance: 'Balanced',
     autoPilot: false,
+    adaptiveThresholdEnabled: true,
     investmentThesis: '',
-    rejectionPatterns: []
+    causalRejectionModels: []
   });
 
   const monetization = {
@@ -62,17 +63,14 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const addLog = useCallback((agent: string, message: string, type: any = 'info') => {
-    const newLog = { id: crypto.randomUUID(), time: new Date().toLocaleTimeString(), agent, message, type };
-    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+  const addLog = useCallback((agent: string, message: string, type: any = 'info', payload?: any) => {
+    const newLog = { id: crypto.randomUUID(), time: new Date().toLocaleTimeString(), agent, message, type, actionPayload: payload };
+    setActivityLogs(prev => [newLog, ...prev].slice(0, 100));
   }, []);
 
   const isGracePeriodOver = useMemo(() => {
     if (!activeProfile || activeProfile.emailConfirmedAt) return false;
-    const signupDate = new Date(activeProfile.createdAt);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - signupDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(Math.abs(new Date().getTime() - new Date(activeProfile.createdAt).getTime()) / (1000 * 60 * 60 * 24));
     return diffDays > 30;
   }, [activeProfile]);
 
@@ -90,8 +88,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const setTourStatus = useCallback(async (completed: boolean) => {
     if (activeProfile) {
-      const nextProfile = { ...activeProfile, preferences: { ...activeProfile.preferences, tourCompleted: completed } };
-      setActiveProfile(nextProfile);
+      setActiveProfile({ ...activeProfile, preferences: { ...activeProfile.preferences, tourCompleted: completed } });
       setIsTourOpen(!completed);
     }
   }, [activeProfile]);
@@ -115,15 +112,14 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (existing) return prev.map(i => i.provider === provider ? { ...i, status: 'connected' } : i);
       return [...prev, { id: crypto.randomUUID(), workspaceId: activeProfile?.id || 'default', provider, status: 'connected' }];
     });
-    addLog('Integrator', `Service ${provider} successfully anchored.`, 'success');
+    addLog('Integrator', `Service ${provider} anchored.`, 'success');
   }, [activeProfile, addLog]);
 
   const exportVault = useCallback(() => {
     const data = JSON.stringify({ domains, strategy, integrations });
     const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
+    link.href = URL.createObjectURL(blob);
     link.download = `isthmic_vault_${Date.now()}.json`;
     link.click();
   }, [domains, strategy, integrations]);
@@ -134,18 +130,14 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (parsed.domains) setDomains(parsed.domains);
       if (parsed.strategy) setStrategy(parsed.strategy);
       if (parsed.integrations) setIntegrations(parsed.integrations);
-      addLog('System', 'Vault restored successfully.', 'success');
+      addLog('System', 'Vault restored.', 'success');
     } catch (e) {
-      addLog('System', 'Vault restoration failed: Invalid sequence.', 'critical');
+      addLog('System', 'Restore failed.', 'critical');
     }
   }, [addLog]);
 
   const saveJob = useCallback(async (job: ActiveJob) => {
-    setActiveJobs(prev => {
-      const existing = prev.find(j => j.id === job.id);
-      if (existing) return prev.map(j => j.id === job.id ? job : j);
-      return [job, ...prev];
-    });
+    setActiveJobs(prev => prev.find(j => j.id === job.id) ? prev.map(j => j.id === job.id ? job : j) : [job, ...prev]);
   }, []);
 
   const clearJob = useCallback(async (jobId: string) => {
@@ -164,7 +156,19 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const velocity = strategy.objectives?.[0]?.alignmentHistory 
       ? OrchestrationService.calculateAlignmentVelocity(strategy.objectives[0].alignmentHistory)
-      : 0;
+      : (avgAlignment > 70 ? 12 : 0);
+
+    const latencyLogs = activityLogs.filter(l => l.actionPayload?.latency).map(l => l.actionPayload.latency);
+    
+    const telemetry: PerformanceTelemetry = {
+      apiLatencyHistory: latencyLogs.slice(0, 10),
+      avgLatency: latencyLogs.length > 0 ? Math.round(latencyLogs.reduce((a, b) => a + b, 0) / latencyLogs.length) : 0,
+      inferenceSuccessRate: 98.4,
+      lastPulseTimestamp: new Date().toISOString()
+    };
+
+    // Stage 4: حساب العتبة التكيفية
+    const adaptiveThreshold = OrchestrationService.calculateAdaptiveThreshold({ ...telemetry, totalDiscovered: domains.length } as any, velocity);
 
     return {
       totalDiscovered: domains.length,
@@ -173,10 +177,12 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       openRate: 88,
       avgProfit: 310,
       estimatedPortfolioValue: domains.reduce((acc, d) => acc + (d.price || 0), 0),
-      alignmentVelocity: velocity || (avgAlignment > 70 ? 12 : 0),
-      systemResilienceStatus: 'nominal'
+      alignmentVelocity: velocity,
+      systemResilienceStatus: latencyLogs.some(l => l > 2500) ? 'warning' : 'nominal',
+      telemetry,
+      adaptiveThreshold
     };
-  }, [domains, strategy.objectives]);
+  }, [domains, strategy.objectives, activityLogs, strategy.adaptiveThresholdEnabled]);
 
   return (
     <DomainContext.Provider value={{ 
