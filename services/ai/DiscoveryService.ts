@@ -1,27 +1,35 @@
 
 import { Type, GoogleGenAI } from "@google/genai";
 import { generateStructuredAI } from "./base";
-import { StrategicObjective } from "../../types";
+import { StrategicObjective, RejectionPattern } from "../../types";
 import { OrchestrationService } from "./OrchestrationService";
 
 export const rigorousDiscoveryAI = async (
   prompt: string, 
   lang: 'ar' | 'en' = 'ar', 
   signal?: AbortSignal,
-  objectives: StrategicObjective[] = []
+  objectives: StrategicObjective[] = [],
+  rejectionPatterns: RejectionPattern[] = [] // حقن ذاكرة الرفض
 ) => {
-  // 1. استخلاص السياق الاستراتيجي العصبي
+  // 1. بناء السياق الاستراتيجي العصبي
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
+  
+  // 2. دمج ذاكرة الرفض في التعليمات العليا لمنع تكرار الأخطاء
+  const rejectionContext = rejectionPatterns.length > 0 
+    ? `\nLEARNED NEGATIVE PATTERNS (CRITICAL - DO NOT REPEAT):\n${rejectionPatterns.map(p => `- Rejected: ${p.reason} (Sector: ${p.sector})`).join('\n')}`
+    : "";
 
-  // 2. التنفيذ مع الالتزام بالقيود
   return generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
     `Strategic Market Miner (Sovereign Core). 
-     Your task: Find high-potential domains based on current market gaps. 
-     CRITICAL INSTRUCTION: You must filter results against the Commander's Strategic Intent provided below.
-     ${strategicContext} 
+     Your task: Find high-potential domains based on market gaps. 
+     MANDATORY COMPLIANCE:
+     ${strategicContext}
+     ${rejectionContext}
+     
+     Scoring: Assign strategicAlignmentScore (0-100) based on how well the asset fits the provided Objectives.
      Language: ${lang}`,
-    `Execute deep acquisition sweep for: ${prompt}. Evaluate each finding for strategic alignment (0-100).`,
+    `Execute deep acquisition sweep for: ${prompt}. Evaluate synergy with objectives.`,
     {
       type: Type.ARRAY,
       items: {
@@ -32,7 +40,7 @@ export const rigorousDiscoveryAI = async (
           sector: { type: Type.STRING },
           justification: { type: Type.STRING },
           probability: { type: Type.NUMBER },
-          strategicAlignmentScore: { type: Type.NUMBER, description: "How well this matches active objectives (0-100)" }
+          strategicAlignmentScore: { type: Type.NUMBER, description: "Alignment with Commander Intent (0-100)" }
         }
       }
     },
@@ -42,11 +50,16 @@ export const rigorousDiscoveryAI = async (
   );
 };
 
-export const getDropSniperListAI = async (sector: string) => {
+export const getDropSniperListAI = async (
+  sector: string, 
+  objectives: StrategicObjective[] = []
+) => {
+  const strategicContext = OrchestrationService.injectStrategicContext(objectives);
+
   const res = await generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
-    "Domain drop scouting agent.",
-    `Find domains about to drop in the ${sector} industry.`,
+    `Domain drop scouting agent. Neural Link Active: ${strategicContext}`,
+    `Find domains about to drop in the ${sector} industry. Rank by Strategic Alignment.`,
     {
       type: Type.ARRAY,
       items: {
@@ -56,7 +69,8 @@ export const getDropSniperListAI = async (sector: string) => {
           estimatedValue: { type: Type.NUMBER },
           dropDate: { type: Type.STRING },
           backorderPlatform: { type: Type.STRING },
-          reasonToSnipe: { type: Type.STRING }
+          reasonToSnipe: { type: Type.STRING },
+          strategicAlignmentScore: { type: Type.NUMBER }
         }
       }
     },

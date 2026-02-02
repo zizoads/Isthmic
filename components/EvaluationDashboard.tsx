@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Domain, ThinkingStep } from '../types';
+import { Domain, ThinkingStep, RejectionPattern } from '../types';
 import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../services/geminiService';
 import { translations } from '../translations';
 import { useDomainContext } from '../context/DomainContext';
@@ -14,12 +14,29 @@ interface Props {
 
 const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lang }) => {
   const t = translations[lang];
-  const { trackUsage } = useDomainContext();
+  const { trackUsage, strategy, setStrategy } = useDomainContext();
   const [evaluatingId, setEvaluatingId] = useState<string | null>(null);
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
   const [isCached, setIsCached] = useState(false);
   const [liveSteps, setLiveSteps] = useState<ThinkingStep[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // وظيفة تسجيل التغذية الراجعة العصبية
+  const commitToNeuralMemory = (domain: Domain, reason: string) => {
+    const newPattern: RejectionPattern = {
+      patternId: crypto.randomUUID(),
+      reason: reason,
+      timestamp: new Date().toISOString(),
+      sector: domain.sector || 'General'
+    };
+    
+    setStrategy(prev => ({
+      ...prev,
+      rejectionPatterns: [newPattern, ...(prev.rejectionPatterns || [])].slice(0, 50) // حفظ آخر 50 نمطاً
+    }));
+    
+    addLog('Master Brain', `Learned from rejection: ${reason}. System weights adjusted.`, 'info');
+  };
 
   const handleEvaluate = async (domain: Domain) => {
     setEvaluatingId(domain.id);
@@ -35,10 +52,7 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
     ]);
 
     try {
-      // 1. Check Forensic Engine (with Cache)
       const response = await evaluateDomainExpertAI(domain.name, lang, abortControllerRef.current.signal);
-      
-      // 2. Parallel Trademark Check
       const tmResult = await checkTrademarkRiskAI(domain.name);
       
       if (response) {
@@ -46,11 +60,9 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
         setActiveAnalysis(response.data);
         setIsCached(response.cached);
         
-        if (!response.cached) {
-          await trackUsage('audit');
-          addLog('System', `Live Forensic Audit complete for ${domain.name}`, 'success');
-        } else {
-          addLog('System', `Institutional Memory Hit for ${domain.name}`, 'success');
+        // FEEDBACK LOOP ZERO: إذا كانت النتيجة ضعيفة، نغذي المنصة بالسبب فوراً
+        if (response.data.probability < 0.5) {
+          commitToNeuralMemory(domain, response.data.justification);
         }
 
         setDomains(prev => prev.map(d => d.id === domain.id ? {
@@ -62,14 +74,11 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
         } : d));
       }
     } catch (e: any) {
-      if (e.message === 'Aborted') {
-        addLog('System', t.processAborted, 'warning');
-      } else {
-        addLog('System', lang === 'ar' ? 'فشل فحص التدقيق.' : 'Forensic audit failed.', 'critical');
+      if (e.message !== 'Aborted') {
+        addLog('System', 'Forensic audit failed.', 'critical');
       }
     } finally {
       setEvaluatingId(null);
-      abortControllerRef.current = null;
     }
   };
 
@@ -78,39 +87,33 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* List Panel */}
-      <div className="lg:col-span-7 space-y-6 lg:space-y-8">
-        <header className={lang === 'ar' ? 'text-right' : 'text-left'}>
-          <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{t.evaluation}</h3>
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2">{t.proMode} {t.active}</p>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="lg:col-span-7 space-y-8">
+        <header>
+          <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic">FORENSIC AUDIT</h3>
+          <p className="text-[10px] text-slate-500 font-bold uppercase mt-2">Active Neural Feedback Loop: ENABLED</p>
         </header>
 
-        <div className="glass dark:glass-dark rounded-[40px] overflow-x-auto">
-          <table className={`w-full text-sm min-w-[500px] ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+        <div className="glass-panel overflow-hidden">
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-white/5">
               {domains.length === 0 ? (
-                <tr>
-                   <td className="px-10 py-20 text-center opacity-30 text-slate-400 italic">لا توجد نطاقات في قائمة الانتظار</td>
-                </tr>
+                <tr><td className="px-10 py-20 text-center opacity-30 italic">No units in queue.</td></tr>
               ) : domains.map(domain => (
-                <tr key={domain.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all ${evaluatingId === domain.id ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : ''}`}>
-                  <td className="px-6 lg:px-10 py-6 lg:py-8">
-                    <div className="font-black text-slate-900 dark:text-white text-lg truncate max-w-[200px]">{domain.name}</div>
-                    <div className="text-[10px] text-indigo-500 font-black uppercase mt-1">{domain.sector || t.uncategorized}</div>
-                  </td>
-                  <td className="px-6 lg:px-10 py-6 lg:py-8">
-                    <div className={`flex gap-4 items-center ${lang === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                      {evaluatingId === domain.id ? (
-                        <button onClick={handleStop} className="bg-red-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-red-600 transition-all">
-                          {t.stopProcess}
-                        </button>
-                      ) : (
-                        <button onClick={() => handleEvaluate(domain)} className="bg-slate-900 dark:bg-white dark:text-black text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg">
-                          {t.auditAction}
-                        </button>
-                      )}
+                <tr key={domain.id} className={`hover:bg-white/5 transition-all ${evaluatingId === domain.id ? 'bg-indigo-500/5' : ''}`}>
+                  <td className="px-10 py-8">
+                    <div className="font-black text-white text-lg italic">{domain.name}</div>
+                    <div className="text-[9px] text-indigo-500 font-black uppercase mt-1">
+                       Match: {domain.strategicAlignmentScore || 0}% 
+                       { (domain.strategicAlignmentScore || 0) >= 80 && <i className="fas fa-crown ml-2 text-amber-500"></i>}
                     </div>
+                  </td>
+                  <td className="px-10 py-8 text-right">
+                    {evaluatingId === domain.id ? (
+                      <button onClick={handleStop} className="bg-red-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase">STOP</button>
+                    ) : (
+                      <button onClick={() => handleEvaluate(domain)} className="bg-white text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-[#c5a059] transition-all shadow-xl">AUDIT UNIT</button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -119,21 +122,15 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
         </div>
       </div>
 
-      {/* Thinking Console */}
-      <div className="lg:col-span-5 space-y-6 lg:space-y-8">
-        <div className="bg-[#0b0e14] rounded-[40px] text-white p-8 lg:p-10 shadow-2xl h-[450px] flex flex-col border border-white/5 relative overflow-hidden">
-          <h4 className={`text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-10 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.reasoningConsole}</h4>
-          <div className={`flex-1 overflow-y-auto space-y-6 font-mono custom-scrollbar ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-            {liveSteps.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-20">
-                <i className="fas fa-terminal text-4xl mb-4"></i>
-                <p className="text-[10px] uppercase tracking-[0.3em]">{t.awaitingSignal}</p>
-              </div>
-            ) : liveSteps.map(step => (
-              <div key={step.id} className={`border-indigo-500/30 py-1 ${lang === 'ar' ? 'border-r-2 pr-6' : 'border-l-2 pl-6'}`}>
+      <div className="lg:col-span-5 space-y-8">
+        <div className="bg-[#0b0e14] rounded-[40px] p-10 border border-white/5 h-[400px] flex flex-col relative overflow-hidden shadow-inner">
+          <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-10">REASONING CONSOLE</h4>
+          <div className="flex-1 overflow-y-auto space-y-6 font-mono custom-scrollbar">
+            {liveSteps.map(step => (
+              <div key={step.id} className="border-l-2 border-indigo-500/30 pl-6 py-1">
                 <div className="flex justify-between items-center mb-1">
                   <span className={`text-[9px] font-black uppercase ${step.status === 'complete' ? 'text-green-500' : 'text-amber-500 animate-pulse'}`}>
-                    {step.status === 'complete' ? t.passed : t.executing}
+                    {step.status === 'complete' ? 'PASSED' : 'EXECUTING'}
                   </span>
                   <span className="text-white font-black text-[10px]">{step.action}</span>
                 </div>
@@ -141,36 +138,23 @@ const EvaluationDashboard: React.FC<Props> = ({ domains, setDomains, addLog, lan
               </div>
             ))}
           </div>
-          <div className="absolute top-16 left-0 w-full h-8 bg-gradient-to-b from-[#0b0e14] to-transparent pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[#0b0e14] to-transparent pointer-events-none"></div>
         </div>
 
-        <div className="glass dark:glass-dark rounded-[40px] p-8 lg:p-10 flex-1 flex flex-col min-h-[250px] relative">
-          <h4 className={`text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{t.investmentReport}</h4>
-          {activeAnalysis ? (
-            <div className={`space-y-6 animate-fade-in ${lang === 'ar' ? 'text-right' : 'text-left'}`}>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-6">
-                  <div className="text-4xl font-black text-indigo-600">{activeAnalysis.probability ? Math.round(activeAnalysis.probability * 100) : 0}%</div>
-                  <div className="text-[9px] font-black text-slate-400 uppercase leading-none">{t.liquidityScore}</div>
-                </div>
-                {isCached && (
-                  <span className="px-3 py-1 bg-green-500/10 text-green-500 border border-green-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">
-                    Institutional Memory Hit
-                  </span>
-                )}
+        {activeAnalysis && (
+          <div className="glass-panel p-10 space-y-6 animate-slide-up bg-gradient-to-br from-indigo-500/5 to-transparent">
+            <div className="flex items-center justify-between">
+               <div className="text-4xl font-black text-white italic">{Math.round(activeAnalysis.probability * 100)}%</div>
+               <div className="text-[9px] font-black text-slate-500 uppercase">Liquidity Alpha</div>
+            </div>
+            <p className="text-sm text-slate-400 italic leading-relaxed">"{activeAnalysis.justification}"</p>
+            {activeAnalysis.probability < 0.5 && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-4">
+                 <i className="fas fa-brain text-red-500"></i>
+                 <span className="text-[9px] font-black text-red-400 uppercase">Neural Penalty Applied</span>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic">
-                "{activeAnalysis.justification}"
-              </p>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-300 opacity-20">
-              <i className="fas fa-file-contract text-6xl"></i>
-              <p className="mt-4 text-[10px] uppercase font-black">{t.awaitingAudit}</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
