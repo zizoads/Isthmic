@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ProtocolErrorBoundaryProps {
   children?: ReactNode;
@@ -13,8 +13,8 @@ interface ProtocolErrorBoundaryState {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Fix: Using React.Component explicitly to ensure state, props, and setState are correctly inherited and recognized by the TypeScript compiler.
-class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
+// Fix: Using named Component import to ensure correct inheritance and recognized property access (setState, props, state).
+class ProtocolErrorBoundary extends Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
   // Fix: Declaring state as a class property for better type inference and to resolve "property does not exist" errors.
   public state: ProtocolErrorBoundaryState = {
     hasError: false,
@@ -33,12 +33,12 @@ class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, 
 
   // Fix: Bound handler via arrow function ensures 'this' context remains stable during event callbacks
   private handleReset = () => {
-    // Fix: Accessing setState from the inherited React.Component base class to resolve "property does not exist" error.
+    // Fix: Accessing setState from the inherited Component base class to resolve "property does not exist" error.
     this.setState({ hasError: false, error: null });
   };
 
   public render() {
-    // Fix: Correctly accessing inherited state and props properties from React.Component to resolve "property does not exist" errors.
+    // Fix: Correctly accessing inherited state and props properties from Component to resolve "property does not exist" errors.
     const { hasError } = this.state;
     const { children, fallbackName } = this.props;
 

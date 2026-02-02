@@ -31,9 +31,6 @@ export enum ObjectiveStatus {
   DEVIATED = 'DEVIATED'
 }
 
-/**
- * NegotiationSnapshot: لقطة سريعة لحالة التفاوض لأغراض الرقابة الاستراتيجية
- */
 export interface NegotiationSnapshot {
   domainName: string;
   currentState: DealStateEnum;
@@ -45,9 +42,6 @@ export interface NegotiationSnapshot {
   timestamp: string;
 }
 
-/**
- * AlignmentReport: مخرجات محرك التقييم الاستراتيجي
- */
 export interface AlignmentReport {
   alignmentScore: number;
   status: 'GREEN' | 'YELLOW' | 'RED';
@@ -55,9 +49,6 @@ export interface AlignmentReport {
   suggestedAdjustment: string;
 }
 
-/**
- * StrategicObjective: الهدف الاستراتيجي المهيكل
- */
 export interface StrategicObjective {
   id: string;
   category: 'LIQUIDITY' | 'ACQUISITION' | 'REVENUE' | 'RISK_MITIGATION';
@@ -116,6 +107,8 @@ export interface Domain {
   sector?: string;
   justification?: string;
   probability?: number;
+  strategicAlignmentScore?: number; // درجة التوافق العصبي
+  rejectionReason?: string; // لخدمة حلقة التغذية الراجعة
   integrityScore?: number;
   technicalMetrics?: TechnicalMetrics;
   brandAssets?: {

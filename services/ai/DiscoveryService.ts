@@ -8,17 +8,20 @@ export const rigorousDiscoveryAI = async (
   prompt: string, 
   lang: 'ar' | 'en' = 'ar', 
   signal?: AbortSignal,
-  objectives: StrategicObjective[] = [] // إضافة معامل الأهداف
+  objectives: StrategicObjective[] = []
 ) => {
-  // توليد سياق استراتيجي بناءً على الأهداف النشطة
+  // 1. استخلاص السياق الاستراتيجي العصبي
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
 
+  // 2. التنفيذ مع الالتزام بالقيود
   return generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
-    `Strategic Market Miner. Task: Find high-potential domains based on current market gaps. 
+    `Strategic Market Miner (Sovereign Core). 
+     Your task: Find high-potential domains based on current market gaps. 
+     CRITICAL INSTRUCTION: You must filter results against the Commander's Strategic Intent provided below.
      ${strategicContext} 
      Language: ${lang}`,
-    `Execute deep search for: ${prompt}`,
+    `Execute deep acquisition sweep for: ${prompt}. Evaluate each finding for strategic alignment (0-100).`,
     {
       type: Type.ARRAY,
       items: {
@@ -28,7 +31,8 @@ export const rigorousDiscoveryAI = async (
           estimatedPrice: { type: Type.NUMBER },
           sector: { type: Type.STRING },
           justification: { type: Type.STRING },
-          probability: { type: Type.NUMBER }
+          probability: { type: Type.NUMBER },
+          strategicAlignmentScore: { type: Type.NUMBER, description: "How well this matches active objectives (0-100)" }
         }
       }
     },
