@@ -264,13 +264,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     await loadWorkspace(user.id);
   }, [loadWorkspace]);
 
+  // Fix for line 268: Property 'user' does not exist on type '{ success: boolean; codeSent: boolean; }'.
+  // AuthService.signup initiates the 2-phase process and doesn't return a user immediately.
   const signup = useCallback(async (name: string, email: string, pass: string) => {
-    const { user } = await AuthService.signup(name, email, pass);
-    if (user) {
-      setActiveProfile(user);
-      await loadWorkspace(user.id);
-    }
-  }, [loadWorkspace]);
+    await AuthService.signup(name, email, pass);
+  }, []);
 
   const trackUsage = useCallback(async (type: 'scan' | 'audit') => {
     if (!activeProfile) return;

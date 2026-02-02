@@ -3,11 +3,11 @@ import { GoogleGenAI } from "@google/genai";
 
 /**
  * Sovereign AI Base: Direct SDK implementation.
- * Bypasses intermediate Edge Functions to ensure high availability and protocol resilience.
+ * Stable Version 1.0: Restored to bypass failing Edge Function routes.
  */
 
 export async function safeAICall<T>(arg: any, retries = 2): Promise<T> {
-  // If arg is a logic wrapper (function), execute it directly.
+  // Logic Wrapper execution
   if (typeof arg === 'function') {
     try {
       return await arg();
@@ -20,7 +20,7 @@ export async function safeAICall<T>(arg: any, retries = 2): Promise<T> {
     }
   }
 
-  // Fallback direct SDK implementation for legacy structured calls if they pass a payload
+  // Direct SDK execution (Stable Path)
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
@@ -29,9 +29,7 @@ export async function safeAICall<T>(arg: any, retries = 2): Promise<T> {
       config: arg.config
     });
 
-    if (!response) throw new Error("EMPTY_RESPONSE_FROM_SOVEREIGN_ENGINE");
-
-    // Return the response object to match expected behavior of legacy callers
+    if (!response) throw new Error("SOVEREIGN_CORE_EMPTY_RESPONSE");
     return response as unknown as T;
   } catch (error: any) {
     if (retries > 0) {
@@ -51,7 +49,7 @@ export async function generateStructuredAI<T>(
   toolConfig?: any,
   signal?: AbortSignal
 ): Promise<{ data: T, cached: boolean }> {
-  if (signal?.aborted) throw new Error("Aborted");
+  if (signal?.aborted) throw new Error("AbortError");
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -71,8 +69,8 @@ export async function generateStructuredAI<T>(
     const data = JSON.parse(text) as T;
     return { data, cached: false };
   } catch (e: any) {
-    if (e.message === "Aborted") throw e;
-    console.error("SOVEREIGN_GEN_STRUCTURED_ERR:", e);
-    throw new Error("FAILED_TO_SYNTHESIZE_STRUCTURED_DATA");
+    if (e.message === "AbortError") throw e;
+    console.error("SOVEREIGN_STRUCTURED_SYNTHESIS_FAILURE:", e);
+    throw new Error("FAILED_TO_SYNTHESIZE_DATA_IN_CURRENT_PULSE");
   }
 }

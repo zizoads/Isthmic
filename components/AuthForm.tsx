@@ -1,34 +1,78 @@
 
 import React, { useState } from 'react';
 import { useDomainContext } from '../context/DomainContext';
+import { AuthService } from '../services/AuthService';
 
 const AuthForm: React.FC = () => {
   const { login, signup, addLog } = useDomainContext();
   const [isLogin, setIsLogin] = useState(true);
+  const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ type: 'error' | 'success', message: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage(null);
+    setStatus(null);
 
     try {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(name, email, password);
-        setErrorMessage("Identity Link Established. Check your email for verification.");
-        setIsLogin(true);
+        if (step === 1) {
+          await AuthService.signup(name, email, password);
+          setStatus({ 
+            type: 'success', 
+            message: "Protocol Initiated. Check console (F12) for 6-digit verification code." 
+          });
+          setStep(2);
+        } else {
+          const success = await AuthService.verifyEmailCode(email, otp);
+          if (success) {
+            setStatus({ 
+              type: 'success', 
+              message: "Identity Verified. Access granted. Proceeding to login..." 
+            });
+            
+            setTimeout(() => {
+              setIsLogin(true);
+              setStep(1);
+              setOtp('');
+              setStatus({ type: 'success', message: "Identity Established. Please sign in to enter the command center." });
+            }, 1500);
+          }
+        }
       }
     } catch (error: any) {
-      let msg = error.message || "Access Protocol Denied";
-      if (msg === "EMAIL_EXISTS") msg = "Identity exists in registry. Please utilize Master Login.";
-      setErrorMessage(msg);
+      let msg = error.message;
+      
+      if (msg === "IDENTITY_EXISTS") {
+        msg = "Identity exists. Please utilize the standard login portal.";
+      } else if (msg.includes("SYSTEM_COOLDOWN")) {
+        msg = "Infrastructure Rate Limit reached. Please wait several minutes before another attempt.";
+      } else if (msg.includes("IDENTITY_PENDING")) {
+        msg = "Verification record not found. Please re-initiate the signup protocol.";
+      }
+      
+      setStatus({ type: 'error', message: msg });
       addLog('Auth', msg, 'critical');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email || !name || !password) return;
+    setIsLoading(true);
+    try {
+      await AuthService.signup(name, email, password);
+      setStatus({ type: 'success', message: "New sequence dispatched. Check system console (F12)." });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -43,61 +87,99 @@ const AuthForm: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
 
       <div className="w-full max-w-xl relative z-10">
-        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10">
+        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
           <div className="space-y-6">
-            <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Industrial Grade AI Suite</span>
-            <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic Pro.</h1>
+            <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Sovereign Asset Management</span>
+            <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic.</h1>
             <p className="text-slate-400 text-lg italic max-w-sm mx-auto">
-              {isLogin ? "Return to your sovereign digital asset command." : "Initiate your journey into multi-agent asset management."}
+              {isLogin ? "Restore your sovereign digital asset command." : (step === 1 ? "Initiate your identity into the ecosystem." : "Enter the verification sequence.")}
             </p>
           </div>
 
-          {errorMessage && (
-            <div className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up ${errorMessage.includes('Established') ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-              <i className={`fas ${errorMessage.includes('Established') ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {errorMessage}
+          {status && (
+            <div className={`p-5 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up leading-relaxed ${
+              status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+            }`}>
+              <i className={`fas ${status.type === 'success' ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {status.message}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
+            {!isLogin && step === 1 && (
               <input 
                 type="text" 
                 required 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-                placeholder="Full Legal Name"
+                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
+                placeholder="Full Name"
               />
             )}
-            <input 
-              type="email" 
-              required 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-              placeholder="Sovereign Email Address"
-            />
-            <input 
-              type="password" 
-              required 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600"
-              placeholder="Security Keyphrase"
-            />
+            
+            {/* Step 1 Fields */}
+            {step === 1 && (
+              <>
+                <input 
+                  type="email" 
+                  required 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
+                  placeholder="Email Address"
+                />
+                <input 
+                  type="password" 
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
+                  placeholder="Security Keyphrase"
+                />
+              </>
+            )}
+
+            {/* Step 2 Field */}
+            {!isLogin && step === 2 && (
+              <div className="space-y-6">
+                <input 
+                  type="text" 
+                  required 
+                  maxLength={6}
+                  value={otp} 
+                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-[#d4af37] focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-black text-4xl tracking-[0.5em]"
+                  placeholder="000000"
+                />
+                <button 
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={isLoading}
+                  className="text-[10px] text-slate-500 uppercase font-black hover:text-[#d4af37] transition-colors"
+                >
+                  Resend Verification Signal
+                </button>
+              </div>
+            )}
+
             <button 
               type="submit" 
               disabled={isLoading}
               className="prestige-btn prestige-btn-gold w-full mt-4"
             >
               {isLoading ? <i className="fas fa-spinner fa-spin mr-3"></i> : <i className="fas fa-link mr-3"></i>}
-              <span>{isLogin ? 'ESTABLISH LINK' : 'INITIATE PROTOCOL'}</span>
+              <span>
+                {isLogin ? 'ESTABLISH LINK' : (step === 1 ? 'DISPATCH CODE' : 'VERIFY IDENTITY')}
+              </span>
             </button>
           </form>
 
-          <div className="pt-6 space-y-6">
+          <div className="pt-6 space-y-6 border-t border-white/5">
             <button 
-              onClick={() => { setIsLogin(!isLogin); setErrorMessage(null); }}
+              onClick={() => { 
+                setIsLogin(!isLogin); 
+                setStep(1);
+                setStatus(null); 
+              }}
               className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
             >
               {isLogin ? "Generate New Command Identity?" : "Return to Master Login?"}
