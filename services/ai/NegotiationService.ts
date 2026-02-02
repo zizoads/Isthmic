@@ -7,7 +7,7 @@ import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
- * v2.5: Integrated State Machine Inference.
+ * v2.6: Integrated suggestedAction into DealState.
  */
 export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
@@ -18,9 +18,6 @@ export class NegotiationService {
     return /[\u0600-\u06FF]/.test(text);
   }
 
-  /**
-   * Compresses history to ensure peak neural performance.
-   */
   private static compressHistory(messages: NegotiationMessage[]): string {
     if (!messages || messages.length === 0) return "No prior context.";
     
@@ -38,10 +35,6 @@ export class NegotiationService {
     ].join('\n');
   }
 
-  /**
-   * الخطوة 2: تنفيذ آلية الحالة السيادية (Sovereign State Machine)
-   * تستنتج المرحلة الحالية للصفقة بناءً على السياق التراكمي.
-   */
   static async inferStateTransition(
     currentMessage: string, 
     messageHistory: NegotiationMessage[], 
@@ -53,16 +46,15 @@ export class NegotiationService {
       this.MODEL_FLASH,
       `You are the Sovereign Negotiation State Engine. 
        Classify the negotiation phase based on the current message and history.
-       Halt transitions that are logically impossible (e.g. Agreement -> Discovery).
        
        DEAL STATES:
-       - INITIAL: General inquiry, first contact.
-       - DISCOVERY: Fact-finding, questions about asset history.
-       - TENSION: Price haggling, lowballing, negotiation stress.
-       - AGREEMENT: Verbal consensus on price/terms.
-       - CLOSING: Logistics, Escrow details, Auth codes.
-       - STALLED: Silence, brief non-committal replies.
-       - LOST: Definite rejection or prolonged silence.`,
+       - INITIAL: General inquiry.
+       - DISCOVERY: Fact-finding, questions.
+       - TENSION: Price haggling, lowballing.
+       - AGREEMENT: Verbal consensus.
+       - CLOSING: Logistics, Escrow, Auth codes.
+       - STALLED: Silence.
+       - LOST: Rejection.`,
       `History: ${historyText}
        Current State: ${currentDealState?.currentState || 'None'}
        Incoming Signal: "${currentMessage}"`,
@@ -75,6 +67,7 @@ export class NegotiationService {
       confidenceScore: data.confidenceScore,
       previousState: currentDealState?.currentState,
       transitionReason: data.transitionReason,
+      suggestedAction: data.suggestedAction, // دمج التوصية هنا
       lastUpdate: new Date().toISOString()
     };
 
@@ -97,12 +90,10 @@ export class NegotiationService {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const historyContext = this.compressHistory(thread.messages);
 
-      // تشغيل محرك الحالة ومحرك التدقيق بالتوازي
       const [geminiResponse, stateResponse, falconInsight] = await Promise.all([
         ai.models.generateContent({
           model: this.MODEL_PRO,
           contents: `System: Chief Forensic Negotiator. Target: Digital Asset "${domainName}".
-            Task: Perform 4-layer audit on incoming signal.
             History Context: ${historyContext}
             Incoming: "${sanitizedMessage}"`,
           config: {
@@ -117,18 +108,13 @@ export class NegotiationService {
 
       const result = JSON.parse(geminiResponse.text || '{}');
 
-      // دمج نتائج محرك الحالة
       const finalResult = {
         ...result,
         newState: stateResponse.newState
       };
 
-      // دمج التحليل الثقافي إذا وجد
       if (falconInsight && finalResult.insight) {
         finalResult.insight.culturalNuance = falconInsight.culturalNuance;
-        if (falconInsight.sentiment.includes("Aggressive")) {
-           finalResult.insight.sentimentScore = Math.min(finalResult.insight.sentimentScore, 25);
-        }
       }
 
       return finalResult;
@@ -146,10 +132,7 @@ export class NegotiationService {
       
       const response = await ai.models.generateContent({
         model: this.MODEL_PRO,
-        contents: `Draft a high-conversion, game-theory optimized response for "${domainName}". 
-        Absolute floor price: $${floorPrice}. 
-        Strategic Context:
-        ${historyContext}`
+        contents: `Draft a game-theory optimized response for "${domainName}". Floor: $${floorPrice}. Context: ${historyContext}`
       });
       return response.text || "Protocol synthesis failed.";
     });

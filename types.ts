@@ -35,6 +35,7 @@ export interface DealState {
   confidenceScore: number;
   previousState?: DealStateEnum;
   transitionReason: string;
+  suggestedAction?: string; // التوصية التكتيكية المستنتجة
   lastUpdate: string;
 }
 

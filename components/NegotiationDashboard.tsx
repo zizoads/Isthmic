@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Domain, NegotiationThread, NegotiationMessage, FAANGNegotiationReport } from '../types';
+import { Domain, NegotiationThread, NegotiationMessage, FAANGNegotiationReport, DealState } from '../types';
 import { NegotiationService } from '../services/ai/NegotiationService';
 import { useDomainContext } from '../context/DomainContext';
+import DealRoadmap from './negotiation/DealRoadmap';
 
 interface Props {
   domains: Domain[];
@@ -28,7 +29,7 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
     if (!selectedDomain || !newMessage.trim()) return;
     
     setIsAnalyzing(true);
-    addLog('Auditor', `Deploying FAANG-Standard Forensic Suite for ${selectedDomain.name}...`, 'info');
+    addLog('Auditor', `Deploying forensic suite for ${selectedDomain.name}...`, 'info');
 
     try {
       const incoming: NegotiationMessage = {
@@ -47,13 +48,16 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
         currentLeverage: 50
       };
 
-      const { insight, report } = await NegotiationService.auditMessageDeep(thread, newMessage, selectedDomain.name);
+      // تنفيذ التدقيق واستنتاج الحالة
+      const { insight, report, newState } = await NegotiationService.auditMessageDeep(thread, newMessage, selectedDomain.name);
+      
       incoming.auditInsight = insight;
       incoming.faangReport = report;
 
       const updatedThread: NegotiationThread = {
         ...thread,
         currentLeverage: report.leverageScore,
+        currentState: newState, // تحديث الحالة هنا
         messages: [...thread.messages, incoming]
       };
 
@@ -62,11 +66,10 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
       setDomains(prev => prev.map(d => d.id === selectedDomain.id ? updatedDomain : d));
       setSelectedDomain(updatedDomain);
       
-      // Production Sync: Save to Supabase
       await updateDomain(updatedDomain);
       
       setNewMessage('');
-      addLog('Auditor', `Deep Audit Complete. Current Leverage: ${report.leverageScore}%`, 'success');
+      addLog('Auditor', `Analysis complete. Stage: ${newState?.currentState || 'UNKNOWN'}`, 'success');
     } catch (e) {
       addLog('System', 'Audit Engine Interrupted.', 'critical');
     } finally {
@@ -77,7 +80,7 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
   const handleGenerateCounter = async () => {
     if (!selectedDomain?.negotiationThread) return;
     setIsGeneratingCounter(true);
-    addLog('Strategist', 'Synthesizing Optimal Response...', 'info');
+    addLog('Strategist', 'Synthesizing Response...', 'info');
 
     try {
       const counterText = await NegotiationService.generateStrategicCounter(
@@ -103,7 +106,6 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
       setDomains(prev => prev.map(d => d.id === selectedDomain.id ? updatedDomain : d));
       setSelectedDomain(updatedDomain);
       
-      // Production Sync
       await updateDomain(updatedDomain);
     } catch (e) {
       addLog('Strategist', 'Synthesis failed.', 'warning');
@@ -130,7 +132,7 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
   const isWindowFull = messageCount > NegotiationService.MAX_CONTEXT_MESSAGES;
 
   return (
-    <div className="grid grid-cols-12 gap-8 h-[850px] animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="grid grid-cols-12 gap-6 h-[850px] animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar: Strategic Pipeline */}
       <div className="col-span-3 bg-black/40 border-r border-white/5 flex flex-col rounded-3xl overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-white/5 bg-white/5">
@@ -153,21 +155,18 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
         </div>
       </div>
 
-      {/* Main Interaction Hub */}
-      <div className="col-span-6 flex flex-col bg-[#050505] border border-white/5 rounded-3xl overflow-hidden relative shadow-2xl">
+      {/* Main Interaction Hub - Adjusted from 6 to 4 columns */}
+      <div className="col-span-4 flex flex-col bg-[#050505] border border-white/5 rounded-3xl overflow-hidden relative shadow-2xl">
         {selectedDomain ? (
           <>
             <header className="p-6 bg-white/2 border-b border-white/5 flex justify-between items-center">
               <div>
                 <h4 className="text-white font-black text-xl italic">{selectedDomain.name}</h4>
                 <div className="flex items-center gap-4 mt-1">
-                   <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Logic_Link_Active
-                   </div>
                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
                       <div className={`w-1.5 h-1.5 rounded-full ${isWindowFull ? 'bg-amber-500' : 'bg-indigo-500'}`}></div>
                       <span className="text-[8px] font-black text-slate-400 uppercase">
-                        Window: {messageCount}/{NegotiationService.MAX_CONTEXT_MESSAGES} {isWindowFull && "(Optimized)"}
+                        Window: {messageCount}/{NegotiationService.MAX_CONTEXT_MESSAGES}
                       </span>
                    </div>
                 </div>
@@ -175,55 +174,47 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
               <button 
                 onClick={handleGenerateCounter}
                 disabled={isGeneratingCounter}
-                className="prestige-btn prestige-btn-gold !py-2 !px-6 !text-[9px]"
+                className="prestige-btn prestige-btn-gold !py-2 !px-4 !text-[8px]"
               >
                 {isGeneratingCounter ? <i className="fas fa-sync fa-spin"></i> : <i className="fas fa-chess-knight"></i>}
-                <span className="ml-2 uppercase">Synthesize AI Response</span>
               </button>
             </header>
 
-            <div ref={scrollRef} className="flex-1 p-8 overflow-y-auto space-y-6 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+            <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto space-y-6 custom-scrollbar">
               {selectedDomain.negotiationThread?.messages.map((m, i) => (
                 <div key={i} className={`flex ${m.sender === 'buyer' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[85%] p-6 rounded-2xl relative group
-                    ${m.sender === 'buyer' ? 'bg-white/5 border border-white/10 text-white' : 'bg-indigo-600/20 border border-indigo-500/40 text-indigo-100 shadow-xl'}`}>
-                    <div className="text-[8px] font-black uppercase text-slate-500 mb-2 flex justify-between">
-                       <span>{m.sender === 'ai_assistant' ? 'STRATEGIC_CORE' : m.sender}</span>
+                  <div className={`max-w-[90%] p-4 rounded-2xl relative
+                    ${m.sender === 'buyer' ? 'bg-white/5 border border-white/10 text-white' : 'bg-indigo-600/20 border border-indigo-500/40 text-indigo-100'}`}>
+                    <div className="text-[7px] font-black uppercase text-slate-500 mb-2 flex justify-between">
+                       <span>{m.sender.toUpperCase()}</span>
                        <span>{m.timestamp}</span>
                     </div>
-                    <p className="text-sm font-medium leading-relaxed italic">"{m.content}"</p>
-                    
-                    {m.faangReport && (
-                      <div className="absolute -top-2 -right-2 w-7 h-7 bg-[#c5a059] rounded-full flex items-center justify-center text-black text-xs shadow-lg shadow-[#c5a059]/20 cursor-help animate-bounce-slow" title="FAANG Deep Audit Ready">
-                        <i className="fas fa-shield-halved"></i>
-                      </div>
-                    )}
+                    <p className="text-xs font-medium leading-relaxed italic">"{m.content}"</p>
                   </div>
                 </div>
               ))}
               {isAnalyzing && (
                 <div className="flex justify-start animate-pulse">
-                   <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center gap-3">
-                      <div className="w-2 h-2 bg-[#c5a059] rounded-full animate-ping"></div>
-                      <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Deploying Dual-Engine Forensic Suite...</span>
+                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 bg-[#c5a059] rounded-full animate-ping"></div>
+                      <span className="text-[8px] font-black uppercase text-slate-500 tracking-widest">Inference_Active...</span>
                    </div>
                 </div>
               )}
             </div>
 
             <div className="p-6 bg-white/2 border-t border-white/5">
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <textarea 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleAuditMessage())}
-                  placeholder="Feed incoming signal or draft response..."
-                  className="flex-1 bg-black/40 border border-white/10 !p-4 text-sm font-mono text-white rounded-2xl outline-none focus:border-[#c5a059] resize-none h-20 shadow-inner"
+                  placeholder="Feed incoming signal..."
+                  className="flex-1 bg-black/40 border border-white/10 !p-4 text-xs font-mono text-white rounded-xl outline-none focus:border-[#c5a059] resize-none h-16 shadow-inner"
                 />
                 <button 
                   onClick={handleAuditMessage}
                   disabled={isAnalyzing || !newMessage}
-                  className="w-20 bg-white text-black rounded-2xl hover:bg-[#c5a059] transition-all flex items-center justify-center text-xl shadow-xl hover:scale-105 active:scale-95"
+                  className="w-16 bg-white text-black rounded-xl hover:bg-[#c5a059] transition-all flex items-center justify-center text-lg"
                 >
                   {isAnalyzing ? <i className="fas fa-cog fa-spin"></i> : <i className="fas fa-fingerprint"></i>}
                 </button>
@@ -233,102 +224,65 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
         ) : (
           <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-10">
              <i className="fas fa-satellite text-9xl"></i>
-             <p className="text-xs font-black uppercase tracking-[1em]">Scanning_For_Tactical_Signals</p>
+             <p className="text-xs font-black uppercase tracking-[1em]">Awaiting_Strategic_Link</p>
           </div>
         )}
       </div>
 
-      {/* Right Sidebar: FAANG Forensic Terminal */}
-      <div className="col-span-3 bg-black/80 border border-white/5 rounded-3xl p-8 flex flex-col shadow-2xl relative overflow-hidden">
-        <h3 className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-8 flex items-center gap-2">
-           <i className="fas fa-terminal"></i> Deep_Forensic_Output
+      {/* Phase 3 Component: Deal Roadmap - 2 columns */}
+      <div className="col-span-2 h-full">
+         <DealRoadmap dealState={selectedDomain?.negotiationThread?.currentState} lang={lang} />
+      </div>
+
+      {/* Right Sidebar: Forensic Terminal - 3 columns */}
+      <div className="col-span-3 bg-black/80 border border-white/5 rounded-3xl p-6 flex flex-col shadow-2xl relative overflow-hidden">
+        <h3 className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
+           <i className="fas fa-terminal"></i> FORENSIC_INTEL
         </h3>
         
-        <div className="flex-1 space-y-8 overflow-y-auto no-scrollbar">
+        <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar">
           {(() => {
             const lastMsgWithReport = selectedDomain?.negotiationThread?.messages.slice().reverse().find(m => m.faangReport);
             if (!lastMsgWithReport?.faangReport) return (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-20 py-20">
-                 <i className="fas fa-dna text-4xl mb-4"></i>
-                 <p className="text-[8px] font-black uppercase tracking-widest">Institutional_Memory_Empty</p>
+                 <i className="fas fa-dna text-3xl mb-4"></i>
+                 <p className="text-[8px] font-black uppercase tracking-widest">Memory_Empty</p>
               </div>
             );
             
             const report = lastMsgWithReport.faangReport;
-            const insight = lastMsgWithReport.auditInsight;
             
             return (
-              <div className="space-y-8 animate-slide-up">
-                {/* Score Meters */}
-                <div className="p-6 bg-white/2 border border-white/5 rounded-2xl text-center">
-                   <div className="text-[9px] font-black text-slate-500 uppercase mb-3 tracking-widest">Master Leverage Index</div>
-                   <div className={`text-5xl font-black italic ${report.leverageScore > 50 ? 'text-green-500' : 'text-amber-500'}`}>
+              <div className="space-y-6 animate-slide-up">
+                <div className="p-4 bg-white/2 border border-white/5 rounded-2xl text-center">
+                   <div className="text-[8px] font-black text-slate-500 uppercase mb-2 tracking-widest">Master Leverage</div>
+                   <div className={`text-4xl font-black italic ${report.leverageScore > 50 ? 'text-green-500' : 'text-amber-500'}`}>
                      {report.leverageScore}%
                    </div>
                 </div>
 
-                {/* Cultural Insight Section - Falcon Powered */}
-                {insight?.culturalNuance && (
-                   <div className="p-6 bg-[#c5a059]/5 border border-[#c5a059]/30 rounded-2xl animate-precision">
-                      <div className="flex justify-between items-center mb-4">
-                         <h4 className="text-[9px] font-black text-[#c5a059] uppercase tracking-widest flex items-center gap-2">
-                            <i className="fas fa-falcon"></i> Cultural Linguistic Pulse
-                         </h4>
-                         <span className="text-[7px] bg-white/10 px-2 py-0.5 rounded text-white font-mono">FALCON_7B</span>
-                      </div>
-                      <p className="text-[11px] text-slate-200 leading-relaxed italic">
-                        {insight.culturalNuance}
-                      </p>
-                   </div>
-                )}
-
-                <div className="space-y-4">
-                  <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Quantitative Indicators</h4>
-                  <PressureGauge label="Psychographic Resonance" value={report.quantitativeMetrics.psychographicScore} color="#818cf8" />
-                  <PressureGauge label="Tactical Vulnerability" value={report.quantitativeMetrics.tacticalWeaknessScore} color="#f43f5e" />
+                <div className="space-y-3">
+                  <PressureGauge label="Psychographic" value={report.quantitativeMetrics.psychographicScore} color="#818cf8" />
+                  <PressureGauge label="Vulnerability" value={report.quantitativeMetrics.tacticalWeaknessScore} color="#f43f5e" />
                   <PressureGauge label="Financial Urgency" value={report.quantitativeMetrics.financialUrgencyScore} color="#10b981" />
                 </div>
 
-                {/* Narrative Summary */}
-                <div className="p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl">
-                   <h4 className="text-[9px] font-black text-indigo-400 uppercase mb-4 tracking-widest flex items-center gap-2">
-                     <i className="fas fa-file-contract"></i> Executive Narrative
-                   </h4>
-                   <p className="text-xs text-white leading-relaxed italic font-medium">"{report.executiveSummary}"</p>
+                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                   <h4 className="text-[8px] font-black text-indigo-400 uppercase mb-2 tracking-widest">Executive Narrative</h4>
+                   <p className="text-[10px] text-white leading-relaxed italic font-medium">"{report.executiveSummary}"</p>
                 </div>
 
-                {/* Red Flags & Risks */}
-                <div className="space-y-4">
-                   <label className="text-[9px] font-black text-red-500 uppercase tracking-widest block">Forensic Red Flags</label>
+                <div className="space-y-3">
+                   <label className="text-[8px] font-black text-red-500 uppercase tracking-widest block">Red Flags</label>
                    <div className="space-y-2">
-                     {report.riskFlags.map((risk, i) => (
-                       <div key={i} className={`p-4 rounded-xl border flex gap-3 items-start ${
+                     {report.riskFlags.slice(0, 2).map((risk, i) => (
+                       <div key={i} className={`p-3 rounded-lg border flex gap-2 items-start ${
                          risk.severity === 'HIGH' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 border-white/10 text-slate-400'
                        }`}>
-                          <i className="fas fa-biohazard mt-1 text-[10px]"></i>
                           <div className="flex-1">
-                             <div className="text-[8px] font-black uppercase mb-1">{risk.type} // {risk.severity}</div>
-                             <p className="text-[10px] leading-tight italic">"{risk.evidence}"</p>
+                             <div className="text-[7px] font-black uppercase mb-1">{risk.type}</div>
+                             <p className="text-[9px] leading-tight italic">"{risk.evidence}"</p>
                           </div>
-                       </div>
-                     ))}
-                   </div>
-                </div>
-
-                {/* Tactical Recommendations */}
-                <div className="p-6 bg-[#c5a059]/10 border border-[#c5a059]/30 rounded-2xl shadow-xl">
-                   <h4 className="text-[9px] font-black text-[#c5a059] uppercase mb-6 flex justify-between items-center">
-                     <span>Strategic Moves</span>
-                     <i className="fas fa-chess"></i>
-                   </h4>
-                   <div className="space-y-6">
-                     {report.recommendedActions.map((rec, i) => (
-                       <div key={i} className="space-y-2 border-l-2 border-[#c5a059]/20 pl-4">
-                          <div className="flex justify-between items-center text-[10px] font-black text-white italic">
-                             <span>{rec.action}</span>
-                             <span className="text-green-500">{rec.confidence}% Conf.</span>
-                          </div>
-                          <p className="text-[9px] text-slate-500 leading-tight uppercase font-bold">{rec.expectedOutcome}</p>
                        </div>
                      ))}
                    </div>
@@ -337,8 +291,6 @@ const NegotiationDashboard: React.FC<Props> = ({ domains, setDomains, lang }) =>
             );
           })()}
         </div>
-        
-        <i className="fas fa-crown absolute right-[-50px] bottom-[-50px] text-white/2 text-[250px] pointer-events-none rotate-12"></i>
       </div>
     </div>
   );
