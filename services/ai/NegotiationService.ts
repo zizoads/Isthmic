@@ -1,13 +1,13 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage, DealState, DealStateEnum } from "../../types";
+import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage, DealState, DealStateEnum, NegotiationSnapshot } from "../../types";
 import { safeAICall, generateStructuredAI } from "./base";
 import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
 import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
- * v2.6: Integrated suggestedAction into DealState.
+ * v2.7: Added Passive Strategic Snapshot for MasterBrain orchestration.
  */
 export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
@@ -16,6 +16,26 @@ export class NegotiationService {
 
   private static isArabic(text: string): boolean {
     return /[\u0600-\u06FF]/.test(text);
+  }
+
+  /**
+   * getStrategicSnapshot: Passive monitoring interface.
+   * Returns a lightweight operational snapshot without calling any AI model.
+   */
+  static getStrategicSnapshot(thread: NegotiationThread, domainName: string): NegotiationSnapshot {
+    const messages = thread.messages;
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+    return {
+      domainName,
+      currentState: thread.currentState?.currentState || DealStateEnum.INITIAL,
+      messageCount: messages.length,
+      leverageScore: thread.currentLeverage || 50,
+      lastBuyerIntent: lastMsg?.auditInsight?.intent || 'none',
+      riskFlagsCount: lastMsg?.faangReport?.riskFlags?.length || 0,
+      sentiment: lastMsg?.auditInsight?.sentimentScore || 50,
+      timestamp: new Date().toISOString()
+    };
   }
 
   private static compressHistory(messages: NegotiationMessage[]): string {
@@ -67,7 +87,7 @@ export class NegotiationService {
       confidenceScore: data.confidenceScore,
       previousState: currentDealState?.currentState,
       transitionReason: data.transitionReason,
-      suggestedAction: data.suggestedAction, // دمج التوصية هنا
+      suggestedAction: data.suggestedAction,
       lastUpdate: new Date().toISOString()
     };
 

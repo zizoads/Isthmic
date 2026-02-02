@@ -32,6 +32,20 @@ export enum ObjectiveStatus {
 }
 
 /**
+ * NegotiationSnapshot: لقطة سريعة لحالة التفاوض لأغراض الرقابة الاستراتيجية
+ */
+export interface NegotiationSnapshot {
+  domainName: string;
+  currentState: DealStateEnum;
+  messageCount: number;
+  leverageScore: number;
+  lastBuyerIntent: string;
+  riskFlagsCount: number;
+  sentiment: number;
+  timestamp: string;
+}
+
+/**
  * AlignmentReport: مخرجات محرك التقييم الاستراتيجي
  */
 export interface AlignmentReport {
@@ -226,7 +240,7 @@ export interface PlatformStrategy {
   riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
   autoPilot: boolean;
   investmentThesis: string;
-  objectives?: StrategicObjective[]; // الربط مع الأهداف
+  objectives?: StrategicObjective[]; 
 }
 
 export interface ServiceIntegration {

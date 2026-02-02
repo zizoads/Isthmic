@@ -1,8 +1,9 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { AlignmentReport, StrategicObjective } from "../../types";
+import { AlignmentReport, StrategicObjective, NegotiationThread } from "../../types";
 import { safeAICall, generateStructuredAI } from "./base";
 import { STRATEGIC_ALIGNMENT_SCHEMA } from "./schemas";
+import { NegotiationService } from "./NegotiationService";
 
 /**
  * OrchestrationService: The "Sovereign Chief of Staff".
@@ -37,10 +38,29 @@ export class OrchestrationService {
   }
 
   /**
+   * monitorNegotiationAlignment: Active Polling helper for Negotiation Hub.
+   * Calls the passive observer and processes alignment logic.
+   */
+  static async monitorNegotiationAlignment(
+    thread: NegotiationThread,
+    domainName: string,
+    objective: StrategicObjective
+  ): Promise<AlignmentReport | null> {
+    if (!objective.linkedServices.includes('NEGOTIATION' as any)) return null;
+
+    const snapshot = NegotiationService.getStrategicSnapshot(thread, domainName);
+    
+    // التقييم يتم فقط في حال وجود نشاط (عدد الرسائل > 0)
+    if (snapshot.messageCount === 0) return null;
+
+    const report = await this.evaluateStrategicAlignment(snapshot, objective);
+    return report;
+  }
+
+  /**
    * Phase 1 Mock: توليد أهداف وهمية للاختبار بناءً على الفلسفة الاستثمارية.
    */
   static async generateInitialObjectives(investmentThesis: string): Promise<StrategicObjective[]> {
-    // محاكاة استخراج الأهداف من النص (في المرحلة 1)
     return [
       {
         id: 'obj_1',
