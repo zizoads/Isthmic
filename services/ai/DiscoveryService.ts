@@ -1,11 +1,23 @@
 
 import { Type, GoogleGenAI } from "@google/genai";
 import { generateStructuredAI } from "./base";
+import { StrategicObjective } from "../../types";
+import { OrchestrationService } from "./OrchestrationService";
 
-export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
+export const rigorousDiscoveryAI = async (
+  prompt: string, 
+  lang: 'ar' | 'en' = 'ar', 
+  signal?: AbortSignal,
+  objectives: StrategicObjective[] = [] // إضافة معامل الأهداف
+) => {
+  // توليد سياق استراتيجي بناءً على الأهداف النشطة
+  const strategicContext = OrchestrationService.injectStrategicContext(objectives);
+
   return generateStructuredAI<any[]>(
     'gemini-3-flash-preview',
-    `Strategic Market Miner. Task: Find high-potential domains based on current market gaps. Lang: ${lang}`,
+    `Strategic Market Miner. Task: Find high-potential domains based on current market gaps. 
+     ${strategicContext} 
+     Language: ${lang}`,
     `Execute deep search for: ${prompt}`,
     {
       type: Type.ARRAY,
@@ -84,12 +96,7 @@ export const registrarInquiryAI = async (domainName: string) => {
   return res.data;
 };
 
-// Fix: findLocalBuyersAI rewritten to follow Google Gemini Maps Grounding guidelines:
-// 1. Use Gemini 2.5 series model as required for maps grounding functionality.
-// 2. Do NOT set responseMimeType or responseSchema when using the googleMaps tool.
-// 3. Extract place URLs and metadata from groundingChunks to display sources in the UI.
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
-  // Fix: Initialize GoogleGenAI with process.env.API_KEY directly right before making the call.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const toolConfig = lat && lng ? {
@@ -97,7 +104,7 @@ export const findLocalBuyersAI = async (query: string, lat?: number, lng?: numbe
   } : undefined;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash', // Maps grounding is only supported in Gemini 2.5 series models.
+    model: 'gemini-2.5-flash',
     contents: `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}. Identify real businesses that could benefit from this domain.`,
     config: {
       tools: [{ googleMaps: {} }],
@@ -105,10 +112,8 @@ export const findLocalBuyersAI = async (query: string, lat?: number, lng?: numbe
     }
   });
 
-  // Fix: Return structured data including grounding chunks for URLs.
   return {
     text: response.text || "",
-    // Must extract sources from groundingMetadata.groundingChunks to list URLs in the web app.
     sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
   };
 };

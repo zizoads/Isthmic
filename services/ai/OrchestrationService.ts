@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { AlignmentReport, StrategicObjective, NegotiationThread } from "../../types";
+import { AlignmentReport, StrategicObjective, NegotiationThread, ObjectiveStatus } from "../../types";
 import { safeAICall, generateStructuredAI } from "./base";
 import { STRATEGIC_ALIGNMENT_SCHEMA } from "./schemas";
 import { NegotiationService } from "./NegotiationService";
@@ -39,22 +39,42 @@ export class OrchestrationService {
 
   /**
    * monitorNegotiationAlignment: Active Polling helper for Negotiation Hub.
-   * Calls the passive observer and processes alignment logic.
+   * Updates objective history and status in-place.
    */
   static async monitorNegotiationAlignment(
     thread: NegotiationThread,
     domainName: string,
     objective: StrategicObjective
-  ): Promise<AlignmentReport | null> {
+  ): Promise<{ report: AlignmentReport; updatedObjective: StrategicObjective } | null> {
     if (!objective.linkedServices.includes('NEGOTIATION' as any)) return null;
 
     const snapshot = NegotiationService.getStrategicSnapshot(thread, domainName);
-    
-    // التقييم يتم فقط في حال وجود نشاط (عدد الرسائل > 0)
     if (snapshot.messageCount === 0) return null;
 
     const report = await this.evaluateStrategicAlignment(snapshot, objective);
-    return report;
+    
+    // تحديث الحالة بناءً على النتيجة
+    let newStatus: ObjectiveStatus = 'TRACKING' as any;
+    if (report.status === 'RED') newStatus = 'DEVIATED' as any;
+    else if (report.status === 'YELLOW') newStatus = 'AT_RISK' as any;
+
+    const updatedObjective: StrategicObjective = {
+      ...objective,
+      status: newStatus,
+      lastEvaluated: new Date().toISOString(),
+      alignmentHistory: [report, ...objective.alignmentHistory].slice(0, 10)
+    };
+
+    return { report, updatedObjective };
+  }
+
+  /**
+   * injectStrategicContext: يحول الأهداف النشطة إلى تعليمات برمجية لمحرك الاكتشاف.
+   */
+  static injectStrategicContext(objectives: StrategicObjective[]): string {
+    if (objectives.length === 0) return "";
+    const constraints = objectives.map(o => `- ${o.description}: ${o.evaluationPrompt}`).join('\n');
+    return `\nCRITICAL STRATEGIC CONSTRAINTS (MANDATORY):\n${constraints}\nDO NOT suggest items that violate these constraints.`;
   }
 
   /**
@@ -85,7 +105,7 @@ export class OrchestrationService {
         unit: '%',
         status: 'TRACKING' as any,
         weight: 1.0,
-        linkedServices: ['ACQUISITION' as any],
+        linkedServices: ['ACQUISITION' as any, 'DISCOVERY' as any],
         evaluationPrompt: 'منع أي استحواذ يحتوي على تشابه صوتي مع شركات Fortune 500.',
         lastEvaluated: new Date().toISOString(),
         alignmentHistory: []

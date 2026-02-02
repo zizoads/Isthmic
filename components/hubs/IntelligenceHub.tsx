@@ -7,7 +7,7 @@ import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
 import WorkflowIndicator from '../WorkflowIndicator';
 import StrategicBriefingBadge from '../negotiation/StrategicBriefingBadge';
-import { PlatformStats, WorkflowState, StrategicObjective } from '../../types';
+import { PlatformStats, WorkflowState, StrategicObjective, Domain } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { useMasterBrain } from '../../hooks/useMasterBrain';
 import { useSovereignT } from '../../hooks/useTranslation';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning, activeWorkflow: propsActiveWorkflow }) => {
-  const { activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
+  const { activityLogs, strategy, setStrategy, addLog, setDomains, domains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
   const [objectives, setObjectives] = useState<StrategicObjective[]>([]);
   const t = useSovereignT(lang);
@@ -30,7 +30,7 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   const { activeWorkflow: localActiveWorkflow } = useMasterBrain(strategy, lang);
   const currentWorkflow = propsActiveWorkflow !== undefined ? propsActiveWorkflow : localActiveWorkflow;
 
-  // Phase 1: محاكاة توليد الأهداف عند تحديث الفلسفة الاستثمارية
+  // Phase 1: توليد الأهداف عند البداية
   useEffect(() => {
     if (strategy.investmentThesis && objectives.length === 0) {
       OrchestrationService.generateInitialObjectives(strategy.investmentThesis).then(res => {
@@ -39,6 +39,33 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
       });
     }
   }, [strategy.investmentThesis]);
+
+  // Phase 2.5: تفعيل الاستطلاع الخفيف (Passive Polling)
+  useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      // البحث عن أول تفاوض نشط لتقييمه (تجريبياً)
+      const activeNegotiation = domains.find(d => d.status === 'negotiating' && d.negotiationThread);
+      if (activeNegotiation && objectives.length > 0) {
+        const targetObj = objectives.find(o => o.linkedServices.includes('NEGOTIATION' as any));
+        if (targetObj) {
+          const result = await OrchestrationService.monitorNegotiationAlignment(
+            activeNegotiation.negotiationThread!,
+            activeNegotiation.name,
+            targetObj
+          );
+          
+          if (result) {
+            setObjectives(prev => prev.map(o => o.id === result.updatedObjective.id ? result.updatedObjective : o));
+            if (result.report.status === 'RED' || result.report.status === 'YELLOW') {
+              addLog('Strategic Monitor', `Deviation detected in ${activeNegotiation.name}. Status: ${result.report.status}`, 'warning');
+            }
+          }
+        }
+      }
+    }, 120000); // كل دقيقتين في مرحلة الاختبار لضمان رؤية النتائج
+
+    return () => clearInterval(pollInterval);
+  }, [domains, objectives]);
 
   const tabs = [
     { id: 'sovereign', label: t('intelligence.tabs.command'), icon: 'fa-terminal' },
@@ -53,7 +80,6 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
 
   return (
     <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Strategic Observer - Phase 1 UI */}
       <StrategicBriefingBadge objectives={objectives} lang={lang} />
 
       <header className="space-y-4">
@@ -88,16 +114,15 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
       <div className="animate-fade-in space-y-12">
         {subTab === 'sovereign' && (
           <div className="space-y-12">
-            {/* عرض ملخص الأهداف (Silent Mode) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-60 hover:opacity-100 transition-opacity">
                {objectives.map(obj => (
-                 <div key={obj.id} className="p-6 bg-white/2 border border-white/5 rounded-3xl flex justify-between items-center">
+                 <div key={obj.id} className={`p-6 bg-white/2 border rounded-3xl flex justify-between items-center ${obj.status === 'AT_RISK' ? 'border-amber-500/30 bg-amber-500/5' : 'border-white/5'}`}>
                     <div>
                        <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{obj.category}</div>
                        <div className="text-sm font-bold text-white italic">{obj.description}</div>
                     </div>
                     <div className="text-right">
-                       <div className="text-xs font-black text-[#c5a059]">{obj.currentValue} / {obj.targetValue} {obj.unit}</div>
+                       <div className={`text-xs font-black ${obj.status === 'AT_RISK' ? 'text-amber-500' : 'text-[#c5a059]'}`}>{obj.currentValue} / {obj.targetValue} {obj.unit}</div>
                        <div className="text-[7px] font-mono text-slate-600 uppercase">Status: {obj.status}</div>
                     </div>
                  </div>
