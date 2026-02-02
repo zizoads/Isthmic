@@ -17,6 +17,27 @@ export enum AgentRole {
   AUDITOR = 'AUDITOR'
 }
 
+/**
+ * DealStateEnum: مراحل حياة الصفقة التفاوضية
+ */
+export enum DealStateEnum {
+  INITIAL = 'INITIAL',
+  DISCOVERY = 'DISCOVERY',
+  TENSION = 'TENSION',
+  AGREEMENT = 'AGREEMENT',
+  CLOSING = 'CLOSING',
+  STALLED = 'STALLED',
+  LOST = 'LOST'
+}
+
+export interface DealState {
+  currentState: DealStateEnum;
+  confidenceScore: number;
+  previousState?: DealStateEnum;
+  transitionReason: string;
+  lastUpdate: string;
+}
+
 export interface TechnicalMetrics {
   da?: number;
   pa?: number;
@@ -102,6 +123,7 @@ export interface NegotiationThread {
   messages: NegotiationMessage[];
   overallStatus: 'active' | 'closed' | 'won' | 'lost';
   currentLeverage: number;
+  currentState?: DealState; // الربط مع آلية الحالة الجديدة
 }
 
 export interface MessageAuditInsight {
@@ -110,7 +132,7 @@ export interface MessageAuditInsight {
   psychologicalMarkers: string[];
   redFlags: string[];
   suggestedAction: string;
-  culturalNuance?: string; // Enhanced via Falcon-Arabic
+  culturalNuance?: string; 
 }
 
 export interface FAANGNegotiationReport {
