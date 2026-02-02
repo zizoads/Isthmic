@@ -4,7 +4,7 @@ import { useDomainContext } from '../context/DomainContext';
 import { AuthService } from '../services/AuthService';
 
 const AuthForm: React.FC = () => {
-  const { login, signup, addLog } = useDomainContext();
+  const { login, addLog } = useDomainContext();
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
@@ -27,7 +27,7 @@ const AuthForm: React.FC = () => {
           await AuthService.signup(name, email, password);
           setStatus({ 
             type: 'success', 
-            message: "Protocol Initiated. Check console (F12) for 6-digit verification code." 
+            message: "Sequence initiated. Access the 6-digit code in the console (F12)." 
           });
           setStep(2);
         } else {
@@ -35,14 +35,14 @@ const AuthForm: React.FC = () => {
           if (success) {
             setStatus({ 
               type: 'success', 
-              message: "Identity Verified. Access granted. Proceeding to login..." 
+              message: "Identity confirmed. Transitioning to Command Center..." 
             });
             
             setTimeout(() => {
               setIsLogin(true);
               setStep(1);
               setOtp('');
-              setStatus({ type: 'success', message: "Identity Established. Please sign in to enter the command center." });
+              setStatus({ type: 'success', message: "Sovereign Link Established. Please authenticate." });
             }, 1500);
           }
         }
@@ -50,15 +50,19 @@ const AuthForm: React.FC = () => {
     } catch (error: any) {
       let msg = error.message;
       
-      if (msg === "IDENTITY_EXISTS") {
-        msg = "Identity exists. Please utilize the standard login portal.";
-      } else if (msg.includes("SYSTEM_COOLDOWN")) {
-        msg = "Infrastructure Rate Limit reached. Please wait several minutes before another attempt.";
-      } else if (msg.includes("IDENTITY_PENDING")) {
-        msg = "Verification record not found. Please re-initiate the signup protocol.";
+      if (msg === "IDENTITY_PENDING") {
+        // Recovery flow: Redirect to verification step
+        setIsLogin(false);
+        setStep(2);
+        msg = "Account detected but unverified. Please enter your verification code or request a new one.";
+        setStatus({ type: 'warning' as any, message: msg });
+      } else {
+        if (msg === "IDENTITY_EXISTS") msg = "Identity recognized. Please proceed via the master login.";
+        if (msg.includes("SYSTEM_COOLDOWN")) msg = "System Cooling Active. Please pause for several minutes.";
+        
+        setStatus({ type: 'error', message: msg });
       }
       
-      setStatus({ type: 'error', message: msg });
       addLog('Auth', msg, 'critical');
     } finally {
       setIsLoading(false);
@@ -66,11 +70,15 @@ const AuthForm: React.FC = () => {
   };
 
   const handleResendCode = async () => {
-    if (!email || !name || !password) return;
+    if (!email) {
+       setStatus({ type: 'error', message: "Please provide an email address to receive a new signal." });
+       return;
+    }
     setIsLoading(true);
     try {
-      await AuthService.signup(name, email, password);
-      setStatus({ type: 'success', message: "New sequence dispatched. Check system console (F12)." });
+      // If we don't have the name (from login redirect), we use a placeholder
+      await AuthService.signup(name || "Sovereign User", email, password);
+      setStatus({ type: 'success', message: "New sequence dispatched. Check console (F12)." });
     } catch (error: any) {
       setStatus({ type: 'error', message: error.message });
     } finally {
@@ -87,18 +95,20 @@ const AuthForm: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
 
       <div className="w-full max-w-xl relative z-10">
-        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10 shadow-2xl">
           <div className="space-y-6">
             <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Sovereign Asset Management</span>
             <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic.</h1>
             <p className="text-slate-400 text-lg italic max-w-sm mx-auto">
-              {isLogin ? "Restore your sovereign digital asset command." : (step === 1 ? "Initiate your identity into the ecosystem." : "Enter the verification sequence.")}
+              {isLogin ? "Restore your sovereign digital asset command." : (step === 1 ? "Initiate your identity into the ecosystem." : "Execute the verification sequence.")}
             </p>
           </div>
 
           {status && (
             <div className={`p-5 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up leading-relaxed ${
-              status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+              status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 
+              status.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
+              'bg-amber-500/10 border-amber-500/20 text-amber-500'
             }`}>
               <i className={`fas ${status.type === 'success' ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {status.message}
             </div>

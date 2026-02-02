@@ -1,5 +1,4 @@
-
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface ProtocolErrorBoundaryProps {
   children?: ReactNode;
@@ -14,33 +13,32 @@ interface ProtocolErrorBoundaryState {
 /**
  * ProtocolErrorBoundary: Sovereign error handling system to ensure UI continuity.
  */
-// Explicitly extending Component from React to ensure state and props type resolution
-class ProtocolErrorBoundary extends Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
-  // Standard constructor for class components to initialize state
-  constructor(props: ProtocolErrorBoundaryProps) {
-    super(props);
-    // Initializing state in the constructor to satisfy property assignment checks
-    this.state = {
-      hasError: false,
-      error: null
-    };
-  }
+// Fix: Using React.Component explicitly to ensure state, props, and setState are correctly inherited and recognized by the TypeScript compiler.
+class ProtocolErrorBoundary extends React.Component<ProtocolErrorBoundaryProps, ProtocolErrorBoundaryState> {
+  // Fix: Declaring state as a class property for better type inference and to resolve "property does not exist" errors.
+  public state: ProtocolErrorBoundaryState = {
+    hasError: false,
+    error: null
+  };
 
+  // Standard static method for error boundaries to update state based on errors
   public static getDerivedStateFromError(error: Error): ProtocolErrorBoundaryState {
     return { hasError: true, error };
   }
 
+  // Component lifecycle method for logging error information
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL_UI_INTERRUPTION:", error, errorInfo);
   }
 
-  // Bound handler via arrow function to ensure setState is accessible on 'this'
+  // Fix: Bound handler via arrow function ensures 'this' context remains stable during event callbacks
   private handleReset = () => {
+    // Fix: Accessing setState from the inherited React.Component base class to resolve "property does not exist" error.
     this.setState({ hasError: false, error: null });
   };
 
   public render() {
-    // Correctly accessing state and props which are inherited from the Component base class
+    // Fix: Correctly accessing inherited state and props properties from React.Component to resolve "property does not exist" errors.
     const { hasError } = this.state;
     const { children, fallbackName } = this.props;
 

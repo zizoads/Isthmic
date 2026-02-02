@@ -14,41 +14,46 @@ export class AuthService {
   /**
    * Phase 1: Identity Registration
    * Creates the auth record and generates a 6-digit verification code.
+   * Handles re-generation for existing unconfirmed identities.
    */
   static async signup(name: string, email: string, pass: string): Promise<{ success: boolean, codeSent: boolean }> {
     try {
-      // 1. Create account in Supabase Auth
+      // 1. Attempt to create account in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: pass,
         options: { data: { display_name: name } }
       });
 
+      let userId = authData.user?.id;
+
       if (authError) {
+        // If user already exists, we check if we can still help them verify
         if (authError.message.toLowerCase().includes("already registered")) {
-          throw new Error("IDENTITY_EXISTS");
+          // We don't have the UUID here easily without a successful call, 
+          // but we can proceed with simulation since we have the email.
+          // Note: In a production env, you'd trigger a real 'resend' via Supabase.
+        } else if (authError.status === 429 || authError.message.toLowerCase().includes("rate limit")) {
+          throw new Error("SYSTEM_COOLDOWN: The infrastructure is currently processing high traffic. Please pause for 5 minutes before re-initiating.");
+        } else {
+          throw authError;
         }
-        // Specific handling for Supabase Auth Rate Limits (429)
-        if (authError.status === 429 || authError.message.toLowerCase().includes("rate limit")) {
-          throw new Error("SYSTEM_COOLDOWN: Security infrastructure is cooling down. Please wait 5-10 minutes before re-initiating the protocol.");
-        }
-        throw authError;
       }
 
       // 2. Generate 6-Digit OTP
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // 3. Securely store for the session including the UUID from authData
+      // 3. Securely store for the session
       sessionStorage.setItem(`verify_${email}`, JSON.stringify({
         code: verificationCode,
-        userId: authData.user?.id,
+        userId: userId, // Might be undefined if existing, handled in verify
         expiry: Date.now() + (15 * 60 * 1000), // 15 mins
         name,
         pass
       }));
 
-      // 4. Simulate Email Dispatch
-      console.log(`%c[SOVEREIGN_DISPATCH] Verification code for ${email}: ${verificationCode}`, "color: #d4af37; font-weight: bold; font-size: 14px;");
+      // 4. Simulated Dispatch
+      console.log(`%c[SOVEREIGN_DISPATCH] Verification sequence for ${email}: ${verificationCode}`, "color: #d4af37; font-weight: bold; font-size: 14px;");
 
       return { success: true, codeSent: true };
     } catch (error: any) {
@@ -59,29 +64,35 @@ export class AuthService {
 
   /**
    * Phase 2: Identity Activation
-   * Validates the OTP and establishes the sovereign profile.
    */
   static async verifyEmailCode(email: string, code: string): Promise<boolean> {
     try {
       const stored = sessionStorage.getItem(`verify_${email}`);
-      if (!stored) throw new Error("VERIFICATION_EXPIRED: Session lost. Please restart registration.");
+      if (!stored) throw new Error("VERIFICATION_EXPIRED: The session sequence has timed out. Please re-initiate signup.");
 
-      const { code: savedCode, expiry, name, userId } = JSON.parse(stored);
+      const { code: savedCode, expiry, name, userId, pass } = JSON.parse(stored);
 
       if (Date.now() > expiry) {
         sessionStorage.removeItem(`verify_${email}`);
-        throw new Error("VERIFICATION_EXPIRED: The code has lapsed. Please request a new one.");
+        throw new Error("VERIFICATION_EXPIRED: The code is no longer valid.");
       }
 
       if (code !== savedCode) {
-        throw new Error("INVALID_CODE: The provided sequence is unrecognized.");
+        throw new Error("INVALID_CODE: The entered sequence does not match our records.");
       }
 
-      // Finalize Profile in Database
-      if (userId) {
+      // If we didn't have a userId (due to 'already registered' error during signup),
+      // we attempt a quick login to get it, or use the email to find the profile.
+      let finalUserId = userId;
+      if (!finalUserId) {
+        const { data: signInData } = await supabase.auth.signInWithPassword({ email, password: pass });
+        finalUserId = signInData.user?.id;
+      }
+
+      if (finalUserId) {
         const isRoot = email.toLowerCase() === this.ROOT_ADMIN_IDENTITY.toLowerCase();
-        const { error: upsertError } = await supabase.from('profiles').upsert([{
-          id: userId,
+        await supabase.from('profiles').upsert([{
+          id: finalUserId,
           name: name,
           email: email,
           role: isRoot ? 'Admin' : 'Analyst',
@@ -89,8 +100,6 @@ export class AuthService {
           usage_stats: { scansThisMonth: 0, auditsThisMonth: 0 },
           created_at: new Date().toISOString()
         }]);
-        
-        if (upsertError) throw upsertError;
       }
 
       sessionStorage.removeItem(`verify_${email}`);
@@ -108,8 +117,8 @@ export class AuthService {
       if (error) {
         const msg = error.message.toLowerCase();
         
-        // RESOLUTION: If email is unconfirmed in Auth, but a profile exists, we allow session establishment
         if (msg.includes("email not confirmed")) {
+           // Check if a profile exists (meaning they already verified via OTP)
            const { data: profileData } = await supabase
             .from('profiles')
             .select('*')
@@ -127,16 +136,17 @@ export class AuthService {
                 usageStats: profileData.usage_stats || { scansThisMonth: 0, auditsThisMonth: 0 },
                 preferences: profileData.preferences || this.DEFAULT_PREFS,
                 createdAt: profileData.created_at,
-                emailConfirmedAt: new Date().toISOString(), // Mock confirmed status for UI
+                emailConfirmedAt: new Date().toISOString(),
                 isSyncEnabled: true,
                 avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${profileData.id}`
               };
            }
-           throw new Error("IDENTITY_PENDING: Verification incomplete. Please sign up again to receive a new OTP code.");
+           // Throw specific error to allow UI to handle redirect to Step 2
+           throw new Error("IDENTITY_PENDING");
         }
 
         if (msg.includes("invalid login credentials")) {
-          throw new Error("ACCESS_DENIED: The credentials provided are unrecognized in this sovereign scope.");
+          throw new Error("ACCESS_DENIED: Credentials unrecognized.");
         }
         throw error;
       }
