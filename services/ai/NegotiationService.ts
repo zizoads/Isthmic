@@ -1,16 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage } from "../../types";
-import { safeAICall } from "./base";
-import { NEGOTIATION_AUDIT_SCHEMA } from "./schemas";
+import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage, DealState, DealStateEnum } from "../../types";
+import { safeAICall, generateStructuredAI } from "./base";
+import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
 import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
- * v2.2: Optimized for Production with Adaptive Sliding Window.
+ * v2.5: Integrated State Machine Inference.
  */
 export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
+  private static readonly MODEL_FLASH = 'gemini-3-flash-preview';
   public static readonly MAX_CONTEXT_MESSAGES = 15;
 
   private static isArabic(text: string): boolean {
@@ -19,7 +20,6 @@ export class NegotiationService {
 
   /**
    * Compresses history to ensure peak neural performance.
-   * Keeps the 'Global Anchor' (First message) and a sliding window of recent messages.
    */
   private static compressHistory(messages: NegotiationMessage[]): string {
     if (!messages || messages.length === 0) return "No prior context.";
@@ -33,58 +33,105 @@ export class NegotiationService {
     
     return [
       `[GLOBAL_ANCHOR]: ${opening.content.slice(0, 1000)}`,
-      `... [SYSTEM_REDACTION: ${messages.length - this.MAX_CONTEXT_MESSAGES} messages moved to deep memory for performance] ...`,
+      `... [SYSTEM_REDACTION: ${messages.length - this.MAX_CONTEXT_MESSAGES} messages moved to deep memory] ...`,
       ...slidingWindow.map(m => `[${m.sender.toUpperCase()}]: ${m.content.slice(0, 1000)}`)
     ].join('\n');
+  }
+
+  /**
+   * الخطوة 2: تنفيذ آلية الحالة السيادية (Sovereign State Machine)
+   * تستنتج المرحلة الحالية للصفقة بناءً على السياق التراكمي.
+   */
+  static async inferStateTransition(
+    currentMessage: string, 
+    messageHistory: NegotiationMessage[], 
+    currentDealState?: DealState
+  ): Promise<{ newState: DealState; suggestedAction: string }> {
+    const historyText = this.compressHistory(messageHistory);
+    
+    const result = await generateStructuredAI<any>(
+      this.MODEL_FLASH,
+      `You are the Sovereign Negotiation State Engine. 
+       Classify the negotiation phase based on the current message and history.
+       Halt transitions that are logically impossible (e.g. Agreement -> Discovery).
+       
+       DEAL STATES:
+       - INITIAL: General inquiry, first contact.
+       - DISCOVERY: Fact-finding, questions about asset history.
+       - TENSION: Price haggling, lowballing, negotiation stress.
+       - AGREEMENT: Verbal consensus on price/terms.
+       - CLOSING: Logistics, Escrow details, Auth codes.
+       - STALLED: Silence, brief non-committal replies.
+       - LOST: Definite rejection or prolonged silence.`,
+      `History: ${historyText}
+       Current State: ${currentDealState?.currentState || 'None'}
+       Incoming Signal: "${currentMessage}"`,
+      STATE_INFERENCE_SCHEMA
+    );
+
+    const data = result.data;
+    const newState: DealState = {
+      currentState: data.currentState as DealStateEnum,
+      confidenceScore: data.confidenceScore,
+      previousState: currentDealState?.currentState,
+      transitionReason: data.transitionReason,
+      lastUpdate: new Date().toISOString()
+    };
+
+    return { newState, suggestedAction: data.suggestedAction };
   }
 
   static async auditMessageDeep(
     thread: NegotiationThread, 
     newMessage: string,
     domainName: string
-  ): Promise<{ insight: MessageAuditInsight, report: FAANGNegotiationReport }> {
+  ): Promise<{ 
+    insight: MessageAuditInsight, 
+    report: FAANGNegotiationReport,
+    newState?: DealState 
+  }> {
     return safeAICall(async () => {
       const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 3000);
       const isArabicInput = this.isArabic(sanitizedMessage);
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      // Multi-Agent Context Injection
       const historyContext = this.compressHistory(thread.messages);
 
-      const [geminiResponse, falconInsight] = await Promise.all([
+      // تشغيل محرك الحالة ومحرك التدقيق بالتوازي
+      const [geminiResponse, stateResponse, falconInsight] = await Promise.all([
         ai.models.generateContent({
           model: this.MODEL_PRO,
-          contents: `
-            System: Chief Forensic Negotiator. 
-            Target: Digital Asset "${domainName}".
+          contents: `System: Chief Forensic Negotiator. Target: Digital Asset "${domainName}".
             Task: Perform 4-layer audit on incoming signal.
-            
-            Operational Context (Sliding Window History):
-            ${historyContext}
-            
-            Current Incoming Signal:
-            "${sanitizedMessage}"
-          `,
+            History Context: ${historyContext}
+            Incoming: "${sanitizedMessage}"`,
           config: {
             tools: [{ googleSearch: {} }],
             responseMimeType: "application/json",
             responseSchema: NEGOTIATION_AUDIT_SCHEMA
           }
         }),
+        this.inferStateTransition(sanitizedMessage, thread.messages, thread.currentState),
         isArabicInput ? ArabicAnalysisService.analyzeMessage(sanitizedMessage) : Promise.resolve(null)
       ]);
 
       const result = JSON.parse(geminiResponse.text || '{}');
 
-      if (falconInsight && result.insight) {
-        result.insight.culturalNuance = falconInsight.culturalNuance;
+      // دمج نتائج محرك الحالة
+      const finalResult = {
+        ...result,
+        newState: stateResponse.newState
+      };
+
+      // دمج التحليل الثقافي إذا وجد
+      if (falconInsight && finalResult.insight) {
+        finalResult.insight.culturalNuance = falconInsight.culturalNuance;
         if (falconInsight.sentiment.includes("Aggressive")) {
-           result.insight.sentimentScore = Math.min(result.insight.sentimentScore, 25);
+           finalResult.insight.sentimentScore = Math.min(finalResult.insight.sentimentScore, 25);
         }
       }
 
-      return result;
+      return finalResult;
     });
   }
 

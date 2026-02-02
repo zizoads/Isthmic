@@ -17,13 +17,9 @@ serve(async (req) => {
 
   try {
     const { model, contents, config } = await req.json()
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
     
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set in Supabase project secrets");
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // Fix: Using process.env.API_KEY directly for initialization as per GenAI coding guidelines.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const result = await ai.models.generateContent({
       model: model || 'gemini-3-flash-preview',
@@ -31,8 +27,8 @@ serve(async (req) => {
       config: config
     })
 
-    // استخراج النص يدوياً لضمان وصوله للواجهة بشكل سليم
-    const textOutput = result.text || result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    // Fix: Access response.text directly as a property (not a method) to ensure output is extracted correctly.
+    const textOutput = result.text || "";
 
     return new Response(
       JSON.stringify({ ...result, text: textOutput }),

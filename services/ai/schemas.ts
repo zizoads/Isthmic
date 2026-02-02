@@ -1,8 +1,23 @@
+
 import { Type } from "@google/genai";
 
 /**
- * Isthmic Pro - Sovereign Schema Registry v17.0
+ * Isthmic Pro - Sovereign Schema Registry v17.1
  */
+
+export const STATE_INFERENCE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    currentState: { 
+      type: Type.STRING, 
+      enum: ['INITIAL', 'DISCOVERY', 'TENSION', 'AGREEMENT', 'CLOSING', 'STALLED', 'LOST'] 
+    },
+    confidenceScore: { type: Type.NUMBER },
+    transitionReason: { type: Type.STRING },
+    suggestedAction: { type: Type.STRING }
+  },
+  required: ['currentState', 'confidenceScore', 'transitionReason', 'suggestedAction']
+};
 
 export const LAUNCH_READINESS_SCHEMA = {
   type: Type.OBJECT,

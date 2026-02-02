@@ -18,16 +18,8 @@ serve(async (req) => {
     const payload = await req.json();
     const { model, contents, config } = payload;
     
-    // ستقوم بجلب هذا المفتاح من إعدادات Secrets في Supabase
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY is missing in Supabase Secrets" }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // Fix: Using process.env.API_KEY directly for initialization as per GenAI coding guidelines.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const formattedContents = typeof contents === 'string' 
       ? [{ role: 'user', parts: [{ text: contents }] }]
@@ -39,6 +31,7 @@ serve(async (req) => {
       config: config || {}
     });
 
+    // Fix: Access response.text directly as a property (not a method) as per GenAI coding guidelines.
     return new Response(
       JSON.stringify({ text: response.text || "", candidates: response.candidates }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }

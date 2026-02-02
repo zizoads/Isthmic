@@ -1,5 +1,5 @@
 
-import { Type } from "@google/genai";
+import { Type, GoogleGenAI } from "@google/genai";
 import { generateStructuredAI } from "./base";
 
 export const rigorousDiscoveryAI = async (prompt: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
@@ -84,38 +84,31 @@ export const registrarInquiryAI = async (domainName: string) => {
   return res.data;
 };
 
+// Fix: findLocalBuyersAI rewritten to follow Google Gemini Maps Grounding guidelines:
+// 1. Use Gemini 2.5 series model as required for maps grounding functionality.
+// 2. Do NOT set responseMimeType or responseSchema when using the googleMaps tool.
+// 3. Extract place URLs and metadata from groundingChunks to display sources in the UI.
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
+  // Fix: Initialize GoogleGenAI with process.env.API_KEY directly right before making the call.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const toolConfig = lat && lng ? {
     retrievalConfig: { latLng: { latitude: lat, longitude: lng } }
   } : undefined;
 
-  const res = await generateStructuredAI<any>(
-    'gemini-3-pro-preview', // Maps grounding usually needs pro
-    "Geographic Targeter. Find real businesses needing this domain.",
-    `Find potential local buyers for "${query}" near coordinates ${lat}, ${lng}.`,
-    {
-      type: Type.OBJECT,
-      properties: {
-        text: { type: Type.STRING },
-        sources: { 
-          type: Type.ARRAY, 
-          items: { 
-            type: Type.OBJECT, 
-            properties: { 
-              maps: { 
-                type: Type.OBJECT, 
-                properties: { 
-                  uri: { type: Type.STRING }, 
-                  title: { type: Type.STRING } 
-                } 
-              } 
-            } 
-          } 
-        }
-      }
-    },
-    [{ googleMaps: {} }],
-    toolConfig
-  );
-  return res.data;
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash', // Maps grounding is only supported in Gemini 2.5 series models.
+    contents: `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}. Identify real businesses that could benefit from this domain.`,
+    config: {
+      tools: [{ googleMaps: {} }],
+      toolConfig
+    }
+  });
+
+  // Fix: Return structured data including grounding chunks for URLs.
+  return {
+    text: response.text || "",
+    // Must extract sources from groundingMetadata.groundingChunks to list URLs in the web app.
+    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+  };
 };
