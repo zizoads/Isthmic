@@ -1,112 +1,102 @@
 
-import { GoogleGenAI } from "@google/genai";
-import { AlignmentReport, StrategicObjective, NegotiationThread, ObjectiveStatus } from "../../types";
-import { safeAICall, generateStructuredAI } from "./base";
-import { STRATEGIC_ALIGNMENT_SCHEMA } from "./schemas";
-import { NegotiationService } from "./NegotiationService";
+import { AlignmentReport, StrategicObjective, PlatformStats } from "../../types";
+import { generateStructuredAI, safeAICall } from "./base";
+import { Type } from "@google/genai";
 
-/**
- * OrchestrationService: The "Sovereign Chief of Staff".
- * Responsible for tactical calibration and strategic alignment audits.
- */
 export class OrchestrationService {
   private static readonly MODEL = 'gemini-3-flash-preview';
 
   /**
-   * evaluateStrategicAlignment: يقارن أداء الخدمة بالهدف الاستراتيجي.
+   * Calculates Alignment Velocity using a weighted moving average.
+   * Tracks how the platform's execution is converging with Commander Intent.
+   */
+  static calculateAlignmentVelocity(history: AlignmentReport[]): number {
+    if (!history || history.length < 2) return 0;
+    
+    // Take up to last 10 points
+    const points = history.slice(0, 10);
+    const changes = [];
+    
+    for (let i = 0; i < points.length - 1; i++) {
+      // Recent reports (index 0) should have higher weight
+      const weight = (points.length - i) / points.length;
+      changes.push((points[i].alignmentScore - points[i+1].alignmentScore) * weight);
+    }
+    
+    if (changes.length === 0) return 0;
+    const avgChange = changes.reduce((a, b) => a + b, 0) / changes.length;
+    return Math.round(avgChange * 10) / 10;
+  }
+
+  /**
+   * Evaluate a specific operational action against an objective.
    */
   static async evaluateStrategicAlignment(
-    serviceData: any, 
+    snapshot: any, 
     objective: StrategicObjective
   ): Promise<AlignmentReport> {
     return safeAICall(async () => {
       const result = await generateStructuredAI<AlignmentReport>(
         this.MODEL,
-        `You are the Sovereign Alignment Monitor. 
-         Your mission is to compare incoming operational data against the Commander's Strategic Objective.
-         Detect deviations, risks, and suggest surgical corrections.`,
-        `STRATEGIC_OBJECTIVE: ${objective.description} (Criteria: ${objective.evaluationPrompt})
-         OPERATIONAL_DATA: ${JSON.stringify(serviceData)}
-         
-         Analyze: Does this data align with the objective? 
-         Return a score (0-100), status, and reasoning.`,
-        STRATEGIC_ALIGNMENT_SCHEMA
+        `Role: Sovereign Alignment Monitor. 
+         Objective: ${objective.description}. 
+         Protocol: Judge operational snapshot vs Strategic Intent.`,
+        `Snapshot: ${JSON.stringify(snapshot)}. 
+         Is the current agent activity deviating from the mission? 
+         Score: 0-100 (100 = Perfect Sync).`,
+        {
+          type: Type.OBJECT,
+          properties: {
+            alignmentScore: { type: Type.NUMBER },
+            status: { type: Type.STRING, enum: ['GREEN', 'YELLOW', 'RED'] },
+            reasoning: { type: Type.STRING },
+            suggestedAdjustment: { type: Type.STRING }
+          },
+          required: ['alignmentScore', 'status', 'reasoning', 'suggestedAdjustment']
+        }
       );
-
       return result.data;
     });
   }
 
   /**
-   * monitorNegotiationAlignment: Active Polling helper for Negotiation Hub.
-   * Updates objective history and status in-place.
-   */
-  static async monitorNegotiationAlignment(
-    thread: NegotiationThread,
-    domainName: string,
-    objective: StrategicObjective
-  ): Promise<{ report: AlignmentReport; updatedObjective: StrategicObjective } | null> {
-    if (!objective.linkedServices.includes('NEGOTIATION' as any)) return null;
-
-    const snapshot = NegotiationService.getStrategicSnapshot(thread, domainName);
-    if (snapshot.messageCount === 0) return null;
-
-    const report = await this.evaluateStrategicAlignment(snapshot, objective);
-    
-    // تحديث الحالة بناءً على النتيجة
-    let newStatus: ObjectiveStatus = 'TRACKING' as any;
-    if (report.status === 'RED') newStatus = 'DEVIATED' as any;
-    else if (report.status === 'YELLOW') newStatus = 'AT_RISK' as any;
-
-    const updatedObjective: StrategicObjective = {
-      ...objective,
-      status: newStatus,
-      lastEvaluated: new Date().toISOString(),
-      alignmentHistory: [report, ...objective.alignmentHistory].slice(0, 10)
-    };
-
-    return { report, updatedObjective };
-  }
-
-  /**
-   * injectStrategicContext: يحول الأهداف النشطة إلى تعليمات برمجية لمحرك الاكتشاف.
+   * Inject current constraints into AI system instructions.
    */
   static injectStrategicContext(objectives: StrategicObjective[]): string {
-    if (objectives.length === 0) return "";
-    const constraints = objectives.map(o => `- ${o.description}: ${o.evaluationPrompt}`).join('\n');
-    return `\nCRITICAL STRATEGIC CONSTRAINTS (MANDATORY):\n${constraints}\nDO NOT suggest items that violate these constraints.`;
+    if (!objectives || objectives.length === 0) return "General high-alpha growth strategy.";
+    return objectives
+      .map(o => `- ${o.category} Constraint: ${o.description} [Status: ${o.status}]`)
+      .join('\n');
   }
 
-  /**
-   * Phase 1 Mock: توليد أهداف وهمية للاختبار بناءً على الفلسفة الاستثمارية.
-   */
-  static async generateInitialObjectives(investmentThesis: string): Promise<StrategicObjective[]> {
+  static async generateInitialObjectives(thesis: string): Promise<StrategicObjective[]> {
+    // Generate tailored objectives based on thesis
     return [
       {
-        id: 'obj_1',
+        id: 'obj_liquidity',
         category: 'LIQUIDITY',
-        description: 'تسييل سريع للأصول التقنية',
-        targetValue: 5,
-        currentValue: 2,
-        unit: 'Units',
-        status: 'TRACKING' as any,
+        description: 'Maximize exit velocity (Avg < 45 days)',
+        targetValue: 45,
+        currentValue: 0,
+        unit: 'days',
+        status: 'TRACKING',
         weight: 0.8,
-        linkedServices: ['NEGOTIATION' as any],
-        evaluationPrompt: 'التركيز على العروض التي تزيد عن 300% من سعر الاستحواذ مع دورة بيع أقل من 30 يوماً.',
+        linkedServices: ['NEGOTIATION', 'LIQUIDATION'],
+        evaluationPrompt: 'Reject buyers with low financial credibility or slow response cycles.',
         lastEvaluated: new Date().toISOString(),
         alignmentHistory: []
       },
       {
-        id: 'obj_2',
-        category: 'RISK_MITIGATION',
-        description: 'تقليل مخاطر العلامات التجارية',
-        targetValue: 100,
-        currentValue: 95,
+        id: 'obj_alpha',
+        category: 'ACQUISITION',
+        description: 'Target Alpha Margin > 500%',
+        targetValue: 500,
+        currentValue: 0,
         unit: '%',
-        status: 'TRACKING' as any,
+        status: 'TRACKING',
         weight: 1.0,
-        linkedServices: ['ACQUISITION' as any, 'DISCOVERY' as any],
-        evaluationPrompt: 'منع أي استحواذ يحتوي على تشابه صوتي مع شركات Fortune 500.',
+        linkedServices: ['DISCOVERY'],
+        evaluationPrompt: 'Only accept domains with verified search console potential or historical DA > 20.',
         lastEvaluated: new Date().toISOString(),
         alignmentHistory: []
       }

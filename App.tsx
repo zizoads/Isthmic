@@ -6,12 +6,15 @@ import OnboardingTour from './components/OnboardingTour';
 import MainLayout from './components/layout/MainLayout';
 import HubRenderer from './components/layout/HubRenderer';
 import { useDomainContext } from './context/DomainContext';
+import StrategicBriefingBadge from './components/negotiation/StrategicBriefingBadge';
+import ProtocolErrorBoundary from './components/ui/ProtocolErrorBoundary';
 
 const App: React.FC = () => {
   const { 
     domains, 
     setDomains, 
     stats, 
+    strategy,
     addLog, 
     integrations, 
     activeProfile, 
@@ -86,9 +89,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
+    <ProtocolErrorBoundary fallbackName="Isthmic_Core">
       {isTourOpen && <OnboardingTour onComplete={() => setTourStatus(true)} lang={lang} />}
       
+      {/* Silent Observer: Stage 3 Neural Link monitoring */}
+      <StrategicBriefingBadge objectives={strategy.objectives || []} lang={lang} />
+
       <MainLayout 
         activeHub={activeHub} 
         setActiveHub={setActiveHub}
@@ -106,7 +112,7 @@ const App: React.FC = () => {
           lang={lang}
         />
       </MainLayout>
-    </>
+    </ProtocolErrorBoundary>
   );
 };
 

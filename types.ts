@@ -1,4 +1,5 @@
 
+
 export enum AgentType { 
   INTELLIGENCE = 'INTELLIGENCE', 
   ACQUISITION = 'ACQUISITION', 
@@ -17,20 +18,6 @@ export enum AgentRole {
   AUDITOR = 'AUDITOR'
 }
 
-export enum ServiceType {
-  DISCOVERY = 'DISCOVERY',
-  NEGOTIATION = 'NEGOTIATION',
-  ACQUISITION = 'ACQUISITION',
-  LIQUIDATION = 'LIQUIDATION'
-}
-
-export enum ObjectiveStatus {
-  TRACKING = 'TRACKING',
-  ACHIEVED = 'ACHIEVED',
-  AT_RISK = 'AT_RISK',
-  DEVIATED = 'DEVIATED'
-}
-
 export interface AlignmentReport {
   alignmentScore: number;
   status: 'GREEN' | 'YELLOW' | 'RED';
@@ -47,49 +34,13 @@ export interface StrategicObjective {
   unit: string;
   status: ObjectiveStatus;
   weight: number;
-  linkedServices: ServiceType[];
+  linkedServices: string[];
   evaluationPrompt: string;
   lastEvaluated: string;
   alignmentHistory: AlignmentReport[];
 }
 
-export interface RejectionPattern {
-  patternId: string;
-  reason: string;
-  timestamp: string;
-  sector: string;
-}
-
-export interface PlatformStrategy {
-  id: string;
-  totalBudget: number;
-  riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
-  autoPilot: boolean;
-  investmentThesis: string;
-  objectives?: StrategicObjective[];
-  rejectionPatterns?: RejectionPattern[]; // ذاكرة الأنماط المرفوضة للتعلم التراكمي
-}
-
-export interface Domain {
-  id: string;
-  workspaceId: string;
-  name: string;
-  price: number;
-  status: 'available' | 'processing' | 'purchased' | 'negotiating' | 'sold' | 'watching';
-  contentStatus: 'none' | 'draft' | 'published';
-  lastChecked?: string;
-  sector?: string;
-  justification?: string;
-  probability?: number;
-  strategicAlignmentScore?: number; // درجة التوافق العصبي (0-100)
-  rejectionReason?: string;
-  integrityScore?: number;
-  technicalMetrics?: any;
-  brandAssets?: any;
-  financials?: any;
-  negotiationThread?: any;
-  agentThoughts?: any;
-}
+export type ObjectiveStatus = 'TRACKING' | 'ACHIEVED' | 'AT_RISK' | 'DEVIATED';
 
 export interface PlatformStats {
   totalDiscovered: number;
@@ -98,112 +49,21 @@ export interface PlatformStats {
   openRate: number;
   avgProfit: number;
   estimatedPortfolioValue: number;
+  alignmentVelocity: number;
   systemResilienceStatus: 'nominal' | 'syncing' | 'warning' | 'critical';
 }
 
-export interface ActivityLog {
-  id: string;
-  workspaceId: string;
-  time: string;
-  agent: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'critical';
-  actionLabel?: string;
-  actionPayload?: any;
-  onAction?: (payload: any) => void;
-}
-
-export interface ServiceIntegration {
-  id: string;
-  workspaceId: string;
-  name: string;
-  provider: string;
-  status: 'connected' | 'disconnected';
-  key?: string;
-}
-
-export interface NexusOpportunity {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-}
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  role: 'Admin' | 'Executive' | 'Analyst';
-  subscriptionTier: 'Free' | 'Pro' | 'Sovereign';
-  usageStats: any;
-  preferences: any;
-  createdAt: string;
-  emailConfirmedAt?: string;
-  isSyncEnabled: boolean;
-  avatar: string;
-}
-
-export interface ActiveJob {
-  id: string;
-  workspaceId: string;
-  type: string;
-  status: 'running' | 'completed' | 'failed';
-  payload: any;
-  thoughts: any[];
-  lastUpdate: string;
-}
-
-export interface WorkflowState {
-  id: string;
-  nameAr: string;
-  nameEn: string;
-  nodes: any[];
-  progress: number;
-  isComplete: boolean;
-}
-
-export interface NodeDefinition {
-  id: string;
-  labelAr: string;
-  labelEn: string;
-  task: (input: any) => Promise<any>;
-}
-
-export interface AuditLogEntry {
-  id: string;
-  timestamp: string;
-  actorName: string;
-  description: string;
-  severity: 'info' | 'warning' | 'critical';
-}
-
-export interface ThinkingStep {
-  id: string;
-  action: string;
-  finding: string;
-  status: 'searching' | 'pending' | 'complete';
-}
-
-export interface OutreachMessage {
-  id: string;
-  domainId: string;
-  recipient: string;
-  recipientEmail: string;
-  recipientRole: string;
-  tone: string;
-  status: 'draft' | 'sent' | string;
-  content: string;
-}
-
-export interface LeadProspect {
-  companyName: string;
-  estimatedValuation: string;
-  currentDomain: string;
-  synergyReason: string;
-  decisionMaker: string;
-  jobTitle: string;
-  linkedinUrl: string;
-  contactEmail: string;
+export interface TechnicalMetrics {
+  da?: number;
+  pa?: number;
+  spamScore?: number;
+  historicalCategory?: string;
+  virusTotalStatus?: 'Clean' | 'Malicious' | 'Suspicious' | 'Untested';
+  verificationStatus?: 'AI_INFERRED' | 'REGISTRY_VERIFIED' | 'CROSS_REFERENCED';
+  dnaForensics?: string;
+  isGscConnected?: boolean;
+  organicTraffic?: number;
+  trademarkRisk?: string;
 }
 
 export enum DealStateEnum {
@@ -227,7 +87,7 @@ export interface DealState {
 
 export interface MessageAuditInsight {
   sentimentScore: number;
-  intent: string;
+  intent: 'lowball' | 'discovery' | 'serious_offer' | 'bluff' | 'urgency';
   psychologicalMarkers: string[];
   redFlags: string[];
   suggestedAction: string;
@@ -259,7 +119,7 @@ export interface FAANGNegotiationReport {
 
 export interface NegotiationMessage {
   id: string;
-  sender: 'buyer' | 'ai_assistant' | string;
+  sender: 'buyer' | 'ai_assistant';
   content: string;
   timestamp: string;
   auditInsight?: MessageAuditInsight;
@@ -271,43 +131,150 @@ export interface NegotiationThread {
   domainId: string;
   buyerName: string;
   messages: NegotiationMessage[];
-  overallStatus: 'active' | 'closed' | string;
+  overallStatus: 'active' | 'completed' | 'stalled';
   currentLeverage: number;
   currentState?: DealState;
 }
 
-export interface PlanDetails {
+export interface Domain {
+  id: string;
+  workspaceId: string;
+  name: string;
   price: number;
-  maxScans: number;
-  maxAudits: number;
-  features: string[];
+  status: 'available' | 'processing' | 'purchased' | 'negotiating' | 'sold' | 'watching';
+  contentStatus: 'none' | 'draft' | 'published';
+  sector?: string;
+  justification?: string;
+  probability?: number;
+  strategicAlignmentScore?: number;
+  rejectionPatterns?: string[];
+  technicalMetrics?: TechnicalMetrics;
+  financials?: any;
+  agentThoughts?: any;
+  negotiationThread?: NegotiationThread;
+  brandAssets?: { logoUrl: string; tagline: string; colors: string[]; };
+  integrityScore?: number;
+  lastChecked?: string;
 }
 
-export interface PlatformMonetizationSettings {
-  isMonetizationActive: boolean;
-  plans: Record<string, PlanDetails>;
+export interface PlatformStrategy {
+  id: string;
+  totalBudget: number;
+  riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
+  autoPilot: boolean;
+  investmentThesis: string;
+  objectives?: StrategicObjective[];
+  rejectionPatterns?: RejectionPattern[];
 }
 
-export interface AgentThought {
-  role: AgentRole;
+export interface ActivityLog {
+  id: string;
+  workspaceId: string;
+  time: string;
+  agent: string;
   message: string;
+  type: 'info' | 'success' | 'warning' | 'critical';
+  actionPayload?: any;
+  actionLabel?: string;
+  onAction?: (payload?: any) => void;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: 'Admin' | 'Executive' | 'Analyst';
+  subscriptionTier: 'Free' | 'Pro' | 'Sovereign';
+  usageStats: any;
+  preferences: any;
+  createdAt: string;
+  emailConfirmedAt?: string;
+  isSyncEnabled?: boolean;
+  avatar?: string;
+}
+
+export interface ThinkingStep {
+  id: string;
+  action: string;
+  finding: string;
+  status: 'searching' | 'pending' | 'complete';
+}
+
+export interface RejectionPattern {
+  patternId: string;
+  reason: string;
   timestamp: string;
-  status: 'thinking' | 'resolved' | 'failed';
+  sector: string;
+}
+
+export interface OutreachMessage {
+  id: string;
+  domainId: string;
+  recipient: string;
+  recipientEmail?: string;
+  recipientRole: string;
+  tone: string;
+  status: 'draft' | 'sent';
+  content: string;
+}
+
+export interface LeadProspect {
+  companyName: string;
+  estimatedValuation?: string;
+  currentDomain?: string;
+  synergyReason: string;
+  decisionMaker: string;
+  jobTitle?: string;
+  linkedinUrl?: string;
+  contactEmail?: string;
+}
+
+export interface ServiceIntegration {
+  id: string;
+  workspaceId: string;
+  provider: string;
+  status: 'connected' | 'disconnected';
+  lastUsed?: string;
+}
+
+export interface NexusOpportunity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
 }
 
 export type NodeStatus = 'idle' | 'running' | 'completed' | 'failed';
 
-export interface TechnicalMetrics {
-  da?: number;
-  pa?: number;
-  spamScore?: number;
-  historicalCategory?: string;
-  virusTotalStatus?: string;
-  verificationStatus?: string;
-  organicTraffic?: number;
-  isGscConnected?: boolean;
-  dnaForensics?: string;
-  trademarkRisk?: string;
+export interface WorkflowNode {
+  id: string;
+  labelAr: string;
+  labelEn: string;
+  status: NodeStatus;
+  output?: any;
+}
+
+export interface WorkflowState {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  nodes: WorkflowNode[];
+  progress: number;
+  isComplete: boolean;
+}
+
+export interface NodeDefinition {
+  id: string;
+  labelAr: string;
+  labelEn: string;
+  task: (input: any) => Promise<any>;
+}
+
+export interface AgentThought {
+  role: AgentRole | string;
+  message: string;
+  timestamp: string;
+  status: 'thinking' | 'resolved' | 'failed';
 }
 
 export interface NegotiationBattleCard {
@@ -318,11 +285,30 @@ export interface NegotiationBattleCard {
   sentimentScore: number;
 }
 
-export interface ReportSection {
+export interface ActiveJob {
   id: string;
-  title: string;
-  included: boolean;
-  content: any;
+  workspaceId: string;
+  type: string;
+  status: 'running' | 'completed' | 'failed';
+  payload: any;
+  thoughts: AgentThought[];
+  lastUpdate: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  action: string;
+  description: string;
+}
+
+export interface PlanDetails {
+  price: number;
+  maxScans: number;
+  maxAudits: number;
+  features: string[];
 }
 
 export interface IntelligenceReport {
@@ -332,10 +318,17 @@ export interface IntelligenceReport {
   sections: ReportSection[];
 }
 
+export interface ReportSection {
+  id: string;
+  title: string;
+  included: boolean;
+  content: any;
+}
+
 export interface ResilienceMetrics {
-  latencyMs: number;
-  integrityScore: number;
-  recoverySuccess: boolean;
+  pulseLatency: number;
+  syncSuccessRate: number;
+  errorRate: number;
 }
 
 export interface NegotiationSnapshot {
@@ -347,25 +340,6 @@ export interface NegotiationSnapshot {
   riskFlagsCount: number;
   sentiment: number;
   timestamp: string;
-}
-
-export interface AutomaticFix {
-  id: string;
-  description: string;
-  patch: string;
-  confidence: number;
-  before: string;
-  after: string;
-}
-
-export interface FixImpactReport {
-  before: any;
-  after: any;
-  improvementPercentage: number;
-  performanceGain: number;
-  readabilityGain: number;
-  maintainabilityGain: number;
-  isSuccessful: boolean;
 }
 
 export interface SovereignAutopsyReport {
@@ -404,23 +378,35 @@ export interface SovereignAutopsyReport {
     debtCost: number;
     criticality: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   };
-  findings: {
-    category: string;
-    severity: 'MINOR' | 'MAJOR' | 'CRITICAL';
-    description: string;
-    recommendation: string;
-    fixExample: string;
-    origin: string;
-    patternId: string;
-  }[];
-  improvementRoadmap: {
-    phase: number;
-    priority: string;
-    action: string;
-    expectedImpact: number;
-    estimatedEffort: number;
-  }[];
+  findings: any[];
+  improvementRoadmap: any[];
   impactReport?: FixImpactReport;
+}
+
+export interface AutomaticFix {
+  id: string;
+  description: string;
+  patch: string;
+  confidence: number;
+  before: string;
+  after: string;
+}
+
+export interface FixImpactReport {
+  before: any;
+  after: any;
+  improvementPercentage: number;
+  performanceGain: number;
+  readabilityGain: number;
+  maintainabilityGain: number;
+  isSuccessful: boolean;
+}
+
+export interface ProblemCatalog {
+  institutionalHealthIndex: number;
+  patterns: any[];
+  lastUpdated: string;
+  totalFilesAnalyzed: number;
 }
 
 export interface ProjectExecutiveSummary {
@@ -433,21 +419,12 @@ export interface ProjectExecutiveSummary {
   faangReadinessIndex: number;
 }
 
-export interface ProblemPattern {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  severity: string;
-  frequency: number;
-  globalRecommendation: string;
-}
-
-export interface ProblemCatalog {
-  institutionalHealthIndex: number;
-  patterns: ProblemPattern[];
-  lastUpdated: string;
-  totalFilesAnalyzed: number;
+export interface LaunchReadinessReport {
+  overallReadiness: number;
+  authorizedForLaunch: boolean;
+  blockers: number;
+  ewsStatus: 'NOMINAL' | 'ALERT' | 'CRITICAL';
+  components: any[];
 }
 
 export interface EWSAlert {
@@ -459,20 +436,4 @@ export interface EWSAlert {
   metric: string;
 }
 
-export interface ComponentStatus {
-  id: string;
-  name: string;
-  category: 'CORE' | 'AI_SERVICE' | 'UI_HUB' | 'INFRASTRUCTURE';
-  status: 'STABLE' | 'REFINE' | 'CRITICAL' | 'LOCKED';
-  phi: number;
-  lastAudit: string;
-  risks: string[];
-}
-
-export interface LaunchReadinessReport {
-  overallReadiness: number;
-  authorizedForLaunch: boolean;
-  blockers: number;
-  ewsStatus: 'NOMINAL' | 'ALERT' | 'CRITICAL';
-  components: ComponentStatus[];
-}
+export type ComponentStatus = 'STABLE' | 'REFINE' | 'CRITICAL' | 'LOCKED';

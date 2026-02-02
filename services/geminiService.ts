@@ -1,20 +1,54 @@
 
-export { safeAICall } from "./ai/base";
+/**
+ * Isthmic Pro - Sovereign AI Aggregator v6.0
+ * PRUNED & MODULARIZED to reduce tech debt and circular dependencies.
+ */
+
+// Core AI Base
+export { safeAICall, generateStructuredAI } from "./ai/base";
+
+// specialized Forensic Services
 export { performOsintInvestigationAI, checkTrademarkRiskAI } from "./ai/ForensicService";
-export { rigorousDiscoveryAI, getDropSniperListAI, analyzeSnipeOpportunityAI, registrarInquiryAI, findLocalBuyersAI } from "./ai/DiscoveryService";
-export { evaluateDomainExpertAI, debateDomainStrategyAI, generateExecutiveReportAI, nexusPrimeIntelligenceAI } from "./ai/AnalysisService";
-export { optimizeAfternicListingAI, harvestBulkLeadsAI, analyzeMarketPulseAI, generateLeadGenBlueprintAI, generatePersonaPitchAI, getAuctionIntelligenceAI } from "./ai/LiquidationService";
+
+// Market Discovery & Intelligence
+export { 
+  rigorousDiscoveryAI, 
+  getDropSniperListAI, 
+  analyzeSnipeOpportunityAI, 
+  registrarInquiryAI, 
+  findLocalBuyersAI 
+} from "./ai/DiscoveryService";
+
+// Deep Analysis & Strategy
+export { 
+  evaluateDomainExpertAI, 
+  debateDomainStrategyAI, 
+  generateExecutiveReportAI, 
+  nexusPrimeIntelligenceAI 
+} from "./ai/AnalysisService";
+
+// Liquidation & Outreach
+export { 
+  optimizeAfternicListingAI, 
+  harvestBulkLeadsAI, 
+  analyzeMarketPulseAI, 
+  generateLeadGenBlueprintAI, 
+  generatePersonaPitchAI, 
+  getAuctionIntelligenceAI 
+} from "./ai/LiquidationService";
+
+// Value Engineering
 export { generateBrandIdentityAI, generateValueProofAI } from "./ai/ValueService";
 
-// Market Signals functionality migrated from legacy
+// Market Signals (Legacy support pruned to direct call)
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./ai/base";
 
 export const getMarketSignalsAI = async (domainPart: string) => {
   return generateStructuredAI(
     'gemini-3-flash-preview',
-    "Market trend analyzer.",
-    `Analyze trends for "${domainPart}"`,
+    "Role: Real-time Market Pulse Analyzer. Grounding: ENABLED.",
+    `Analyze sector momentum and pricing signals for keyword: "${domainPart}"`,
     {
       type: Type.OBJECT,
       properties: {

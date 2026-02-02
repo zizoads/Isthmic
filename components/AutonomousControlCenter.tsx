@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AgentThought, PlatformStrategy, AgentRole, ActiveJob, Domain } from '../types';
 import { MasterBrainEngine } from '../services/masterBrainEngine';
 import { useDomainContext } from '../context/DomainContext';
@@ -10,6 +10,43 @@ interface Props {
   onDomainsInjected: (domains: Domain[]) => void;
   lang: 'ar' | 'en';
 }
+
+/**
+ * SecureMessageRenderer: A specialized component to safely render 
+ * translation-injected HTML spans (force-ltr) without using dangerouslySetInnerHTML.
+ */
+const SecureMessageRenderer: React.FC<{ text: string }> = ({ text }) => {
+  // Safe parsing logic: Split by our known injection pattern <span class="force-ltr...
+  // This prevents arbitrary HTML injection while allowing our own technical spans.
+  const parts = useMemo(() => {
+    const regex = /<span class="force-ltr[^>]*>(.*?)<\/span>/g;
+    const result: (string | React.ReactNode)[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      // Add plain text before match
+      if (match.index > lastIndex) {
+        result.push(text.substring(lastIndex, match.index));
+      }
+      // Add the technical entity as a secure React component
+      result.push(
+        <span key={match.index} className="force-ltr data-mono inline-block font-bold text-white ltr-inline" dir="ltr">
+          {match[1]}
+        </span>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      result.push(text.substring(lastIndex));
+    }
+    
+    return result;
+  }, [text]);
+
+  return <>{parts.length > 0 ? parts : text}</>;
+};
 
 const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected, lang }) => {
   const { activeJobs, saveJob, clearJob, addLog } = useDomainContext();
@@ -73,15 +110,12 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
       await clearJob(jobId);
       addLog('Master Brain', 'Sovereign Protocol successfully concluded.', 'success');
     } catch (e: any) {
-      console.error("Loop Error:", e.message);
-      
-      if (e.message === 'SOVEREIGN_KEY_EXPIRED') {
+      if (e.message === 'SOVEREIGN_KEY_EXPIRED' || e.message?.includes('API_KEY')) {
         setNeedsNewKey(true);
         addLog('System', 'Identity Error: Please select a valid API Key.', 'critical');
       } else {
         addLog('System', `Loop interrupted: ${e.message}`, 'warning');
       }
-      
       setIsRunning(false);
     }
   };
@@ -155,10 +189,9 @@ const AutonomousControlCenter: React.FC<Props> = ({ strategy, onDomainsInjected,
                     </span>
                     <span className="text-[9px] text-slate-700 font-mono">[{thought.timestamp}]</span>
                   </div>
-                  {/* Using dangerouslySetInnerHTML to allow our force-ltr spans injected by useSovereignT */}
-                  <p className={`text-lg leading-relaxed prestige-heading italic ${thought.status === 'failed' ? 'text-red-400' : 'text-white/90'}`}
-                     dangerouslySetInnerHTML={{ __html: `"${thought.message}"` }}
-                  />
+                  <p className={`text-lg leading-relaxed prestige-heading italic ${thought.status === 'failed' ? 'text-red-400' : 'text-white/90'}`}>
+                    "<SecureMessageRenderer text={thought.message} />"
+                  </p>
                 </div>
               </div>
             ))}
