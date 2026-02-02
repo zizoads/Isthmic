@@ -1,15 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MasterBrainDashboard from '../MasterBrainDashboard';
 import NexusPrimeDashboard from '../NexusPrimeDashboard';
 import FeedbackDashboard from '../FeedbackDashboard';
 import MarketMomentumChart from '../MarketMomentumChart';
 import AutonomousControlCenter from '../AutonomousControlCenter';
 import WorkflowIndicator from '../WorkflowIndicator';
-import { PlatformStats, WorkflowState } from '../../types';
+import StrategicBriefingBadge from '../negotiation/StrategicBriefingBadge';
+import { PlatformStats, WorkflowState, StrategicObjective } from '../../types';
 import { useDomainContext } from '../../context/DomainContext';
 import { useMasterBrain } from '../../hooks/useMasterBrain';
 import { useSovereignT } from '../../hooks/useTranslation';
+import { OrchestrationService } from '../../services/ai/OrchestrationService';
 
 interface Props {
   stats: PlatformStats;
@@ -22,10 +24,21 @@ interface Props {
 const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScanning, activeWorkflow: propsActiveWorkflow }) => {
   const { activityLogs, strategy, setStrategy, addLog, setDomains } = useDomainContext();
   const [subTab, setSubTab] = useState<'sovereign' | 'nexus' | 'strategy' | 'feedback'>('sovereign');
+  const [objectives, setObjectives] = useState<StrategicObjective[]>([]);
   const t = useSovereignT(lang);
   
   const { activeWorkflow: localActiveWorkflow } = useMasterBrain(strategy, lang);
   const currentWorkflow = propsActiveWorkflow !== undefined ? propsActiveWorkflow : localActiveWorkflow;
+
+  // Phase 1: محاكاة توليد الأهداف عند تحديث الفلسفة الاستثمارية
+  useEffect(() => {
+    if (strategy.investmentThesis && objectives.length === 0) {
+      OrchestrationService.generateInitialObjectives(strategy.investmentThesis).then(res => {
+        setObjectives(res);
+        addLog('Master Brain', 'Strategic Objectives Synthesized from Intent.', 'success');
+      });
+    }
+  }, [strategy.investmentThesis]);
 
   const tabs = [
     { id: 'sovereign', label: t('intelligence.tabs.command'), icon: 'fa-terminal' },
@@ -35,14 +48,14 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
   ];
 
   const navigateToKeySetup = () => {
-    // Navigate to Executive Suite via global hub change if needed, 
-    // or provide instructions. For now, since MasterBrain is within strategy subtab, 
-    // we assume the user should go to Executive Suite from the sidebar.
     addLog('System', lang === 'ar' ? 'يرجى الانتقال إلى الجناح التنفيذي (Executive) لإدارة المفاتيح.' : 'Please navigate to Executive Suite to manage API keys.', 'info');
   };
 
   return (
     <div className="space-y-12 animate-precision" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Strategic Observer - Phase 1 UI */}
+      <StrategicBriefingBadge objectives={objectives} lang={lang} />
+
       <header className="space-y-4">
         <div className="flex items-center gap-4">
            <div className="w-2 h-8 bg-[#c5a059]"></div>
@@ -75,6 +88,22 @@ const IntelligenceHub: React.FC<Props> = ({ stats, lang, onInitiateScan, isScann
       <div className="animate-fade-in space-y-12">
         {subTab === 'sovereign' && (
           <div className="space-y-12">
+            {/* عرض ملخص الأهداف (Silent Mode) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-60 hover:opacity-100 transition-opacity">
+               {objectives.map(obj => (
+                 <div key={obj.id} className="p-6 bg-white/2 border border-white/5 rounded-3xl flex justify-between items-center">
+                    <div>
+                       <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{obj.category}</div>
+                       <div className="text-sm font-bold text-white italic">{obj.description}</div>
+                    </div>
+                    <div className="text-right">
+                       <div className="text-xs font-black text-[#c5a059]">{obj.currentValue} / {obj.targetValue} {obj.unit}</div>
+                       <div className="text-[7px] font-mono text-slate-600 uppercase">Status: {obj.status}</div>
+                    </div>
+                 </div>
+               ))}
+            </div>
+            
             <AutonomousControlCenter 
                 strategy={strategy} 
                 onDomainsInjected={(newDomains) => setDomains(prev => [...newDomains, ...prev])} 

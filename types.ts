@@ -17,9 +17,48 @@ export enum AgentRole {
   AUDITOR = 'AUDITOR'
 }
 
+export enum ServiceType {
+  DISCOVERY = 'DISCOVERY',
+  NEGOTIATION = 'NEGOTIATION',
+  ACQUISITION = 'ACQUISITION',
+  LIQUIDATION = 'LIQUIDATION'
+}
+
+export enum ObjectiveStatus {
+  TRACKING = 'TRACKING',
+  ACHIEVED = 'ACHIEVED',
+  AT_RISK = 'AT_RISK',
+  DEVIATED = 'DEVIATED'
+}
+
 /**
- * DealStateEnum: مراحل حياة الصفقة التفاوضية
+ * AlignmentReport: مخرجات محرك التقييم الاستراتيجي
  */
+export interface AlignmentReport {
+  alignmentScore: number;
+  status: 'GREEN' | 'YELLOW' | 'RED';
+  reasoning: string;
+  suggestedAdjustment: string;
+}
+
+/**
+ * StrategicObjective: الهدف الاستراتيجي المهيكل
+ */
+export interface StrategicObjective {
+  id: string;
+  category: 'LIQUIDITY' | 'ACQUISITION' | 'REVENUE' | 'RISK_MITIGATION';
+  description: string;
+  targetValue: number;
+  currentValue: number;
+  unit: string;
+  status: ObjectiveStatus;
+  weight: number;
+  linkedServices: ServiceType[];
+  evaluationPrompt: string;
+  lastEvaluated: string;
+  alignmentHistory: AlignmentReport[];
+}
+
 export enum DealStateEnum {
   INITIAL = 'INITIAL',
   DISCOVERY = 'DISCOVERY',
@@ -35,7 +74,7 @@ export interface DealState {
   confidenceScore: number;
   previousState?: DealStateEnum;
   transitionReason: string;
-  suggestedAction?: string; // التوصية التكتيكية المستنتجة
+  suggestedAction?: string;
   lastUpdate: string;
 }
 
@@ -124,7 +163,7 @@ export interface NegotiationThread {
   messages: NegotiationMessage[];
   overallStatus: 'active' | 'closed' | 'won' | 'lost';
   currentLeverage: number;
-  currentState?: DealState; // الربط مع آلية الحالة الجديدة
+  currentState?: DealState;
 }
 
 export interface MessageAuditInsight {
@@ -187,6 +226,7 @@ export interface PlatformStrategy {
   riskTolerance: 'Conservative' | 'Balanced' | 'Aggressive';
   autoPilot: boolean;
   investmentThesis: string;
+  objectives?: StrategicObjective[]; // الربط مع الأهداف
 }
 
 export interface ServiceIntegration {

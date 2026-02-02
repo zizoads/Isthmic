@@ -2,8 +2,19 @@
 import { Type } from "@google/genai";
 
 /**
- * Isthmic Pro - Sovereign Schema Registry v17.1
+ * Isthmic Pro - Sovereign Schema Registry v17.2
  */
+
+export const STRATEGIC_ALIGNMENT_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    alignmentScore: { type: Type.NUMBER },
+    status: { type: Type.STRING, enum: ['GREEN', 'YELLOW', 'RED'] },
+    reasoning: { type: Type.STRING },
+    suggestedAdjustment: { type: Type.STRING }
+  },
+  required: ['alignmentScore', 'status', 'reasoning', 'suggestedAdjustment']
+};
 
 export const STATE_INFERENCE_SCHEMA = {
   type: Type.OBJECT,
