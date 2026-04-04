@@ -153,7 +153,8 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       // Call the backend brand generator for semantic .com names
       const response = await fetch('/api/generate-brands?domain=ai&niche=general_ai&count=5');
-      const { names } = await response.json();
+      const data = await response.json();
+      const names = data.names || [];
       
       const mockResults: Domain[] = names.map((name: string) => ({
         id: crypto.randomUUID(),
