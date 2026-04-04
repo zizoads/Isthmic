@@ -21,7 +21,7 @@ async function startServer() {
   }
 
   // API Routes
-  app.get("/api/project/intelligence", async (req, res) => {
+  app.get("/api/project/intelligence", async (_req, res) => {
     try {
       const packageJsonPath = path.join(process.cwd(), 'package.json');
       const metadataPath = path.join(process.cwd(), 'metadata.json');
@@ -64,13 +64,15 @@ async function startServer() {
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
     changeOrigin: true,
-    // Do NOT rewrite path because Python engine expects /api/...
-    onError: (err, req, res) => {
-      console.error("[PROXY ERROR]", err.message);
-      // Return JSON instead of letting it fall through to SPA fallback
-      res.writeHead(502, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: "Python engine unreachable", details: err.message }));
-    },
+    // Correct event handler for http-proxy-middleware v3
+    on: {
+      error: (err: Error, _req: any, res: any) => {
+        console.error("[PROXY ERROR]", err.message);
+        // Return JSON instead of letting it fall through to SPA fallback
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: "Python engine unreachable", details: err.message }));
+      },
+    }
   });
 
   // Apply proxy to specific endpoints
@@ -88,7 +90,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
