@@ -1,0 +1,30 @@
+services:
+  # 1. The Python Intelligence Engine
+  - type: web
+    name: isthmic-python-engine
+    runtime: python
+    rootDir: brand_intelligence
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: FIREBASE_CREDENTIALS
+        sync: false # User must set this manually in Render UI
+
+  # 2. The Main Node.js Application
+  - type: web
+    name: isthmic-pro-app
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run dev
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PYTHON_ENGINE_URL
+        fromService:
+          type: web
+          name: isthmic-python-engine
+          property: host
+      - key: GEMINI_API_KEY
+        sync: false # User must set this manually in Render UI
