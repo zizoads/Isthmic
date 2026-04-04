@@ -1,5 +1,8 @@
 {
-  "requestFramePermissions": [],
-  "name": "Code Audit Sovereign",
-  "description": "Automated FAANG-level code quality auditor."
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "name": "Isthmic Pro Sovereign-2.3",
+  "description": "Military-Grade Digital Asset OS. Zero-Latency Infrastructure with Quantum-Hardened Data Pipelines."
 }

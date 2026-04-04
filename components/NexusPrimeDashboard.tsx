@@ -1,16 +1,16 @@
+
 import React, { useState } from 'react';
 import { NexusOpportunity, Domain } from '../types';
 import { nexusPrimeIntelligenceAI } from '../services/geminiService';
 import { translations } from '../translations';
 
 interface Props {
-  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical') => void;
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
-  lang: 'ar' | 'en';
 }
 
-const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
-  const t = translations[lang];
+const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains }) => {
+  const t = translations.en;
   const [isThinking, setIsThinking] = useState(false);
   const [verdict, setVerdict] = useState<string | null>(null);
   const [opportunities, setOpportunities] = useState<NexusOpportunity[]>([]);
@@ -20,7 +20,7 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
     setIsThinking(true);
     addLog('Nexus Prime', `Launching ${activeMode}...`, 'info');
     try {
-      const result: any = await nexusPrimeIntelligenceAI(activeMode, "Global Sweep", lang);
+      const result: any = await nexusPrimeIntelligenceAI(activeMode, "Global Sweep");
       if (result) {
         setVerdict(result.analysisVerdict);
         setOpportunities(result.opportunities.map((o: any) => ({ ...o, id: globalThis.crypto.randomUUID() })));
@@ -33,8 +33,10 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
     }
   };
 
+  const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+
   return (
-    <div className="space-y-12 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-12 animate-fade-in">
       <div className={`relative bg-[#0b0b14] p-16 rounded-[48px] border border-white/5 overflow-hidden ${isThinking ? 'scanning-effect' : ''}`}>
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="flex-1">
@@ -60,7 +62,7 @@ const NexusPrimeDashboard: React.FC<Props> = ({ addLog, setDomains, lang }) => {
               <span className="bg-indigo-600/20 text-indigo-400 px-4 py-1.5 rounded-xl text-[9px] font-black w-fit mb-6">{opp.type}</span>
               <h4 className="font-black text-xl text-white mb-4">{opp.title}</h4>
               <p className="text-xs text-slate-400 leading-relaxed mb-10 italic flex-1">"{opp.description}"</p>
-              <button onClick={() => setDomains(p => [...p, { id: globalThis.crypto.randomUUID(), workspaceId: 'sys', name: opp.title, price: 500, status: 'available', contentStatus: 'none' } as Domain])} className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white">
+              <button onClick={() => setDomains(p => [...p, { id: globalThis.crypto.randomUUID(), workspaceId: NIL_UUID, name: opp.title, price: 500, status: 'available', contentStatus: 'none' } as Domain])} className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white">
                 {t.inject}
               </button>
             </div>

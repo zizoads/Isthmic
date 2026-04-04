@@ -7,20 +7,19 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 interface Props {
   stats: PlatformStats;
   isLearningView?: boolean;
-  lang?: 'ar' | 'en';
 }
 
-const AnalyticsDashboard: React.FC<Props> = ({ stats, isLearningView, lang = 'ar' }) => {
-  const t = translations[lang];
+const AnalyticsDashboard: React.FC<Props> = ({ stats }) => {
+  const t = translations.en;
 
   const chartData = [
-    { name: lang === 'ar' ? 'الإثنين' : 'Mon', domains: 12, sales: 2 },
-    { name: lang === 'ar' ? 'الثلاثاء' : 'Tue', domains: 18, sales: 5 },
-    { name: lang === 'ar' ? 'الأربعاء' : 'Wed', domains: 15, sales: 3 },
-    { name: lang === 'ar' ? 'الخميس' : 'Thu', domains: 25, sales: 8 },
-    { name: lang === 'ar' ? 'الجمعة' : 'Fri', domains: 32, sales: 12 },
-    { name: lang === 'ar' ? 'السبت' : 'Sat', domains: 10, sales: 4 },
-    { name: lang === 'ar' ? 'الأحد' : 'Sun', domains: 8, sales: 2 },
+    { name: 'Mon', domains: 12, sales: 2 },
+    { name: 'Tue', domains: 18, sales: 5 },
+    { name: 'Wed', domains: 15, sales: 3 },
+    { name: 'Thu', domains: 25, sales: 8 },
+    { name: 'Fri', domains: 32, sales: 12 },
+    { name: 'Sat', domains: 10, sales: 4 },
+    { name: 'Sun', domains: 8, sales: 2 },
   ];
 
   const sectorData = [
@@ -33,7 +32,7 @@ const AnalyticsDashboard: React.FC<Props> = ({ stats, isLearningView, lang = 'ar
   const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f97316'];
 
   return (
-    <div className="space-y-8" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-8" dir="ltr">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
@@ -75,7 +74,7 @@ const AnalyticsDashboard: React.FC<Props> = ({ stats, isLearningView, lang = 'ar
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} orientation={lang === 'ar' ? 'right' : 'left'} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} orientation="left" />
                 <Tooltip 
                   contentStyle={{borderRadius: '12px', border: 'none', background: '#0f172a', color: '#fff', fontSize: '10px'}}
                 />
@@ -95,7 +94,7 @@ const AnalyticsDashboard: React.FC<Props> = ({ stats, isLearningView, lang = 'ar
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
                 <Tooltip cursor={{fill: '#f8fafc'}} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
-                  {sectorData.map((entry, index) => (
+                  {sectorData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
@@ -104,7 +103,7 @@ const AnalyticsDashboard: React.FC<Props> = ({ stats, isLearningView, lang = 'ar
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
             {sectorData.map((s, i) => (
-              <div key={i} className={`flex items-center gap-2 ${lang === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div key={i} className="flex items-center gap-2 flex-row">
                 <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i]}}></div>
                 <span className="text-[10px] font-bold text-slate-500">{s.name} ({s.value}%)</span>
               </div>

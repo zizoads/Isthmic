@@ -1,36 +1,10 @@
 
 import { Type } from "@google/genai";
 import { safeAICall, generateStructuredAI } from "./base";
-import { supabase } from "../SupabaseClient";
 
-async function uploadImageToStorage(base64Data: string, domainName: string): Promise<string | null> {
-  try {
-    const binaryData = atob(base64Data);
-    const bytes = new Uint8Array(binaryData.length);
-    for (let i = 0; i < binaryData.length; i++) {
-      bytes[i] = binaryData.charCodeAt(i);
-    }
-
-    const fileName = `logos/${domainName}_${Date.now()}.png`;
-    
-    const { error } = await supabase.storage
-      .from('brand-assets')
-      .upload(fileName, bytes, {
-        contentType: 'image/png',
-        upsert: true
-      });
-
-    if (error) throw error;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('brand-assets')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  } catch (e) {
-    console.error("STORAGE_UPLOAD_ERR:", e);
-    return null;
-  }
+async function uploadImageToStorage(base64Data: string, _domainName: string): Promise<string | null> {
+  // Local-first strategy: Returning base64 directly to maintain data sovereignty.
+  return `data:image/png;base64,${base64Data}`;
 }
 
 export const generateBrandIdentityAI = async (domainName: string, sector: string): Promise<{ logoUrl: string, tagline: string, colors: string[] }> => {

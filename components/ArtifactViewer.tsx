@@ -11,13 +11,7 @@ interface ArtifactData {
   layoutType: 'modern' | 'corporate' | 'minimal';
 }
 
-interface Props {
-  data: ArtifactData;
-  domainName: string;
-  lang: 'ar' | 'en';
-}
-
-const ArtifactViewer: React.FC<Props> = ({ data, domainName, lang }) => {
+const ArtifactViewer: React.FC<{ data: ArtifactData; domainName: string }> = ({ data, domainName }) => {
   return (
     <div className="w-full h-full bg-white rounded-[32px] overflow-hidden border border-slate-200 shadow-inner flex flex-col group animate-fade-in">
       {/* Browser Bar */}

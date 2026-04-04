@@ -6,14 +6,14 @@ import { OrchestrationService } from "./OrchestrationService";
 
 export const rigorousDiscoveryAI = async (
   prompt: string, 
-  lang: 'ar' | 'en' = 'ar', 
+  lang: 'en' = 'en', 
   signal?: AbortSignal,
   objectives: StrategicObjective[] = [],
-  causalModels: CausalRejectionModel[] = [] // استخدام الذاكرة السببية
+  causalModels: CausalRejectionModel[] = []
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
   
-  // دمج المنطق السببي في التعليمات العليا
+  // Integrate causal logic into high-level instructions
   const causalContext = causalModels.length > 0 
     ? `\nCAUSAL INTELLIGENCE (LEARNED FROM PREVIOUS REJECTIONS):\n${causalModels.map(m => `- Logic: ${m.causalLogicChain} (Impact: ${m.severityIndex})`).join('\n')}`
     : "";
@@ -26,7 +26,15 @@ export const rigorousDiscoveryAI = async (
      ${strategicContext}
      ${causalContext}
      
-     Scoring: Assign strategicAlignmentScore (0-100) based on Objectives synergy.
+     CRITICAL PRIORITY & ARCHITECTURAL NUCLEUS (SEMANTIC HAND-REG STRATEGY):
+     1. STRICT TLD ENFORCEMENT: Only target ".com" extensions.
+     2. COMPOSITION PHILOSOPHY: Focus on "Unconventional Semantic Pairings" (Clear Meaning but non-obvious combinations).
+     3. LENGTH CONSTRAINT: Names MUST be short, ideally <= 10 characters (excluding .com).
+     4. AVAILABILITY TARGET: Strictly target domains available for hand-registration ($10-$13). Use search tools to verify "The Overlooked Gap".
+     5. VALUE PROPOSITION: Identify high-liquidity assets that have been missed by standard registry bots due to their specific semantic niche.
+     6. TRAFFIC BONUS: Prioritize domains within this composition strategy that show existing traffic signals (Trust Signal).
+     
+     Scoring: Assign strategicAlignmentScore (0-100). Add a +25 point bonus for "Unconventional Semantic" .com composition (<= 10 chars) that is verified available for hand-reg.
      Language: ${lang}`,
     `Execute deep acquisition sweep for: ${prompt}.`,
     {
@@ -39,7 +47,15 @@ export const rigorousDiscoveryAI = async (
           sector: { type: Type.STRING },
           justification: { type: Type.STRING },
           probability: { type: Type.NUMBER },
-          strategicAlignmentScore: { type: Type.NUMBER }
+          strategicAlignmentScore: { type: Type.NUMBER },
+          trafficSignal: { 
+            type: Type.STRING, 
+            description: "Estimated traffic level: 'none', 'low', 'medium', 'high'" 
+          },
+          trafficSource: { 
+            type: Type.STRING, 
+            description: "Likely source of traffic (e.g., 'Type-in', 'Backlinks', 'Search')" 
+          }
         }
       }
     },

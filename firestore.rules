@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: intelligence_signals
+    // Fields:
+    //   - source: string (RSS, TELEGRAM, API, ADS-B)
+    //   - category: string (MARKET, TECH, LEGAL, GEOPOLITICAL)
+    //   - title: string
+    //   - content: string
+    //   - priority: string (LOW, MEDIUM, HIGH, CRITICAL)
+    //   - timestamp: string (ISO 8601)
+    //   - metadata: map (optional)
+    //
+    // Collection: domains
+    // Fields:
+    //   - name: string
+    //   - price: number
+    //   - status: string (available, purchased, negotiating, sold, processing, watching)
+    //   - sector: string (optional)
+    //   - justification: string (optional)
+    //   - probability: number (optional)
+    //   - integrityScore: number (optional)
+    //   - lastChecked: string (ISO 8601)
+    //   - technicalMetrics: map (optional)
+    //   - brandAssets: map (optional)
+    //
+    // Collection: users/{userId}
+    // Fields:
+    //   - email: string
+    //   - name: string
+    //   - role: string (Admin, Executive, Analyst)
+    //   - subscriptionTier: string (Free, Pro, Sovereign)
+    //   - createdAt: string (ISO 8601)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin' ||
+          (request.auth.token.email == "zizoadszn@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidSignal(data) {
+      return data.keys().hasAll(['source', 'category', 'title', 'content', 'priority', 'timestamp']) &&
+             data.source in ['RSS', 'TELEGRAM', 'API', 'ADS-B'] &&
+             data.category in ['MARKET', 'TECH', 'LEGAL', 'GEOPOLITICAL'] &&
+             data.priority in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] &&
+             isValidDateString(data.timestamp) &&
+             data.title is string && data.title.size() < 200 &&
+             data.content is string && data.content.size() < 5000;
+    }
+
+    function isValidDomain(data) {
+      return data.keys().hasAll(['name', 'price', 'status']) &&
+             data.name is string && data.name.size() < 100 &&
+             data.price is number && data.price >= 0 &&
+             data.status in ['available', 'purchased', 'negotiating', 'sold', 'processing', 'watching'] &&
+             (!('lastChecked' in data) || isValidDateString(data.lastChecked));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'name', 'role', 'subscriptionTier', 'createdAt']) &&
+             isValidEmail(data.email) &&
+             data.name is string && data.name.size() < 100 &&
+             data.role in ['Admin', 'Executive', 'Analyst'] &&
+             data.subscriptionTier in ['Free', 'Pro', 'Sovereign'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /intelligence_signals/{signalId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidSignal(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /domains/{domainId} {
+      allow read: if true;
+      // Admins can manage domains. Users can potentially update status (e.g. purchase) if logic allows.
+      // For now, restricting writes to admins for security.
+      allow create, update: if isAdmin() && isValidDomain(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'Admin' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

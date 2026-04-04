@@ -7,44 +7,44 @@ import { translations } from '../translations';
 
 interface Props {
   domains: Domain[];
-  setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
-  lang: 'ar' | 'en';
 }
 
-const PurchaseDashboard: React.FC<Props> = ({ domains, setDomains, lang }) => {
-  const { addLog } = useDomainContext();
-  const t = translations[lang || 'ar'];
+const PurchaseDashboard: React.FC<Props> = ({ domains }) => {
+  const { addLog, updateDomain } = useDomainContext();
+  const t = translations.en;
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const handleVerify = async (domain: Domain) => {
     setVerifyingId(domain.id);
     const result: any = await registrarInquiryAI(domain.name);
     if (result.available) {
-       setDomains(prev => prev.map(d => d.id === domain.id ? { ...d, price: parseFloat(result.price.toString()) } : d));
+       await updateDomain({ ...domain, price: parseFloat(result.price.toString()) });
     }
     setVerifyingId(null);
   };
 
   const handleExternalRedirect = (domainName: string) => {
-    // نظام التوجيه الخارجي لمنع التلاعب المالي وحماية المستخدم
     addLog('Redirector', `Redirecting to Namecheap for ${domainName}...`, 'info');
     const url = `https://www.namecheap.com/domains/registration-results/?domain=${encodeURIComponent(domainName)}`;
     window.open(url, '_blank');
   };
 
-  const markAsPurchased = (id: string) => {
-    setDomains(prev => prev.map(d => d.id === id ? { ...d, status: 'purchased' } : d));
+  const markAsPurchased = async (id: string) => {
+    const domain = domains.find(d => d.id === id);
+    if (domain) {
+      await updateDomain({ ...domain, status: 'purchased' });
+    }
   };
 
   const highProbability = domains.filter(d => (d.probability || 0) > 0.6 && d.status === 'available');
 
   return (
-    <div className="space-y-10 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-10 animate-fade-in" dir="ltr">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">{lang === 'ar' ? 'غرفة التنفيذ' : 'EXECUTION SUITE'}</h3>
+          <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">EXECUTION SUITE</h3>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-             {lang === 'ar' ? 'نظام التوجيه الخارجي نشط. سيتم توجيهك للمسجل لإتمام العملية.' : 'External redirection mode active. You will be redirected to the registrar.'}
+             External redirection mode active. You will be redirected to the registrar.
           </p>
         </div>
       </div>

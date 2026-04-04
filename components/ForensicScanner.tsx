@@ -5,11 +5,10 @@ import { translations } from '../translations';
 
 interface Props {
   domain: Domain;
-  lang: 'ar' | 'en';
 }
 
-const ForensicScanner: React.FC<Props> = ({ domain, lang }) => {
-  const t = translations[lang];
+const ForensicScanner: React.FC<Props> = ({ domain }) => {
+  const t = translations.en;
   const metrics = (domain.technicalMetrics || {}) as TechnicalMetrics;
 
   const getSeverityColor = (status: string | undefined) => {
@@ -19,7 +18,7 @@ const ForensicScanner: React.FC<Props> = ({ domain, lang }) => {
   };
 
   return (
-    <div className="glass-card rounded-[32px] p-8 lg:p-12 relative overflow-hidden" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="glass-card rounded-[32px] p-8 lg:p-12 relative overflow-hidden">
       {/* Visual DNA Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12 relative z-10">
         <div className="space-y-2">
@@ -81,14 +80,15 @@ const ForensicScanner: React.FC<Props> = ({ domain, lang }) => {
            <div className="space-y-4">
               <h4 className="text-[10px] font-black text-accent uppercase tracking-widest">Mastermind Verdict</h4>
               <p className="text-base text-slate-300 leading-relaxed italic prestige-heading">
-                 "{metrics.dnaForensics || (lang === 'ar' ? 'تم استنباط النزاهة التاريخية عبر معايرة الأرشفة والسمعة الرقمية. الأصل مؤهل للاستحواذ الاستراتيجي.' : 'Historical integrity inferred via archive calibration. Asset qualified for strategic acquisition.')}"
+                 "{metrics.dnaForensics || 'Historical integrity inferred via archive calibration. Asset qualified for strategic acquisition.'}"
               </p>
            </div>
            
            <div className="mt-8 pt-6 border-t border-accent/10">
               <div className="flex justify-between items-center">
                  <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t.integrityBadge}</div>
-                 <div className="text-[10px] font-black text-accent uppercase">{metrics.verificationStatus === 'CROSS_REFERENCED' ? t.registryVerified : t.aiInferred}</div>
+                 {/* Comment above fix: Comparison corrected to match enum values defined in TechnicalMetrics type */}
+                 <div className="text-[10px] font-black text-accent uppercase">{metrics.verificationStatus === 'REGISTRY_VERIFIED' ? t.registryVerified : t.aiInferred}</div>
               </div>
            </div>
         </div>

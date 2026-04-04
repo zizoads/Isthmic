@@ -1,18 +1,15 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useDomainContext } from '../context/DomainContext';
-import { AuthService } from '../services/AuthService';
 
 const AuthForm: React.FC = () => {
-  const { login, addLog } = useDomainContext();
+  const { login, loginWithEmail, signup } = useAuth();
+  const { addLog } = useDomainContext();
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState<1 | 2>(1);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<{ type: 'error' | 'success', message: string } | null>(null);
+  const [status, setStatus] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,185 +18,113 @@ const AuthForm: React.FC = () => {
 
     try {
       if (isLogin) {
-        await login(email, password);
+        await loginWithEmail(formData.email, formData.password);
+        addLog('System', 'Identity Link Established.', 'success');
       } else {
-        if (step === 1) {
-          await AuthService.signup(name, email, password);
-          setStatus({ 
-            type: 'success', 
-            message: "Sequence initiated. Access the 6-digit code in the console (F12)." 
-          });
-          setStep(2);
-        } else {
-          const success = await AuthService.verifyEmailCode(email, otp);
-          if (success) {
-            setStatus({ 
-              type: 'success', 
-              message: "Identity confirmed. Transitioning to Command Center..." 
-            });
-            
-            setTimeout(() => {
-              setIsLogin(true);
-              setStep(1);
-              setOtp('');
-              setStatus({ type: 'success', message: "Sovereign Link Established. Please authenticate." });
-            }, 1500);
-          }
-        }
+        await signup(formData.name, formData.email, formData.password);
+        setStatus({ type: 'success', msg: 'Identity setup complete! Your sovereign vault is initialized.' });
+        setIsLogin(true);
       }
-    } catch (error: any) {
-      let msg = error.message;
-      
-      if (msg === "IDENTITY_PENDING") {
-        // Recovery flow: Redirect to verification step
-        setIsLogin(false);
-        setStep(2);
-        msg = "Account detected but unverified. Please enter your verification code or request a new one.";
-        setStatus({ type: 'warning' as any, message: msg });
-      } else {
-        if (msg === "IDENTITY_EXISTS") msg = "Identity recognized. Please proceed via the master login.";
-        if (msg.includes("SYSTEM_COOLDOWN")) msg = "System Cooling Active. Please pause for several minutes.";
-        
-        setStatus({ type: 'error', message: msg });
-      }
-      
-      addLog('Auth', msg, 'critical');
+    } catch (e: any) {
+      console.error("AUTH_UI_ERROR:", e.message);
+      setStatus({ type: 'error', msg: e.message });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResendCode = async () => {
-    if (!email) {
-       setStatus({ type: 'error', message: "Please provide an email address to receive a new signal." });
-       return;
-    }
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // If we don't have the name (from login redirect), we use a placeholder
-      await AuthService.signup(name || "Sovereign User", email, password);
-      setStatus({ type: 'success', message: "New sequence dispatched. Check console (F12)." });
-    } catch (error: any) {
-      setStatus({ type: 'error', message: error.message });
+      await login();
+      addLog('System', 'Google Identity Link Established.', 'success');
+    } catch (e: any) {
+      setStatus({ type: 'error', msg: e.message });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0a0a0c] relative">
-      <div className="bg-grid"></div>
-      <div className="noise-bg"></div>
-      
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
+    <div className="min-h-screen flex items-center justify-center bg-[#050507] p-6 font-sans relative overflow-hidden">
+      {/* Background Accents */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#d4af37]/5 blur-[120px] rounded-full"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-800/5 blur-[120px] rounded-full"></div>
 
-      <div className="w-full max-w-xl relative z-10">
-        <div className="glass-panel p-12 lg:p-20 space-y-12 text-center border-white/10 shadow-2xl">
-          <div className="space-y-6">
-            <span className="text-[10px] font-black tracking-[0.6em] text-[#d4af37] uppercase opacity-60">Sovereign Asset Management</span>
-            <h1 className="prestige-title heading-lg italic text-white leading-none">Isthmic.</h1>
-            <p className="text-slate-400 text-lg italic max-w-sm mx-auto">
-              {isLogin ? "Restore your sovereign digital asset command." : (step === 1 ? "Initiate your identity into the ecosystem." : "Execute the verification sequence.")}
-            </p>
-          </div>
+      <div className="w-full max-w-lg relative z-10">
+        <div className="bg-[#08080a] border border-white/5 p-12 space-y-12 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
+          
+          <header className="text-center space-y-4">
+             <div className="w-4 h-4 bg-[#d4af37] rounded-full mx-auto shadow-[0_0_25px_#d4af37] mb-6"></div>
+             <h1 className="text-6xl prestige-title text-white italic leading-none tracking-tighter">Isthmic.</h1>
+             <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.6em]">
+               {isLogin ? 'Command Authentication' : 'Initialize Sovereign Identity'}
+             </p>
+          </header>
 
           {status && (
-            <div className={`p-5 rounded-2xl border text-[10px] font-black uppercase tracking-widest animate-slide-up leading-relaxed ${
-              status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 
-              status.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-              'bg-amber-500/10 border-amber-500/20 text-amber-500'
+            <div className={`p-6 rounded-3xl text-[11px] font-black uppercase tracking-widest text-center border leading-relaxed ${
+              status.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
             }`}>
-              <i className={`fas ${status.type === 'success' ? 'fa-check-circle' : 'fa-shield-halved'} mr-2`}></i> {status.message}
+              {status.msg}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && step === 1 && (
-              <input 
-                type="text" 
-                required 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
-                placeholder="Full Name"
-              />
-            )}
-            
-            {/* Step 1 Fields */}
-            {step === 1 && (
-              <>
-                <input 
-                  type="email" 
-                  required 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
-                  placeholder="Email Address"
-                />
-                <input 
-                  type="password" 
-                  required 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-medium"
-                  placeholder="Security Keyphrase"
-                />
-              </>
-            )}
-
-            {/* Step 2 Field */}
-            {!isLogin && step === 2 && (
-              <div className="space-y-6">
-                <input 
-                  type="text" 
-                  required 
-                  maxLength={6}
-                  value={otp} 
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-[#d4af37] focus:border-[#d4af37] transition-all text-center placeholder:text-slate-600 font-black text-4xl tracking-[0.5em]"
-                  placeholder="000000"
-                />
-                <button 
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={isLoading}
-                  className="text-[10px] text-slate-500 uppercase font-black hover:text-[#d4af37] transition-colors"
-                >
-                  Resend Verification Signal
-                </button>
-              </div>
-            )}
-
+          <div className="space-y-6">
             <button 
-              type="submit" 
+              onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="prestige-btn prestige-btn-gold w-full mt-4"
+              className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest"
             >
-              {isLoading ? <i className="fas fa-spinner fa-spin mr-3"></i> : <i className="fas fa-link mr-3"></i>}
-              <span>
-                {isLogin ? 'ESTABLISH LINK' : (step === 1 ? 'DISPATCH CODE' : 'VERIFY IDENTITY')}
-              </span>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+              {isLoading ? 'SYNCING...' : 'Continue with Google'}
             </button>
-          </form>
 
-          <div className="pt-6 space-y-6 border-t border-white/5">
-            <button 
-              onClick={() => { 
-                setIsLogin(!isLogin); 
-                setStep(1);
-                setStatus(null); 
-              }}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
-            >
-              {isLogin ? "Generate New Command Identity?" : "Return to Master Login?"}
-            </button>
-            <div className="flex justify-center gap-8 opacity-10">
-               <i className="fas fa-shield-halved text-xl"></i>
-               <i className="fas fa-fingerprint text-xl"></i>
-               <i className="fas fa-microchip text-xl"></i>
+            <div className="flex items-center gap-4 py-2">
+              <div className="h-[1px] flex-1 bg-white/5"></div>
+              <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">OR</span>
+              <div className="h-[1px] flex-1 bg-white/5"></div>
             </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                {!isLogin && (
+                  <input 
+                    required type="text" placeholder="FULL NAME" 
+                    className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] text-center font-black text-[10px] transition-all uppercase tracking-widest"
+                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                )}
+                <input 
+                  required type="email" placeholder="IDENTITY EMAIL" 
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] text-center font-black text-[10px] transition-all uppercase tracking-widest"
+                  value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+                <input 
+                  required type="password" placeholder="SECURITY KEY" 
+                  className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none text-white focus:border-[#d4af37] text-center font-black text-[10px] transition-all uppercase tracking-widest"
+                  value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+
+              <button 
+                disabled={isLoading} 
+                className="w-full bg-[#d4af37] text-black hover:bg-[#c5a059] font-black py-6 rounded-2xl text-[11px] uppercase tracking-[0.2em] transition-all shadow-2xl"
+              >
+                {isLoading ? 'SYNCING DATA...' : (isLogin ? 'ESTABLISH LINK' : 'INITIALIZE PROTOCOL')}
+              </button>
+            </form>
           </div>
+
+          <footer className="pt-8 border-t border-white/5 text-center">
+             <button 
+              type="button"
+              onClick={() => { setIsLogin(!isLogin); setStatus(null); }}
+              className="text-[9px] font-black text-slate-600 hover:text-[#d4af37] uppercase tracking-[0.4em] transition-all"
+             >
+               {isLogin ? "Lost Access? Request New Identity" : "Already Secured? Establish Link"}
+             </button>
+          </footer>
         </div>
       </div>
     </div>

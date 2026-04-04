@@ -1,0 +1,23 @@
+
+{
+  "name": "Isthmic Pro - Sovereign Digital Asset Management",
+  "short_name": "Isthmic Pro",
+  "description": "Multi-Agent AI-Powered Strategic Command Center for Domain Investors",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#d4af37",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/initials/svg?seed=IP&backgroundColor=d4af37",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/initials/svg?seed=IP&backgroundColor=d4af37",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

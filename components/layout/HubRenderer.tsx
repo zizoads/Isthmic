@@ -1,62 +1,41 @@
 
 import React from 'react';
-import { AgentType, Domain, PlatformStats, ServiceIntegration } from '../../types';
-import IntelligenceHub from '../hubs/IntelligenceHub';
-import AcquisitionDesk from '../AcquisitionDesk';
-import OperationsHub from '../hubs/OperationsHub';
-import LiquidationEngine from '../hubs/LiquidationEngine';
-import ExecutiveSuite from '../hubs/ExecutiveSuite';
-import CodeAuditorHub from '../hubs/CodeAuditorHub';
+import { AgentType, Domain, PlatformStats } from '../../types';
+import AlphaMineHub from '../hubs/AlphaMineHub';
+import { BrandIntelligenceHub } from '../hubs/BrandIntelligenceHub';
 import AdminHub from '../hubs/AdminHub';
-import ArabicLabTester from '../ArabicLabTester';
-import ProtocolErrorBoundary from '../ui/ProtocolErrorBoundary';
+import { UserProfileHub } from '../hubs/UserProfileHub';
 
 interface Props {
   activeHub: AgentType;
   domains: Domain[];
-  setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
   stats: PlatformStats;
-  integrations: ServiceIntegration[];
-  addLog: (agent: string, message: string, type?: any) => void;
-  lang: 'ar' | 'en';
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
 }
 
 const HubRenderer: React.FC<Props> = ({ 
-  activeHub, domains, setDomains, stats, integrations, addLog, lang 
+  activeHub, domains, stats 
 }) => {
-  
-  const handleInspect = (d: Domain) => {
-    addLog('Inspector', `Inspecting ${d.name}...`, 'info');
-  };
-
-  const renderHub = () => {
+  const renderContent = () => {
     switch (activeHub) {
-      case AgentType.INTELLIGENCE:
-        return <IntelligenceHub stats={stats} lang={lang} isScanning={false} onInitiateScan={() => {}} />;
-      case AgentType.ACQUISITION:
-        return <AcquisitionDesk domains={domains} setDomains={setDomains} addLog={addLog} lang={lang} />;
-      case AgentType.CODE_AUDITOR:
-        return <CodeAuditorHub />;
-      case AgentType.ARABIC_LAB:
-        return <ArabicLabTester />;
-      case AgentType.ADMIN:
+      case AgentType.ALPHA_MINE:
+        return <AlphaMineHub stats={stats} domains={domains} />;
+      
+      case AgentType.BRAND_INTELLIGENCE:
+        return <BrandIntelligenceHub />;
+
+      case AgentType.ADMIN_CONTROL:
         return <AdminHub />;
-      case AgentType.OPERATIONS:
-        return <OperationsHub domains={domains} setDomains={setDomains} onInspect={handleInspect} lang={lang} />;
-      case AgentType.LIQUIDATION:
-        return <LiquidationEngine domains={domains} setDomains={setDomains} lang={lang} />;
-      case AgentType.MANAGEMENT:
-        return <ExecutiveSuite domains={domains} stats={stats} integrations={integrations} lang={lang} />;
+
+      case AgentType.USER_PROFILE:
+        return <UserProfileHub />;
+
       default:
-        return <IntelligenceHub stats={stats} lang={lang} isScanning={false} onInitiateScan={() => {}} />;
+        return <AlphaMineHub stats={stats} domains={domains} />;
     }
   };
 
-  return (
-    <ProtocolErrorBoundary fallbackName={activeHub}>
-      {renderHub()}
-    </ProtocolErrorBoundary>
-  );
+  return <div className="w-full min-h-screen">{renderContent()}</div>;
 };
 
 export default HubRenderer;

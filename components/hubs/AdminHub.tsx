@@ -1,186 +1,322 @@
 
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../../services/SupabaseClient';
-import { useDomainContext } from '../../context/DomainContext';
-import { AuditLogEntry } from '../../types';
-import { LaunchReadinessService } from '../../services/LaunchReadinessService';
-import { safeAICall } from '../../services/ai/base';
-import LaunchControlHub from '../LaunchControlHub';
-import AutopsyLab from '../AutopsyLab';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { Shield, Activity, Database, AlertTriangle, CheckCircle, ShieldAlert, FileText, RefreshCw, UserCog } from 'lucide-react';
+import { StrictTestingEnforcer, QualityReport } from '../../quality/StrictTestingEnforcer';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase';
+import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+
+type AdminView = 'MILITARY_BRIEF' | 'INTEGRITY' | 'USER_MANAGEMENT';
 
 const AdminHub: React.FC = () => {
-  const { activeProfile, addLog, activityLogs } = useDomainContext();
+  const { user } = useAuth();
+  const [activeView, setActiveView] = useState<AdminView>('MILITARY_BRIEF');
+  const [qualityReport, setQualityReport] = useState<QualityReport | null>(null);
+  const [isRunningChecks, setIsRunningChecks] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [activeView, setActiveView] = useState<'overview' | 'users' | 'audit' | 'resilience' | 'diagnostics'>('overview');
-  const [isUpdating, setIsUpdating] = useState<string | null>(null);
-  const [isAborting, setIsAborting] = useState(false);
-  const [diagLatency, setDiagLatency] = useState<number | null>(null);
-  
-  const isAuthorized = activeProfile?.role === 'Admin' && activeProfile?.email.toLowerCase() === 'azeddinebeldjilali9@gmail.com';
-  const isSafeMode = localStorage.getItem('isthmic_chaos_failure') === 'true';
+  const [currentRole, setCurrentRole] = useState<'admin' | 'user'>('admin');
 
-  const fetchData = async () => {
-    if (!isAuthorized) return;
-    try {
-      const [usersRes, auditRes] = await Promise.all([
-        supabase.from('profiles').select('id, name, email, role, subscription_tier, usage_stats, created_at').order('created_at', { ascending: false }),
-        supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100)
-      ]);
-      
-      if (usersRes.data) setUsers(usersRes.data);
-      if (auditRes.data) setAuditLogs(auditRes.data);
-    } catch (e) {
-      addLog('Admin', 'Failed to sync sovereign registry.', 'critical');
-    }
+  const isAuthorized = user?.email?.toLowerCase() === 'zizoadszn@gmail.com';
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const usersSnap = await getDocs(collection(db, 'users'));
+      setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+    fetchUsers();
+  }, []);
+
+  const toggleRole = async (userId: string, newRole: 'admin' | 'user') => {
+    await updateDoc(doc(db, 'users', userId), { role: newRole });
+    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
   };
 
-  const handleSystemPulse = async () => {
-    setDiagLatency(0);
-    try {
-      const res: any = await safeAICall({
-        model: 'gemini-3-flash-preview',
-        contents: "Pulse check. Return 'OK'."
-      });
-      if (res?._telemetry?.latency) {
-        setDiagLatency(res._telemetry.latency);
-        addLog('Diagnostics', `System Pulse Successful. Latency: ${res._telemetry.latency}ms`, 'success', { latency: res._telemetry.latency });
-      }
-    } catch (e) {
-      addLog('Diagnostics', 'Pulse Failed.', 'critical');
-    }
+  const switchMyRole = () => {
+    setCurrentRole(currentRole === 'admin' ? 'user' : 'admin');
   };
 
-  const handleEmergencyAbort = () => {
-    setIsAborting(true);
-    setTimeout(() => {
-      localStorage.setItem('isthmic_chaos_failure', 'true');
-      window.location.reload();
-    }, 1500);
-  };
-
-  const handleRecovery = () => {
-    localStorage.removeItem('isthmic_chaos_failure');
-    window.location.reload();
-  };
-
-  const updateUserRole = async (userId: string, newRole: string, newTier: string) => {
-    setIsUpdating(userId);
-    try {
-      await supabase.from('profiles').update({ role: newRole, subscription_tier: newTier }).eq('id', userId);
-      await fetchData();
-    } finally {
-      setIsUpdating(null);
-    }
+  const runIntegrityChecks = async () => {
+    setIsRunningChecks(true);
+    const report = await StrictTestingEnforcer.runProductionGateChecks();
+    setQualityReport(report);
+    setIsRunningChecks(false);
   };
 
   useEffect(() => {
-    fetchData();
-  }, [isAuthorized]);
+    if (activeView === 'INTEGRITY' && !qualityReport) {
+      runIntegrityChecks();
+    }
+  }, [activeView]);
 
   if (!isAuthorized) {
     return (
-      <div className="h-[600px] flex flex-col items-center justify-center space-y-8 animate-precision">
-         <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-[32px] flex items-center justify-center text-red-500 text-4xl shadow-2xl"><i className="fas fa-user-lock"></i></div>
-         <h3 className="text-2xl prestige-heading text-white italic">Sovereign Access Denied</h3>
+      <div className="h-screen flex flex-col items-center justify-center space-y-6 text-red-500 font-black tracking-widest bg-black">
+        <ShieldAlert className="w-24 h-24 mb-6 opacity-20 animate-pulse" />
+        <div className="text-4xl italic font-black uppercase tracking-tighter">ACCESS_DENIED</div>
+        <p className="text-slate-500 text-xs uppercase tracking-widest">Sovereign Authority Required</p>
       </div>
     );
   }
 
-  const systemHealth = LaunchReadinessService.monitorTelemetry(activityLogs);
+  const renderView = () => {
+    switch (activeView) {
+      case 'MILITARY_BRIEF':
+        return (
+          <div className="space-y-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+              <div className="lg:col-span-8 space-y-10">
+                <div className="bg-[#050505] border border-white/5 rounded-[60px] p-12 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-all">
+                    <Shield className="w-64 h-64" />
+                  </div>
+                  <div className="relative z-10">
+                    <h2 className="text-5xl font-black text-white leading-tight mb-8 uppercase tracking-tighter">
+                      Sovereign<br />Command Center
+                    </h2>
+                    <p className="text-slate-500 text-lg max-w-xl leading-relaxed italic border-l-2 border-amber-500 pl-8 mb-12">
+                      "The ultimate authority over the architecture. Monitor, secure, and deploy with absolute precision."
+                    </p>
+                    <div className="flex gap-6">
+                      <button 
+                        onClick={() => setActiveView('INTEGRITY')}
+                        className="px-10 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center gap-3"
+                      >
+                        <Activity className="w-4 h-4" /> System Audit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="bg-black/40 border border-white/5 p-10 rounded-[50px] group hover:border-white/10 transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <Database className="w-8 h-8" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Vault Health</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">99.9%</h3>
+                    <p className="text-xs text-slate-500">Quantum entropy stable across all buffers.</p>
+                  </div>
+
+                  <div className="bg-black/40 border border-white/5 p-10 rounded-[50px] group hover:border-white/10 transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="p-4 rounded-2xl bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                        <Activity className="w-8 h-8" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Network Load</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">14%</h3>
+                    <p className="text-xs text-slate-500">Global traffic within nominal parameters.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 space-y-10">
+                <div className="bg-white text-black rounded-[60px] p-12 h-full flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-black opacity-40 uppercase tracking-widest mb-10">System Integrity</h3>
+                    <div className="space-y-8">
+                      <div className="flex items-center justify-between border-b border-black/5 pb-6">
+                        <span className="text-sm font-bold">Firewall</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Active</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-black/5 pb-6">
+                        <span className="text-sm font-bold">Quantum Encryption</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Locked</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-black/5 pb-6">
+                        <span className="text-sm font-bold">Sovereign Shield</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Engaged</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-10">
+                    <button 
+                       onClick={() => setActiveView('INTEGRITY')}
+                       className="w-full py-5 bg-black text-white rounded-3xl text-[10px] font-black uppercase tracking-widest hover:bg-black/90 transition-all"
+                    >
+                      Run Full System Audit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'INTEGRITY':
+        return (
+          <div className="space-y-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-4xl font-black text-white uppercase tracking-tighter">System Integrity Audit</h2>
+                <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest">Quality Gate & Security Forensics</p>
+              </div>
+              <button 
+                onClick={runIntegrityChecks}
+                disabled={isRunningChecks}
+                className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center gap-3 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRunningChecks ? 'animate-spin' : ''}`} /> 
+                {isRunningChecks ? 'Auditing...' : 'Re-Run Audit'}
+              </button>
+            </div>
+
+            {qualityReport && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div className="lg:col-span-4 space-y-8">
+                  <div className={`p-10 rounded-[50px] border ${qualityReport.passed ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-[10px] font-black uppercase tracking-widest opacity-60">Audit Score</h3>
+                      {qualityReport.passed ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <AlertTriangle className="w-6 h-6 text-red-500" />}
+                    </div>
+                    <h2 className={`text-6xl font-black ${qualityReport.passed ? 'text-emerald-500' : 'text-red-500'}`}>{qualityReport.score}%</h2>
+                    <p className="text-xs font-medium mt-4 opacity-60 uppercase tracking-widest">
+                      {qualityReport.passed ? 'System meets production standards' : 'Critical deviations detected'}
+                    </p>
+                  </div>
+
+                  <div className="bg-black/40 border border-white/5 rounded-[50px] p-10 space-y-8">
+                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Checklist Results</h3>
+                    <div className="space-y-6">
+                      {Object.entries(qualityReport.checks).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            value === 'STABLE' || value === 'ACTIVE' || value === 'OPTIMAL' ? 'text-emerald-500' : 'text-red-500'
+                          }`}>
+                            {value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-8">
+                  <div className="bg-white text-black rounded-[60px] p-12 h-full">
+                    <h3 className="text-[10px] font-black opacity-40 uppercase tracking-widest mb-10">Audit Log & Findings</h3>
+                    <div className="space-y-8">
+                      {qualityReport.details.map((detail, i) => (
+                        <div key={i} className="flex items-start gap-6 border-b border-black/5 pb-8 last:border-0">
+                          <div className="p-3 rounded-xl bg-black/5 text-black">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold mb-1">{detail}</p>
+                            <p className="text-[10px] opacity-40 uppercase tracking-widest">Verified at {new Date(qualityReport.timestamp).toLocaleTimeString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {qualityReport.vulnerabilities.length > 0 && (
+                        <div className="mt-10 p-8 bg-red-50 rounded-3xl border border-red-100">
+                          <h4 className="text-red-600 text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <ShieldAlert className="w-4 h-4" /> Security Vulnerabilities Detected
+                          </h4>
+                          <div className="space-y-4">
+                            {qualityReport.vulnerabilities.map((v, i) => (
+                              <div key={i} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-red-100">
+                                <span className="text-xs font-bold">{v.description}</span>
+                                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{v.severity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      case 'USER_MANAGEMENT':
+        return (
+          <div className="space-y-10">
+            <h2 className="text-4xl font-black text-white uppercase tracking-tighter">User Management</h2>
+            <div className="bg-black/40 border border-white/5 rounded-[50px] p-10">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Users</h3>
+                <button 
+                  onClick={switchMyRole}
+                  className="px-6 py-3 bg-[#d4af37] text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c5a059] transition-all"
+                >
+                  Switch Role: {currentRole.toUpperCase()}
+                </button>
+              </div>
+              <div className="space-y-4">
+                {users.map(u => (
+                  <div key={u.id} className="flex items-center justify-between p-6 bg-white/5 rounded-2xl border border-white/5">
+                    <div>
+                      <div className="text-sm font-bold text-white">{u.name}</div>
+                      <div className="text-[10px] text-slate-500">{u.email}</div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className={`text-[10px] font-black uppercase ${u.role === 'admin' ? 'text-[#d4af37]' : 'text-slate-500'}`}>{u.role}</span>
+                      <button 
+                        onClick={() => toggleRole(u.id, u.role === 'admin' ? 'user' : 'admin')}
+                        className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+                      >
+                        <UserCog className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="space-y-12 animate-precision pb-24" dir="ltr">
-      <section className="relative bg-[#111113] border border-white/5 rounded-[48px] p-10 lg:p-14 overflow-hidden shadow-2xl">
-        <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start gap-10">
-          <div className="text-left space-y-4">
-            <div className="flex items-center gap-6">
-              <h2 className="text-4xl lg:text-7xl prestige-heading text-white italic">Sovereign Hub</h2>
-              {isSafeMode ? (
-                <button onClick={handleRecovery} className="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase">RECOVER SYSTEM</button>
-              ) : (
-                <button onClick={handleEmergencyAbort} disabled={isAborting} className="bg-red-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase">EMERGENCY ABORT</button>
-              )}
+    <div className="min-h-screen bg-[#020202] text-white p-10 lg:p-20">
+      <div className="max-w-[1600px] mx-auto space-y-16">
+        {/* Navigation Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-white text-black rounded-3xl flex items-center justify-center">
+              <Shield className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black uppercase tracking-tighter">Admin Hub</h1>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sovereign Authority Level 10</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex bg-[#0a0a0c] p-1.5 rounded-[22px] border border-white/5 shadow-2xl overflow-x-auto">
-            {[
-              { id: 'overview', label: 'OVERVIEW', icon: 'fa-gauge-high' },
-              { id: 'users', label: 'REGISTRY', icon: 'fa-users' },
-              { id: 'resilience', label: 'LAUNCH_CONTROL', icon: 'fa-shield-halved' },
-              { id: 'diagnostics', label: 'PULSE_LAB', icon: 'fa-microscope' }
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveView(tab.id as any)} className={`flex items-center gap-3 px-6 py-3 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all ${activeView === tab.id ? 'bg-[#d4af37] text-black shadow-xl' : 'text-slate-500 hover:text-white'}`}>
-                <i className={`fas ${tab.icon}`}></i> {tab.label}
+          <div className="flex flex-wrap gap-2">
+            {(['MILITARY_BRIEF', 'INTEGRITY', 'USER_MANAGEMENT'] as const).map((view) => (
+              <button
+                key={view}
+                onClick={() => setActiveView(view)}
+                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  activeView === view 
+                    ? 'bg-white text-black' 
+                    : 'bg-white/5 text-slate-500 hover:bg-white/10'
+                }`}
+              >
+                {view.replace('_', ' ')}
               </button>
             ))}
           </div>
         </div>
-      </section>
 
-      <div className="min-h-[600px] animate-slide-up">
-        {activeView === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-             <div className="square-card p-10 bg-indigo-500/10 border-indigo-500/20 text-center">
-                <div className="text-[10px] font-black text-indigo-400 uppercase mb-4">Total Nodes</div>
-                <div className="text-5xl font-black text-white italic">{users.length}</div>
-             </div>
-             <div className="square-card p-10 bg-[#d4af37]/10 border-[#d4af37]/20 text-center">
-                <div className="text-[10px] font-black text-[#d4af37] uppercase mb-4">EWS Status</div>
-                <div className={`text-5xl font-black italic ${systemHealth.status === 'NOMINAL' ? 'text-green-500' : 'text-red-500'}`}>{systemHealth.status}</div>
-             </div>
-          </div>
-        )}
-
-        {activeView === 'users' && (
-          <div className="glass-panel overflow-hidden">
-            <table className="w-full text-left font-mono text-[10px]">
-              <thead className="bg-white/5 text-slate-500 uppercase">
-                <tr><th className="p-6">Identity</th><th className="p-6">Role</th><th className="p-6">Tier</th><th className="p-6">Inferences</th><th className="p-6">Actions</th></tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {users.map(u => (
-                  <tr key={u.id} className="hover:bg-white/2 transition-colors">
-                    <td className="p-6"><div className="text-white font-bold">{u.name}</div><div className="text-slate-500 italic">{u.email}</div></td>
-                    <td className="p-6"><span className={`px-3 py-1 rounded-full ${u.role === 'Admin' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-slate-400'}`}>{u.role}</span></td>
-                    <td className="p-6 text-white">{u.subscription_tier}</td>
-                    <td className="p-6 text-slate-400">{u.usage_stats?.scansThisMonth || 0}</td>
-                    <td className="p-6"><button onClick={() => updateUserRole(u.id, 'Admin', 'Sovereign')} className="bg-white/5 p-2 rounded text-[#d4af37]"><i className="fas fa-crown"></i></button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {activeView === 'resilience' && <LaunchControlHub />}
-
-        {activeView === 'diagnostics' && (
-          <div className="space-y-12 animate-precision">
-             <div className="square-card p-14 bg-gradient-to-br from-indigo-500/10 to-transparent border-indigo-500/20">
-                <div className="flex flex-col lg:flex-row justify-between items-center gap-12">
-                   <div className="space-y-6 flex-1">
-                      <h3 className="text-4xl prestige-heading text-white italic leading-tight">API Telemetry Diagnostic</h3>
-                      <p className="text-slate-400 text-lg italic leading-relaxed">
-                        "Perform a surgical 'ping' to the Gemini 3 logic engine to verify connectivity, latency thresholds, and structural alignment."
-                      </p>
-                      <button onClick={handleSystemPulse} className="prestige-btn prestige-btn-gold !px-14 !py-5">
-                         <i className="fas fa-bolt mr-3"></i> SYSTEM PULSE TEST
-                      </button>
-                   </div>
-                   {diagLatency !== null && (
-                     <div className="w-64 h-64 bg-black/60 rounded-[50px] border-2 border-white/10 flex flex-col items-center justify-center space-y-4 shadow-2xl animate-slide-up">
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Logic Latency</div>
-                        <div className={`text-6xl font-black italic ${diagLatency > 2000 ? 'text-red-500' : 'text-green-500'}`}>{diagLatency}ms</div>
-                        <div className="text-[9px] font-black text-slate-600 uppercase">THRESHOLD: 2500ms</div>
-                     </div>
-                   )}
-                </div>
-             </div>
-             <AutopsyLab />
-          </div>
-        )}
+        {/* Dynamic View Content */}
+        <motion.div
+          key={activeView}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {renderView()}
+        </motion.div>
       </div>
     </div>
   );

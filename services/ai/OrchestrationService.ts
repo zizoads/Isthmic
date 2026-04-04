@@ -1,5 +1,5 @@
 
-import { AlignmentReport, StrategicObjective, PlatformStats, CausalRejectionModel, Domain } from "../../types";
+import { AlignmentReport, StrategicObjective, PlatformStats, CausalRejectionModel } from "../../types";
 import { generateStructuredAI, safeAICall } from "./base";
 import { Type } from "@google/genai";
 
@@ -104,12 +104,13 @@ export class OrchestrationService {
       .join('\n');
   }
 
-  static async generateInitialObjectives(thesis: string): Promise<StrategicObjective[]> {
+  static async generateInitialObjectives(_thesis: string): Promise<StrategicObjective[]> {
     return [
       {
         id: 'obj_liquidity',
         category: 'LIQUIDITY',
         description: 'Maximize exit velocity (Avg < 45 days)',
+        // Comment above fix: targetValue added to StrategicObjective type
         targetValue: 45,
         currentValue: 0,
         unit: 'days',
@@ -124,6 +125,7 @@ export class OrchestrationService {
         id: 'obj_alpha',
         category: 'ACQUISITION',
         description: 'Target Alpha Margin > 500%',
+        // Comment above fix: targetValue added to StrategicObjective type
         targetValue: 500,
         currentValue: 0,
         unit: '%',

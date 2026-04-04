@@ -1,177 +1,70 @@
-
-/* Isthmic Pro - Sovereign Prestige System v5.2 (Linguistic Integrity Edition) */
-
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@200;400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,700;1,300;1,700&family=Plus+Jakarta+Sans:wght@200;400;800&display=swap');
 
 :root {
-  --primary: #d4af37; /* Prestige Gold */
-  --primary-glow: rgba(212, 175, 55, 0.2);
-  --bg: #0a0a0c; /* Deep Ink */
-  --bg-card: rgba(255, 255, 255, 0.02);
-  --text: #f4f4f5;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --font-serif: 'Cormorant Garamond', serif;
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-arabic: 'Noto Sans Arabic', sans-serif;
-  
-  --radius-prestige: 40px;
-  --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Global RTL Configuration */
-[dir="rtl"] {
-  font-family: var(--font-arabic), var(--font-sans);
-}
-
-[dir="rtl"] .prestige-heading, 
-[dir="rtl"] .prestige-title {
-  font-family: var(--font-arabic);
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  text-align: right;
-}
-
-/* Technical Data Preservation - LTR-in-RTL contexts */
-.force-ltr,
-.recharts-wrapper,
-.data-mono,
-.domain-name-display,
-.financial-value,
-.ltr-inline {
-  direction: ltr !important;
-  unicode-bidi: bidi-override;
-  text-align: left !important;
-}
-
-/* Inline data spans in RTL sentences */
-[dir="rtl"] .ltr-inline {
-  display: inline-block;
-  margin: 0 4px;
-  text-align: center !important;
-  vertical-align: baseline;
-}
-
-/* RTL Normalization for Tailwind-like classes */
-[dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
-[dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
-[dir="rtl"] .pl-10 { padding-right: 2.5rem; padding-left: 0; }
-[dir="rtl"] .pr-10 { padding-left: 2.5rem; padding-right: 0; }
-[dir="rtl"] .border-l-2, [dir="rtl"] .border-l-4 { border-right-width: inherit; border-left-width: 0; border-right-style: solid; border-right-color: inherit; }
-[dir="rtl"] .border-r-2 { border-left-width: 2px; border-right-width: 0; }
-
-/* ... Rest of existing styling ... */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  cursor: default;
+  --primary: #d4af37;
+  --bg: #0a0a0c;
 }
 
 body {
-  background-color: var(--bg) !important;
-  color: var(--text);
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.03) 0%, transparent 50%) !important;
+  background-color: #000 !important;
+  margin: 0;
   overflow: hidden;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: white;
 }
 
-h1, h2, h3, .prestige-title {
-  font-family: var(--font-serif);
-  font-weight: 300;
+#root { position: relative; z-index: 1; height: 100vh; }
+
+.glass-panel {
+  background: rgba(10, 10, 15, 0.4) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 40px;
 }
 
-.data-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  letter-spacing: -0.02em;
+.square-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 30px;
 }
 
-.glass-panel, .square-card, .glass-card {
-  background: var(--bg-card) !important;
-  backdrop-filter: blur(30px) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: var(--radius-prestige) !important;
-  transition: var(--transition-smooth);
-}
-
-.glass-panel:hover, .square-card:hover {
-  border-color: rgba(212, 175, 55, 0.3) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  transform: translateY(-4px);
-  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+.prestige-title {
+  font-family: 'Cormorant Garamond', serif;
 }
 
 .prestige-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 18px 40px;
+  padding: 16px 32px;
   border-radius: 20px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   font-size: 10px;
-  transition: var(--transition-smooth);
-  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .prestige-btn-gold {
-  background: var(--primary);
-  color: #000;
-  box-shadow: 0 10px 30px -10px var(--primary-glow);
+  background: #d4af37;
+  color: black;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
 }
 
 .prestige-btn-gold:hover {
-  background: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 15px 40px -10px var(--primary-glow);
+  background: white;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
 }
 
-input, textarea {
-  background: rgba(255,255,255,0.03) !important;
-  border: 1px solid rgba(255,255,255,0.05) !important;
-  border-radius: 24px !important;
-  padding: 16px 24px !important;
-  color: white !important;
-  transition: var(--transition-smooth) !important;
-  outline: none !important;
-}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
 
-input:focus, textarea:focus {
-  border-color: var(--primary) !important;
-  background: rgba(255,255,255,0.05) !important;
-  box-shadow: 0 0 20px var(--primary-glow);
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fadeIn 1s ease forwards; }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
-  border-radius: 10px;
-}
-
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-prestige {
-  animation: slide-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-.noise-bg {
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
-  pointer-events: none;
-  z-index: 9999;
-}
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }

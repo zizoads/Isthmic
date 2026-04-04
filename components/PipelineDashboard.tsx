@@ -1,18 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Domain } from '../types';
 import { translations } from '../translations';
-import StatusBadge from './ui/StatusBadge';
 
 interface Props {
   domains: Domain[];
-  setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
   onInspect: (d: Domain) => void;
-  lang: 'ar' | 'en';
 }
 
-const PipelineDashboard: React.FC<Props> = ({ domains, setDomains, onInspect, lang }) => {
-  const t = translations[lang];
+const PipelineDashboard: React.FC<Props> = ({ domains, onInspect }) => {
+  const t = translations.en;
   
   const columns = [
     { id: 'available', label: t.status_available, icon: 'fa-search', color: '#c5a059' },
@@ -22,7 +19,7 @@ const PipelineDashboard: React.FC<Props> = ({ domains, setDomains, onInspect, la
   ];
 
   return (
-    <div className="flex overflow-x-auto pb-10 border-2 border-white/10 bg-[#050505] divide-x-2 divide-white/10" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex overflow-x-auto pb-10 border-2 border-white/10 bg-[#050505] divide-x-2 divide-white/10">
       {columns.map(col => (
         <div key={col.id} className="min-w-[320px] flex-shrink-0 flex flex-col">
           <div className="p-8 border-b-2 border-white/10 bg-white/2 flex justify-between items-center">
@@ -47,8 +44,8 @@ const PipelineDashboard: React.FC<Props> = ({ domains, setDomains, onInspect, la
                 
                 <div className="flex justify-between items-center mb-6">
                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{domain.sector || 'N/A'}</div>
-                   <div className={`transition-all ${lang === 'ar' ? 'group-hover:-translate-x-2' : 'group-hover:translate-x-2'}`}>
-                      <i className={`fas ${lang === 'ar' ? 'fa-arrow-left' : 'fa-arrow-right'} text-[10px] text-[#c5a059]`}></i>
+                   <div className="group-hover:translate-x-2">
+                      <i className="fas fa-arrow-right text-[10px] text-[#c5a059]"></i>
                    </div>
                 </div>
 

@@ -1,16 +1,16 @@
 
 /**
- * Isthmic Pro - Sovereign AI Aggregator v6.0
- * PRUNED & MODULARIZED to reduce tech debt and circular dependencies.
+ * Isthmic Pro - Sovereign AI Aggregator v7.0 (FINAL)
+ * Cleaned, Optimized, and Modularized for Production.
  */
 
-// Core AI Base
+// Core Base
 export { safeAICall, generateStructuredAI } from "./ai/base";
 
-// specialized Forensic Services
+// Forensic & OSINT
 export { performOsintInvestigationAI, checkTrademarkRiskAI } from "./ai/ForensicService";
 
-// Market Discovery & Intelligence
+// Market & Discovery
 export { 
   rigorousDiscoveryAI, 
   getDropSniperListAI, 
@@ -19,7 +19,7 @@ export {
   findLocalBuyersAI 
 } from "./ai/DiscoveryService";
 
-// Deep Analysis & Strategy
+// Analysis & Executive
 export { 
   evaluateDomainExpertAI, 
   debateDomainStrategyAI, 
@@ -27,7 +27,7 @@ export {
   nexusPrimeIntelligenceAI 
 } from "./ai/AnalysisService";
 
-// Liquidation & Outreach
+// Liquidation & Scaling
 export { 
   optimizeAfternicListingAI, 
   harvestBulkLeadsAI, 
@@ -37,26 +37,26 @@ export {
   getAuctionIntelligenceAI 
 } from "./ai/LiquidationService";
 
-// Value Engineering
+// Identity & Proofing
 export { generateBrandIdentityAI, generateValueProofAI } from "./ai/ValueService";
 
-// Market Signals (Legacy support pruned to direct call)
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./ai/base";
 
 export const getMarketSignalsAI = async (domainPart: string) => {
-  return generateStructuredAI(
+  const result = await generateStructuredAI(
     'gemini-3-flash-preview',
-    "Role: Real-time Market Pulse Analyzer. Grounding: ENABLED.",
-    `Analyze sector momentum and pricing signals for keyword: "${domainPart}"`,
+    "Role: Market Signals Analyzer.",
+    `Analyze pricing signals for: "${domainPart}"`,
     {
       type: Type.OBJECT,
       properties: {
-        signal: { type: Type.STRING, enum: ['BULLISH', 'NEUTRAL', 'BEARISH'] },
+        signal: { type: Type.STRING },
         momentumScore: { type: Type.NUMBER },
         reasoning: { type: Type.STRING }
       }
     },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };

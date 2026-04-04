@@ -4,11 +4,12 @@ import { generateStructuredAI } from "./base";
 
 /**
  * Deep Forensic OSINT Agent.
- * عند ربط مفاتيح خارجية، يمكن لهذا الوكيل سحب لقطات من Wayback Machine
- * وبيانات السمعة من VirusTotal لرفع دقة التقييم.
+ * When external keys are connected, this agent can pull snapshots from Wayback Machine
+ * and reputation data from VirusTotal to increase assessment accuracy.
  */
-export const performOsintInvestigationAI = async (query: string, lang: 'ar' | 'en' = 'ar') => {
-  return generateStructuredAI<any>(
+export const performOsintInvestigationAI = async (query: string, lang: 'en' = 'en') => {
+  // Fix: Extract .data from response for proper UI state management
+  const result = await generateStructuredAI<any>(
     'gemini-3-pro-preview',
     `Deep Forensic OSINT Agent. Language: ${lang}. 
      Mission: Scrutinize the digital footprint of the target.
@@ -27,14 +28,17 @@ export const performOsintInvestigationAI = async (query: string, lang: 'ar' | 'e
     },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };
 
 export const checkTrademarkRiskAI = async (domainName: string) => {
-  return generateStructuredAI<string>(
+  // Fix: Return .data so the caller receives the trademark risk level string directly
+  const result = await generateStructuredAI<string>(
     'gemini-3-flash-preview',
     "Intellectual Property Auditor.",
     `Assess trademark risk for "${domainName}" across global classes. Return one word: Safe, Low, Medium, or High.`,
     { type: Type.STRING },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };

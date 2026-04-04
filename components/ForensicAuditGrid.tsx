@@ -4,25 +4,24 @@ import { Domain } from '../types';
 
 interface Props {
   domains: Domain[];
-  lang: 'ar' | 'en';
 }
 
-const ForensicAuditGrid: React.FC<Props> = ({ domains, lang }) => {
+const ForensicAuditGrid: React.FC<Props> = ({ domains }) => {
   return (
     <div className="bg-[#05070a] border border-white/10 rounded-2xl overflow-hidden font-mono text-[10px]">
       <div className="p-3 border-b border-white/10 bg-white/5 flex justify-between items-center">
         <span className="text-red-500 font-black animate-pulse uppercase tracking-tighter">
-          {lang === 'ar' ? 'رادار النزاهة الجنائية' : 'FORENSIC INTEGRITY RADAR'}
+          FORENSIC INTEGRITY RADAR
         </span>
         <div className="flex gap-4 text-slate-600">
-          <span>{lang === 'ar' ? 'الأصول:' : 'ASSETS:'} {domains.length}</span>
+          <span>ASSETS: {domains.length}</span>
         </div>
       </div>
       <div className="overflow-x-auto no-scrollbar">
         <table className="w-full text-left border-collapse data-heavy-table">
           <thead>
             <tr className="bg-white/5 text-slate-500 uppercase border-b border-white/10">
-              <th className="p-3 border-r border-white/5 font-black">{lang === 'ar' ? 'الأصل' : 'ASSET'}</th>
+              <th className="p-3 border-r border-white/5 font-black">ASSET</th>
               <th className="p-3 border-r border-white/5 text-center">DA/PA</th>
               <th className="p-3 border-r border-white/5 text-center">SPAM</th>
               <th className="p-3 border-r border-white/5 text-center">INTG.</th>

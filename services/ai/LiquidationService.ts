@@ -4,7 +4,8 @@ import { generateStructuredAI } from "./base";
 import { LeadProspect } from "../../types";
 
 export const optimizeAfternicListingAI = async (domainName: string, sector: string) => {
-  return generateStructuredAI<any>(
+  // Fix: Extract .data for the optimization console to prevent rendering errors
+  const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
     "Registrar metadata optimizer.",
     `Optimize ${domainName} for Afternic in ${sector}.`,
@@ -25,13 +26,14 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
       }
     }
   );
+  return result.data;
 };
 
 /**
  * Corporate Prospecting Engine (Enhanced with Apollo/Hunter logic)
  */
 export const harvestBulkLeadsAI = async (domainName: string, sector: string): Promise<LeadProspect[]> => {
-  // Extract .data from the response to match Promise<LeadProspect[]>
+  // Fix: Extract .data from the response to match Promise<LeadProspect[]> and fix 5-argument error
   const result = await generateStructuredAI<LeadProspect[]>(
     'gemini-3-flash-preview',
     `Corporate prospecting engine. 
@@ -60,8 +62,9 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string): Pr
   return result.data;
 };
 
-export const analyzeMarketPulseAI = async (sector: string, lang: 'ar' | 'en') => {
-  return generateStructuredAI<any>(
+export const analyzeMarketPulseAI = async (sector: string, lang: 'en' = 'en') => {
+  // Fix: Return .data for the market momentum chart to receive the structured pulse object
+  const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
     `Market momentum analyzer. Language: ${lang}.`,
     `Analyze pulse for ${sector}.`,
@@ -82,10 +85,12 @@ export const analyzeMarketPulseAI = async (sector: string, lang: 'ar' | 'en') =>
     },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };
 
-export const generateLeadGenBlueprintAI = async (domainName: string, sector: string) => {
-  return generateStructuredAI<any>(
+export const generateLeadGenBlueprintAI = async (domainName: string, _sector: string) => {
+  // Fix: Return .data for the value multiplier dashboard to fix data property access errors
+  const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
     "Business model architect.",
     `Design blueprint for ${domainName}.`,
@@ -99,6 +104,7 @@ export const generateLeadGenBlueprintAI = async (domainName: string, sector: str
       }
     }
   );
+  return result.data;
 };
 
 export const generatePersonaPitchAI = async (domainName: string, company: LeadProspect, persona: string): Promise<string> => {
@@ -115,7 +121,8 @@ export const generatePersonaPitchAI = async (domainName: string, company: LeadPr
 };
 
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
-  return generateStructuredAI<any>(
+  // Fix: Return .data for the auction watch dashboard to prevent undefined property errors
+  const result = await generateStructuredAI<any>(
     'gemini-3-flash-preview',
     "Auction market intelligence scout.",
     `Analyze auction trends and recent sales for: ${sectors.join(', ')}.`,
@@ -159,4 +166,5 @@ export const getAuctionIntelligenceAI = async (sectors: string[]) => {
     },
     [{ googleSearch: {} }]
   );
+  return result.data;
 };

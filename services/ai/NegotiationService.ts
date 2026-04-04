@@ -3,7 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage, DealState, DealStateEnum, NegotiationSnapshot } from "../../types";
 import { safeAICall, generateStructuredAI } from "./base";
 import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
-import { ArabicAnalysisService } from "./ArabicAnalysisService";
 
 /**
  * NegotiationService: Sovereign high-stakes negotiation engine.
@@ -13,10 +12,6 @@ export class NegotiationService {
   private static readonly MODEL_PRO = 'gemini-3-pro-preview';
   private static readonly MODEL_FLASH = 'gemini-3-flash-preview';
   public static readonly MAX_CONTEXT_MESSAGES = 15;
-
-  private static isArabic(text: string): boolean {
-    return /[\u0600-\u06FF]/.test(text);
-  }
 
   /**
    * getStrategicSnapshot: Passive monitoring interface.
@@ -105,12 +100,11 @@ export class NegotiationService {
   }> {
     return safeAICall(async () => {
       const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 3000);
-      const isArabicInput = this.isArabic(sanitizedMessage);
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const historyContext = this.compressHistory(thread.messages);
 
-      const [geminiResponse, stateResponse, falconInsight] = await Promise.all([
+      const [geminiResponse, stateResponse] = await Promise.all([
         ai.models.generateContent({
           model: this.MODEL_PRO,
           contents: `System: Chief Forensic Negotiator. Target: Digital Asset "${domainName}".
@@ -122,22 +116,15 @@ export class NegotiationService {
             responseSchema: NEGOTIATION_AUDIT_SCHEMA
           }
         }),
-        this.inferStateTransition(sanitizedMessage, thread.messages, thread.currentState),
-        isArabicInput ? ArabicAnalysisService.analyzeMessage(sanitizedMessage) : Promise.resolve(null)
+        this.inferStateTransition(sanitizedMessage, thread.messages, thread.currentState)
       ]);
 
       const result = JSON.parse(geminiResponse.text || '{}');
 
-      const finalResult = {
+      return {
         ...result,
         newState: stateResponse.newState
       };
-
-      if (falconInsight && finalResult.insight) {
-        finalResult.insight.culturalNuance = falconInsight.culturalNuance;
-      }
-
-      return finalResult;
     });
   }
 

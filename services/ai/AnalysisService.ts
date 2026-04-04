@@ -1,12 +1,45 @@
 
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
-import { PlatformStats } from "../../types";
+import { PlatformStats, DecompositionPlan } from "../../types";
 
-export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'en' = 'ar', signal?: AbortSignal) => {
+export const decomposeStrategyAI = async (thesis: string): Promise<DecompositionPlan> => {
+  const result = await generateStructuredAI<any>(
+    'gemini-3-pro-preview',
+    `Strategic Planner (Sovereign Core). 
+     Task: Decompose a high-level investment thesis into 5 discrete execution nodes.
+     Nodes must follow this sequence: 1. Vector Extraction, 2. Gap Identification, 3. Forensic Filtering, 4. Liquidity Benchmarking, 5. Alpha Synthesis.`,
+    `Investment Thesis: "${thesis}"`,
+    {
+      type: Type.OBJECT,
+      properties: {
+        nodes: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              label: { type: Type.STRING },
+              description: { type: Type.STRING }
+            }
+          }
+        }
+      }
+    }
+  );
+
+  return {
+    id: crypto.randomUUID(),
+    strategicIntent: thesis,
+    createdAt: new Date().toISOString(),
+    nodes: result.data.nodes.map((n: any) => ({ ...n, status: 'pending' }))
+  };
+};
+
+export const evaluateDomainExpertAI = async (domainName: string, signal?: AbortSignal) => {
   return generateStructuredAI<any>(
     'gemini-3-pro-preview',
-    `Forensic Domain Auditor. Integrity check for SEO, Branding, and Risk. Lang: ${lang}`,
+    `Forensic Domain Auditor. Integrity check for SEO, Branding, and Risk.`,
     `Audit domain: ${domainName}. Evaluate historical integrity and market liquidity.`,
     {
       type: Type.OBJECT,
@@ -32,10 +65,10 @@ export const evaluateDomainExpertAI = async (domainName: string, lang: 'ar' | 'e
   );
 };
 
-export const debateDomainStrategyAI = async (domainName: string, lang: 'ar' | 'en' = 'ar') => {
+export const debateDomainStrategyAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
     'gemini-3-pro-preview',
-    `Multi-agent strategist lab. Lang: ${lang}`,
+    `Multi-agent strategist lab.`,
     `Debate investment value of ${domainName}.`,
     {
       type: Type.OBJECT,
@@ -72,7 +105,7 @@ export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: s
   return res.data;
 };
 
-export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: 'ar' | 'en') => {
+export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: 'en' = 'en') => {
   const res = await generateStructuredAI<any>(
     'gemini-3-pro-preview',
     `Nexus Prime Core Intelligence. Mode: ${mode}. Lang: ${lang}`,

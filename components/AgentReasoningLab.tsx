@@ -15,11 +15,11 @@ const ViewCard: React.FC<{ role: string; text: string; color: string; icon: stri
   </div>
 );
 
-const RiskMeter: React.FC<{ score: number; lang: string }> = ({ score, lang }) => (
+const RiskMeter: React.FC<{ score: number }> = ({ score }) => (
   <div className="bg-[#0b0e14] p-10 rounded-[40px] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-10">
     <div className="flex-1 space-y-4 w-full">
       <div className="flex justify-between mb-2">
-        <span className="text-[10px] font-black text-slate-500 uppercase">{lang === 'ar' ? 'تقييم المخاطر' : 'RISK SCORE'}</span>
+        <span className="text-[10px] font-black text-slate-500 uppercase">RISK SCORE</span>
         <span className={`text-2xl font-black ${score > 70 ? 'text-red-500' : 'text-green-500'}`}>{score}%</span>
       </div>
       <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
@@ -29,17 +29,17 @@ const RiskMeter: React.FC<{ score: number; lang: string }> = ({ score, lang }) =
   </div>
 );
 
-const AgentReasoningLab: React.FC<{ domain: Domain; onClose: () => void; lang: 'ar' | 'en' }> = ({ domain, onClose, lang }) => {
+const AgentReasoningLab: React.FC<{ domain: Domain; onClose: () => void }> = ({ domain, onClose }) => {
   const [debate, setDebate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    debateDomainStrategyAI(domain.name, lang).then(data => {
+    debateDomainStrategyAI(domain.name).then(data => {
       if (active) { setDebate(data); setLoading(false); }
     });
     return () => { active = false; };
-  }, [domain.name, lang]);
+  }, [domain.name]);
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-y-0 right-0 w-full lg:w-[800px] bg-[#05070a] text-white shadow-2xl z-[400] border-l border-white/10 flex flex-col animate-slide-left font-mono">
@@ -67,7 +67,7 @@ const AgentReasoningLab: React.FC<{ domain: Domain; onClose: () => void; lang: '
               <ViewCard role="STRATEGIST" text={debate.strategistView} color="indigo" icon="fa-chart-line" />
               <ViewCard role="AUDITOR" text={debate.auditorView} color="red" icon="fa-shield-halved" />
             </div>
-            <RiskMeter score={debate.riskScore} lang={lang} />
+            <RiskMeter score={debate.riskScore} />
             <div className="p-10 bg-indigo-600 rounded-[40px] text-white relative overflow-hidden">
                <h4 className="text-[10px] font-black uppercase mb-6">Final Executive Verdict</h4>
                <p className="text-xl font-medium italic">"{debate.finalVerdict}"</p>

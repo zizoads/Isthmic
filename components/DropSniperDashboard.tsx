@@ -3,17 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { getDropSniperListAI, analyzeSnipeOpportunityAI } from '../services/ai/DiscoveryService';
 import { translations } from '../translations';
 import { useDomainContext } from '../context/DomainContext';
-import { NotificationService } from '../services/NotificationService';
-import { OrchestrationService } from '../services/ai/OrchestrationService';
 import { StrategicObjective } from '../types';
 
-interface Props {
-  lang: 'ar' | 'en';
-}
-
-const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
-  const t = translations[lang];
-  const { activeProfile, addLog, strategy } = useDomainContext();
+const DropSniperDashboard: React.FC = () => {
+  const t = translations.en;
+  const { addLog } = useDomainContext();
   const [sector, setSector] = useState('Artificial Intelligence');
   const [snipes, setSnipes] = useState<any[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -23,14 +17,13 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
   const [objectives, setObjectives] = useState<StrategicObjective[]>([]);
 
   useEffect(() => {
-    if (strategy.investmentThesis) {
-      OrchestrationService.generateInitialObjectives(strategy.investmentThesis).then(setObjectives);
-    }
-  }, [strategy.investmentThesis]);
+    // Removed strategy.investmentThesis dependency
+    setObjectives([]);
+  }, []);
 
   const handleScan = async () => {
     setIsScanning(true);
-    addLog('Sniper', lang === 'ar' ? 'بدء فحص الرادار للأهداف الاستراتيجية...' : 'Initiating strategic radar sweep...', 'info');
+    addLog('Sniper', 'Initiating strategic radar sweep...', 'info');
     const list = await getDropSniperListAI(sector, objectives);
     setSnipes(list);
     setIsScanning(false);
@@ -49,18 +42,13 @@ const DropSniperDashboard: React.FC<Props> = ({ lang }) => {
     setDeepAnalysis(result);
     setIsAnalyzing(false);
 
-    if (result.verdict === 'Golden' && activeProfile?.preferences?.emailAlerts) {
-      await NotificationService.sendTransactionalEmail(activeProfile.email, 'GOLDEN_SNIPER', {
-        domain: snipe.domain,
-        value: snipe.estimatedValue,
-        verdict: result.verdict
-      });
-      addLog('System', lang === 'ar' ? `تم إرسال تنبيه ذهبي إلى ${activeProfile.email}` : `Golden Alert dispatched to ${activeProfile.email}`, 'success');
+    if (result.verdict === 'Golden') {
+      addLog('System', `Golden Alert detected for ${snipe.domain}`, 'success');
     }
   };
 
   return (
-    <div className="space-y-10 animate-fade-in pb-20" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="space-y-10 animate-fade-in pb-20" dir="ltr">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">{t.dropSniper}</h2>

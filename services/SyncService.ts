@@ -35,9 +35,9 @@ export class SyncService {
   }
 
   private static async packageWorkspaceData(profileId: string) {
-    const domains = await persistence.loadAll('domains');
-    const strategies = await persistence.loadAll('strategy');
-    const integrations = await persistence.loadAll('integrations');
+    const domains = await persistence.loadAll('domains') as Domain[];
+    const strategies = await persistence.loadAll('strategy') as PlatformStrategy[];
+    const integrations = await persistence.loadAll('integrations') as ServiceIntegration[];
 
     return {
       timestamp: new Date().toISOString(),

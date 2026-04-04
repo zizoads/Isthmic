@@ -33,6 +33,7 @@ describe('NegotiationService.inferStateTransition', () => {
     const result = await NegotiationService.inferStateTransition(currentMsg, dummyHistory);
     
     expect(result.newState.currentState).toBe(DealStateEnum.TENSION);
+    // Comment above fix: previousState exists in the DealState type now.
     expect(result.newState.previousState).toBeUndefined(); // Assuming no current state passed
   });
 

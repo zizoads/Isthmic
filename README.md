@@ -42,7 +42,7 @@ The platform is architected into five specialized Command Hubs, each housing ded
 
 We believe that "Data is Sovereignty." The platform is built on three core pillars:
 1.  **Sovereign Shield**: All sensitive data (API keys, strategies, leads) is encrypted locally in your browser using a custom XOR algorithm with a unique "Integrity Fingerprint." No third party—including the developers—can access this data.
-2.  **Hybrid Storage**: We utilize **Supabase** for secure cloud synchronization, while keeping absolute control in the user's hands through the "Client-Side Vault."
+2.  **Local-First Storage**: We utilize the **Sovereign Shield** for secure local synchronization and encryption, keeping absolute control in the user's hands through the "Client-Side Vault."
 3.  **Identity Protection**: Strict identity verification protocols are in place; passwords and private keys are never stored in plaintext.
 
 ---

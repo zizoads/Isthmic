@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   SovereignAutopsyReport, 
   AutomaticFix, 
@@ -242,7 +242,7 @@ const AutopsyLab: React.FC = () => {
                           <XAxis hide />
                           <YAxis hide />
                           <Bar dataKey="frequency" radius={[4, 4, 0, 0]}>
-                            {catalog.patterns.map((entry, index) => (
+                            {catalog.patterns.map((_, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Bar>

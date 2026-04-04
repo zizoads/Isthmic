@@ -5,16 +5,16 @@ import { translations } from '../translations';
  * useSovereignT: The elite translation hook for Isthmic Pro.
  * Ensures technical data (IDs, Domain Names) remains LTR and untranslated.
  */
-export const useSovereignT = (lang: 'ar' | 'en') => {
+export const useSovereignT = () => {
   const tFunc = (key: string, params?: Record<string, any>) => {
     const keys = key.split('.');
     
-    // Deep find the value in the translation object
-    let text: any = keys.reduce((obj: any, k) => obj?.[k], translations[lang]);
+    // Deep find the value in the translation object (defaulting to English)
+    let text: any = keys.reduce((obj: any, k) => obj?.[k], translations.en);
     
     // Fallback logic: check legacy flat keys if nested find fails
     if (text === undefined) {
-      text = (translations[lang] as any)[key] || key;
+      text = (translations.en as any)[key] || key;
     }
 
     if (typeof text !== 'string') return String(text);
@@ -40,7 +40,7 @@ export const useSovereignT = (lang: 'ar' | 'en') => {
   // Expose to window for strategic debugging/testing
   if (typeof window !== 'undefined') {
     (window as any)._translator = (window as any)._translator || {};
-    (window as any)._translator[lang] = tFunc;
+    (window as any)._translator['en'] = tFunc;
   }
 
   return tFunc;

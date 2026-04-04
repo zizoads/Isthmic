@@ -4,10 +4,9 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { analyzeMarketPulseAI } from '../services/geminiService';
 
 interface Props {
-  lang: 'ar' | 'en';
 }
 
-const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
+const MarketMomentumChart: React.FC<Props> = () => {
   const [pulse, setPulse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [targetSector, setTargetSector] = useState('Artificial Intelligence');
@@ -18,7 +17,7 @@ const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
 
   const handleFetchPulse = async () => {
     setIsLoading(true);
-    const data = await analyzeMarketPulseAI(targetSector, lang);
+    const data = await analyzeMarketPulseAI(targetSector);
     setPulse(data);
     setIsLoading(false);
   };
@@ -36,10 +35,10 @@ const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
 
   return (
     <div className="bg-[#0b0e14] border border-white/10 rounded-[40px] p-8 lg:p-12 shadow-2xl h-auto min-h-[600px] flex flex-col group relative overflow-hidden">
-      <div className={`flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-12 relative z-10 ${lang === 'ar' ? 'lg:flex-row-reverse' : ''}`}>
-        <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-12 relative z-10">
+        <div className="text-left">
           <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-3">
-            {lang === 'ar' ? 'رادار الزخم الحي الموثق' : 'GROUNDED LIVE MOMENTUM RADAR'}
+            GROUNDED LIVE MOMENTUM RADAR
           </h3>
           <div className="flex items-center gap-4 mt-2">
             <span className="text-3xl lg:text-4xl font-black text-white tracking-tighter uppercase">{targetSector} Index</span>
@@ -82,7 +81,7 @@ const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
               contentStyle={{ background: '#0b0e14', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
               itemStyle={{ color: '#fff', fontSize: '10px', fontWeight: '900' }}
               labelStyle={{ display: 'none' }}
-              formatter={(value: any, name: any, props: any) => [`$${value.toLocaleString()}`, props.payload.domain || 'Valuation']}
+              formatter={(value: any, _name: any, props: any) => [`$${value.toLocaleString()}`, props.payload.domain || 'Valuation']}
             />
             <Area 
               type="monotone" 
@@ -100,8 +99,8 @@ const MarketMomentumChart: React.FC<Props> = ({ lang }) => {
 
       {pulse && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10 border-t border-white/5 pt-10">
-           <div className={lang === 'ar' ? 'text-right' : 'text-left'}>
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{lang === 'ar' ? 'التوصية الاستراتيجية' : 'STRATEGIC RECOMMENDATION'}</h4>
+           <div className="text-left">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">STRATEGIC RECOMMENDATION</h4>
               <p className="text-sm text-slate-300 leading-relaxed font-medium italic">
                 "{pulse.strategicAdvice}"
               </p>

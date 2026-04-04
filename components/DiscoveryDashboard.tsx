@@ -4,25 +4,21 @@ import { Domain, StrategicObjective } from '../types';
 import { rigorousDiscoveryAI } from '../services/geminiService';
 import { useDomainContext } from '../context/DomainContext';
 import { useSovereignT } from '../hooks/useTranslation';
-import PricingTerminal from './PricingTerminal';
 import PrestigeLoader from './ui/PrestigeLoader';
 import { OrchestrationService } from '../services/ai/OrchestrationService';
 
 interface Props {
   domains: Domain[];
-  setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
-  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical') => void;
-  lang: 'ar' | 'en';
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
   objectives?: StrategicObjective[];
 }
 
-const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objectives = [] }) => {
-  const t = useSovereignT(lang);
-  const { activeProfile, trackUsage, strategy, stats } = useDomainContext();
+const DiscoveryDashboard: React.FC<Props> = ({ addLog, objectives = [] }) => {
+  const t = useSovereignT();
+  const { activeProfile, stats, addDomain } = useDomainContext();
   const [prompt, setPrompt] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [scannedResults, setScannedResults] = useState<any[]>([]);
-  const [showPricing, setShowPricing] = useState(false);
   const [filterElite, setFilterElite] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -32,22 +28,19 @@ const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objecti
     setScannedResults([]);
     abortControllerRef.current = new AbortController();
     
-    addLog('Discovery', lang === 'ar' ? 'بدء تنقيب السوق الاستراتيجي الموجه...' : 'Initiating goal-oriented market mining...', 'info');
+    addLog('Discovery', 'Initiating goal-oriented market mining...', 'info');
 
     try {
       const response = await rigorousDiscoveryAI(
         prompt, 
-        lang, 
+        'en', 
         abortControllerRef.current.signal, 
         objectives,
-        strategy.causalRejectionModels // استخدام الذاكرة السببية
+        [] // Removed strategy.causalRejectionModels
       );
       
-      await trackUsage('scan');
-      
-      // Stage 4: حقن التنبؤ الاستباقي لكل نتيجة
       const predictedResults = await Promise.all(response.data.map(async (item: any) => {
-        const prediction = await OrchestrationService.predictAssetViability(item.name, strategy.causalRejectionModels || []);
+        const prediction = await OrchestrationService.predictAssetViability(item.name, []);
         return { 
           ...item, 
           predictiveViabilityScore: prediction.viability,
@@ -56,7 +49,7 @@ const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objecti
       }));
 
       setScannedResults(predictedResults);
-      addLog('Discovery', `Sweep complete. Adaptive Filter: ${stats.adaptiveThreshold}%`, 'success');
+      addLog('Discovery', `Sweep complete. Adaptive Filter: ${stats.adaptiveThreshold}%`, 'success', { latency: response.latency });
     } catch (e: any) {
       if (e.message !== 'Aborted') addLog('System', 'Inference pipeline interrupted.', 'critical');
     } finally {
@@ -65,52 +58,47 @@ const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objecti
   };
 
   const filteredResults = useMemo(() => {
-    // Stage 4: تطبيق العتبة التكيفية الديناميكية بدلاً من 80% ثابتة
-    const threshold = strategy.adaptiveThresholdEnabled ? stats.adaptiveThreshold : 80;
+    const threshold = stats.adaptiveThreshold || 80;
     if (filterElite) return scannedResults.filter(r => (r.strategicAlignmentScore || 0) >= threshold);
     return scannedResults;
-  }, [scannedResults, filterElite, stats.adaptiveThreshold, strategy.adaptiveThresholdEnabled]);
+  }, [scannedResults, filterElite, stats.adaptiveThreshold]);
 
   return (
-    <div className="space-y-16 animate-prestige" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {showPricing && <PricingTerminal onClose={() => setShowPricing(false)} lang={lang} />}
+    <div className="space-y-10 animate-prestige" dir="ltr">
 
-      <div className="glass-panel p-16 lg:p-24 space-y-16 relative overflow-hidden group">
-        <header className="space-y-6 relative z-10">
+      <div className="glass-panel p-8 lg:p-10 space-y-8 relative overflow-hidden group">
+        <header className="space-y-3 relative z-10">
            <div className="flex justify-between items-center">
-             <span className="text-[#d4af37] text-[10px] font-black uppercase tracking-[0.5em] flex items-center gap-4">
-                <i className="fas fa-brain animate-pulse"></i> Goal-Oriented Discovery
+             <span className="text-[#d4af37] text-[8px] font-black uppercase tracking-[0.4em] flex items-center gap-2">
+                <i className="fas fa-brain animate-pulse text-[10px]"></i> Goal-Oriented Discovery
              </span>
-             <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                   <span className="text-[9px] font-black text-slate-500 uppercase">Adaptive Filter: {stats.adaptiveThreshold}%</span>
-                   <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-widest">Stage 4 Active</span>
-                </div>
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_#6366f1]"></div>
+             <div className="flex items-center gap-2">
+                <span className="text-[7px] font-black text-slate-500 uppercase">Filter: {stats.adaptiveThreshold}%</span>
+                <div className="w-1 h-1 bg-indigo-500 rounded-full"></div>
              </div>
            </div>
            <textarea
              value={prompt}
              onChange={(e) => setPrompt(e.target.value)}
              placeholder={t('searchPlaceholder')}
-             className="w-full bg-transparent border-none text-4xl lg:text-6xl prestige-title outline-none min-h-[180px] text-white placeholder:text-white/5 italic leading-tight p-0 resize-none"
+             className="w-full bg-transparent border-none text-xl lg:text-2xl prestige-title outline-none min-h-[100px] text-white placeholder:text-white/10 italic leading-tight p-0 resize-none"
            />
         </header>
         
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 pt-12 border-t border-white/5 relative z-10">
-           <div className="flex items-center gap-8">
-              <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-[30px] flex items-center justify-center text-[#d4af37] text-3xl shadow-2xl transition-all group-hover:scale-110">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/5 relative z-10">
+           <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-[#d4af37] text-base">
                 <i className="fas fa-microchip"></i>
               </div>
-              <div className="text-[9px] font-black text-slate-500 uppercase leading-loose tracking-[0.2em]">
-                Feedback_Control: CAUSAL<br/>Objective_Lock: {objectives.length > 0 ? 'SYNCHRONIZED' : 'IDLE'}
+              <div className="text-[7px] font-black text-slate-500 uppercase leading-tight tracking-widest">
+                Feedback_Control: CAUSAL<br/>Sync_Status: {objectives.length > 0 ? 'LOCKED' : 'IDLE'}
               </div>
            </div>
 
            <button 
               onClick={handleSearch} 
               disabled={isSearching || !prompt} 
-              className="prestige-btn prestige-btn-gold !px-20 !py-7"
+              className="prestige-btn prestige-btn-gold !px-8 !py-3 !text-[9px]"
             >
               {isSearching ? <i className="fas fa-cog fa-spin"></i> : <i className="fas fa-bolt"></i>}
               <span>{isSearching ? 'ALIGNING...' : t('startInference')}</span>
@@ -118,44 +106,40 @@ const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objecti
         </div>
       </div>
 
-      {isSearching && <PrestigeLoader label="Applying causal filters and predictive modeling..." />}
+      {isSearching && <PrestigeLoader label="Applying causal filters..." />}
 
       {scannedResults.length > 0 && !isSearching && (
-        <div className="space-y-12 animate-prestige">
-           <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-10 gap-6">
-              <div className="space-y-2">
-                 <h3 className="prestige-title text-5xl text-white italic">Discovery Manifest.</h3>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase">Dynamic Threshold: {stats.adaptiveThreshold}%</p>
+        <div className="space-y-6 animate-prestige">
+           <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 gap-4">
+              <div className="space-y-1">
+                 <h3 className="prestige-title text-2xl text-white italic">Discovery Manifest.</h3>
+                 <p className="text-[7px] text-slate-600 font-bold uppercase tracking-widest">Dynamic Threshold: {stats.adaptiveThreshold}%</p>
               </div>
-              <div className="flex items-center gap-6">
-                 <button 
-                  onClick={() => setFilterElite(!filterElite)}
-                  className={`flex items-center gap-3 px-6 py-2.5 rounded-full border transition-all ${filterElite ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}
-                 >
-                    <i className="fas fa-crown text-[10px]"></i>
-                    <span className="text-[9px] font-black uppercase tracking-widest">
-                       {lang === 'ar' ? 'تصفية ذكية' : 'ADAPTIVE FILTER'}
-                    </span>
-                 </button>
-              </div>
+              <button 
+                onClick={() => setFilterElite(!filterElite)}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${filterElite ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' : 'bg-white/5 border-white/10 text-slate-500'}`}
+              >
+                <i className="fas fa-crown text-[7px]"></i>
+                <span className="text-[8px] font-black uppercase tracking-widest">ADAPTIVE FILTER</span>
+              </button>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredResults.map((r, i) => (
-                <div key={i} className={`square-card p-12 group relative overflow-hidden flex flex-col justify-between h-[480px] ${r.causalPenaltyReason ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                <div key={i} className={`square-card p-6 group relative overflow-hidden flex flex-col justify-between h-[360px] ${r.causalPenaltyReason ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                    <div className="relative z-10">
-                      <div className="flex justify-between items-start mb-8">
-                         <div className="text-3xl font-black text-white group-hover:text-[#d4af37] transition-colors leading-none italic">{r.name}</div>
+                      <div className="flex justify-between items-start mb-4">
+                         <div className="text-xl font-black text-white group-hover:text-[#d4af37] transition-colors leading-none italic truncate max-w-[70%]">{r.name}</div>
                          <div className="text-right">
-                            <div className="text-sm font-mono font-black text-[#d4af37] mb-1">${r.estimatedPrice}</div>
-                            <div className={`text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-sm ${r.strategicAlignmentScore >= stats.adaptiveThreshold ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-white/5 text-slate-500'}`}>
-                               Match: {r.strategicAlignmentScore}%
+                            <div className="text-[10px] font-mono font-black text-[#d4af37] mb-1">${r.estimatedPrice}</div>
+                            <div className={`text-[7px] font-black uppercase px-2 py-0.5 rounded ${r.strategicAlignmentScore >= stats.adaptiveThreshold ? 'bg-green-500/20 text-green-500' : 'bg-white/5 text-slate-500'}`}>
+                               {r.strategicAlignmentScore}%
                             </div>
                          </div>
                       </div>
                       
-                      <div className="mb-8 p-4 bg-white/2 border border-white/5 rounded-2xl">
-                         <div className="flex justify-between text-[8px] font-black uppercase text-slate-500 mb-2">
+                      <div className="mb-4 p-2 bg-white/2 border border-white/5 rounded-lg">
+                         <div className="flex justify-between text-[7px] font-black uppercase text-slate-600 mb-1">
                             <span>Neural Prediction</span>
                             <span className={r.predictiveViabilityScore > 70 ? 'text-green-500' : 'text-amber-500'}>{r.predictiveViabilityScore}%</span>
                          </div>
@@ -164,27 +148,33 @@ const DiscoveryDashboard: React.FC<Props> = ({ setDomains, addLog, lang, objecti
                          </div>
                       </div>
 
-                      <p className="text-sm text-slate-400 font-medium mb-12 italic leading-relaxed h-28 overflow-hidden line-clamp-4 border-l-2 border-white/5 pl-8">
-                        "{r.justification}"
-                      </p>
-                      
-                      {r.causalPenaltyReason && (
-                        <div className="text-[9px] font-bold text-red-400 italic mb-4">
-                           // Penalty: {r.causalPenaltyReason}
+                      {r.trafficSignal && r.trafficSignal !== 'none' && (
+                        <div className="mb-4 flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                           <i className="fas fa-chart-line text-indigo-400 text-[10px]"></i>
+                           <div className="flex-1">
+                              <div className="flex justify-between items-center">
+                                 <span className="text-[7px] font-black text-indigo-400 uppercase tracking-widest">Traffic Signal: {r.trafficSignal}</span>
+                                 <span className="text-[6px] font-bold text-white/30 uppercase">{r.trafficSource}</span>
+                              </div>
+                           </div>
                         </div>
                       )}
+
+                      <p className="text-[11px] text-slate-500 font-medium mb-6 italic leading-relaxed h-16 overflow-hidden line-clamp-3 border-l border-white/5 pl-4">
+                        "{r.justification}"
+                      </p>
                    </div>
                    
-                   <div className="pt-8 border-t border-white/5 flex justify-between items-center relative z-10">
-                      <div className="space-y-2">
-                        <div className="text-[9px] font-black uppercase text-slate-600 tracking-widest">Confidence Alpha</div>
-                        <div className="text-2xl font-mono font-black text-white">{Math.round(r.probability * 100)}%</div>
+                   <div className="pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
+                      <div className="space-y-0.5">
+                        <div className="text-[7px] font-black uppercase text-slate-700 tracking-widest">Confidence</div>
+                        <div className="text-lg font-mono font-black text-white">{Math.round(r.probability * 100)}%</div>
                       </div>
                       <button 
-                        onClick={() => activeProfile && setDomains(p => [{ id: crypto.randomUUID(), ...r, status: 'available' }, ...p])} 
-                        className="w-14 h-14 bg-white rounded-3xl flex items-center justify-center text-black hover:bg-[#c5a059] transition-all shadow-2xl hover:scale-110"
+                        onClick={() => activeProfile && addDomain({ id: crypto.randomUUID(), ...r, status: 'available' })} 
+                        className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-black hover:bg-[#d4af37] transition-all shadow-lg hover:scale-105"
                       >
-                        <i className="fas fa-plus text-lg"></i>
+                        <i className="fas fa-plus text-xs"></i>
                       </button>
                    </div>
                 </div>

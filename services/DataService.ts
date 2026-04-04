@@ -1,36 +1,47 @@
 
 /**
  * Isthmic Pro - Sovereign Data Strategy
- * نظام هجين: تخزين محلي للسرعة، ومزامنة سحابية للخصوصية والأمان.
+ * Hybrid system: Local storage for speed, Firebase sync for privacy and security.
  */
-import { supabase } from './SupabaseClient';
+import { SovereignShield } from './SovereignShield';
 
 export const persistence = {
   async init() {
-    // إعداد أولي إذا لزم الأمر
+    // Initial setup if needed
   },
 
   async save(table: string, data: any) {
-    const { error } = await supabase.from(table).upsert(data);
-    if (error) console.error(`Error saving to ${table}:`, error);
+    try {
+      const current = await SovereignShield.recover<any[]>(table) || [];
+      const next = Array.isArray(data) ? data : [data, ...current.filter(i => i.id !== data.id)];
+      await SovereignShield.protect(table, next);
+    } catch (error) {
+      console.error(`Error saving to ${table}:`, error);
+    }
   },
 
   async loadAll(table: string) {
-    const { data, error } = await supabase.from(table).select('*');
-    if (error) {
+    try {
+      const data = await SovereignShield.recover<any[]>(table);
+      return data || [];
+    } catch (error) {
       console.error(`Error loading from ${table}:`, error);
       return [];
     }
-    return data || [];
   },
 
   async delete(table: string, id: string) {
-    const { error } = await supabase.from(table).delete().eq('id', id);
-    if (error) console.error(`Error deleting from ${table}:`, error);
+    try {
+      const current = await SovereignShield.recover<any[]>(table) || [];
+      const next = current.filter(i => i.id !== id);
+      await SovereignShield.protect(table, next);
+    } catch (error) {
+      console.error(`Error deleting from ${table}:`, error);
+    }
   },
 
   async exportBackup(profileId: string): Promise<string> {
-    const { data: domains } = await supabase.from('domains').select('*').eq('workspaceId', profileId);
+    const domains = await SovereignShield.recover<any[]>('domains') || [];
     return JSON.stringify({
       profileId,
       timestamp: new Date().toISOString(),
