@@ -1,4 +1,13 @@
 
+---
+title: Isthmic Intelligence
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # 🌐 Isthmic Pro: The Sovereign OS for Elite Digital Asset Management
 ## Multi-Agent AI-Powered Strategic Command Center (Sovereign-2.3.5)
 
