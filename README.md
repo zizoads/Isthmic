@@ -35,6 +35,28 @@ The platform is architected into specialized Command Hubs, each housing dedicate
 
 ---
 
+## 🚀 Deployment (Free & No Credit Card Required)
+
+Isthmic Pro is designed to run for free using a hybrid deployment strategy:
+
+### 1. Frontend & API Gateway (Vercel)
+*   **Platform**: [Vercel.com](https://vercel.com)
+*   **Setup**: Connect your GitHub repo. Vercel will automatically detect the `vercel.json` configuration.
+*   **Environment Variables**:
+    *   `GEMINI_API_KEY`: Your Google Gemini API key.
+    *   `PYTHON_ENGINE_URL`: The URL of your Hugging Face Space (e.g., `https://username-space.hf.space`).
+
+### 2. Intelligence Engine (Hugging Face Spaces)
+*   **Platform**: [Hugging Face Spaces](https://huggingface.co/spaces)
+*   **Setup**: 
+    1. Create a new Space with **Docker** SDK.
+    2. Upload the contents of the `brand_intelligence` folder (or sync via GitHub).
+    3. Ensure the `Dockerfile` uses port `7860`.
+*   **Environment Variables**:
+    *   `FIREBASE_CREDENTIALS`: The full JSON content of your Firebase Service Account key.
+
+---
+
 ## 💻 Technical Stack & Infrastructure
 
 Isthmic Pro uses a robust full-stack architecture designed for speed and security:
