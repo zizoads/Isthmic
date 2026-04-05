@@ -86,7 +86,7 @@ class AdvancedCrawler:
         # Try lxml first, fallback to xml
         try:
             soup = BeautifulSoup(content, 'lxml-xml')
-        except:
+        except Exception:
             soup = BeautifulSoup(content, 'xml')
         for item in soup.find_all('item')[:limit]:
             title = item.find('title').text if item.find('title') else ''
@@ -191,7 +191,7 @@ class StartupPlatforms:
             # Try lxml first, fallback to html.parser
             try:
                 soup = BeautifulSoup(content, 'lxml')
-            except:
+            except Exception:
                 soup = BeautifulSoup(content, 'html.parser')
             for item in soup.select('div.startup')[:limit]:
                 name_elem = item.select_one('h3 a')
@@ -225,7 +225,7 @@ class StartupPlatforms:
             # Try lxml first, fallback to xml
             try:
                 soup = BeautifulSoup(content, 'lxml-xml')
-            except:
+            except Exception:
                 soup = BeautifulSoup(content, 'xml')
             for item in soup.find_all('item')[:limit]:
                 title = item.find('title').text if item.find('title') else ''
@@ -255,7 +255,7 @@ class StartupPlatforms:
             # Try lxml first, fallback to html.parser
             try:
                 soup = BeautifulSoup(content, 'lxml')
-            except:
+            except Exception:
                 soup = BeautifulSoup(content, 'html.parser')
             for item in soup.select('div.startup')[:limit]:
                 name_elem = item.select_one('a.startup-link')

@@ -95,7 +95,9 @@ def get_trends(limit=20):
         try:
             docs = firestore_db.collection('trends').order_by('opportunity_score', direction=firestore.Query.DESCENDING).limit(limit).stream()
             return [doc.to_dict() for doc in docs]
-        except: return []
+        except Exception as e:
+            print(f"⚠️ Error fetching trends: {e}")
+            return []
     db = get_local_db()
     trends = db.get("trends", [])
     return sorted(trends, key=lambda x: x.get('opportunity_score', 0), reverse=True)[:limit]
@@ -105,7 +107,9 @@ def get_opportunities(limit=10):
         try:
             docs = firestore_db.collection('brand_opportunities').order_by('opportunity_score', direction=firestore.Query.DESCENDING).limit(limit).stream()
             return [doc.to_dict() for doc in docs]
-        except: return []
+        except Exception as e:
+            print(f"⚠️ Error fetching opportunities: {e}")
+            return []
     db = get_local_db()
     opps = db.get("brand_opportunities", [])
     return sorted(opps, key=lambda x: x.get('opportunity_score', 0), reverse=True)[:limit]
@@ -115,7 +119,9 @@ def get_instincts(min_confidence=0.6):
         try:
             docs = firestore_db.collection('instincts').where('confidence', '>=', min_confidence).order_by('confidence', direction=firestore.Query.DESCENDING).stream()
             return [doc.to_dict() for doc in docs]
-        except: return []
+        except Exception as e:
+            print(f"⚠️ Error fetching instincts: {e}")
+            return []
     db = get_local_db()
     instincts = db.get("instincts", [])
     return [i for i in instincts if i.get('confidence', 0) >= min_confidence]

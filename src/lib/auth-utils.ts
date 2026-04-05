@@ -1,5 +1,5 @@
 
-import { UserProfile } from '../types';
+import { UserProfile } from '../../types';
 
 export const MASTER_IDENTITY = 'zizoadszn@gmail.com';
 
