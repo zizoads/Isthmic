@@ -39,16 +39,27 @@
     <div id="root"></div>
 
     <script>
+        window.isIsthmicMounted = false;
         window.markAppAsMounted = () => {
             window.isIsthmicMounted = true;
             document.getElementById('panic-ui').style.display = 'none';
+            console.log('🎖️ [SYSTEM] Sovereign Engine Mounted Successfully.');
         };
 
         function hardReboot() {
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = window.location.origin + "/";
+            // Force reload from server, bypassing cache
+            window.location.reload(true);
         }
+
+        // Boot Watchdog: If app doesn't mount in 5s, show panic UI
+        setTimeout(() => {
+            if (!window.isIsthmicMounted) {
+                console.error('🚨 [CRITICAL] Sovereign Engine failed to mount within stability window.');
+                document.getElementById('panic-ui').style.display = 'flex';
+            }
+        }, 5000);
     </script>
     <script type="module" src="./index.tsx"></script>
 </body>

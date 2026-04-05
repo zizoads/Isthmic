@@ -64,6 +64,8 @@ async function startServer() {
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
     changeOrigin: true,
+    proxyTimeout: 30000, // 30 seconds
+    timeout: 30000,
     // Correct event handler for http-proxy-middleware v3
     on: {
       error: (err: Error, _req: any, res: any) => {
@@ -113,9 +115,19 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    console.log(`[SERVER] Production mode. Serving static files from: ${distPath}`);
+    
     app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    
+    app.get('*', (req, res) => {
+      const indexPath = path.join(distPath, 'index.html');
+      console.log(`[SERVER] Routing request ${req.url} to SPA fallback: ${indexPath}`);
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error(`[SERVER] Failed to send index.html:`, err);
+          res.status(500).send("CORE_NEGOTIATION_FAILED: The production build is missing or unreachable.");
+        }
+      });
     });
   }
 

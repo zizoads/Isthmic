@@ -78,20 +78,36 @@ export const MilitaryFirewallInstance = MilitaryFirewall.getInstance();
       });
     }
     
-    try {
-      const response = await nativeFetch(input, init);
-      return response;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error(`❌ [FIREWALL] Fetch failed for ${url}:`, errorMessage);
-      
-      // If it's a network error (Failed to fetch), provide more context
-      if (errorMessage === 'Failed to fetch') {
-        console.warn(`💡 [FIREWALL] "Failed to fetch" usually means a network issue, CORS block, or the server is down. URL: ${url}`);
+    let retries = 3;
+    let delay = 1000;
+    
+    while (retries > 0) {
+      try {
+        const response = await nativeFetch(input, init);
+        return response;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        const isNetworkError = errorMessage === 'Failed to fetch' || err instanceof TypeError;
+
+        if (isNetworkError && retries > 1) {
+          console.warn(`⚠️ [FIREWALL] Fetch attempt failed for ${url}. Retrying in ${delay}ms... (${retries - 1} retries left)`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retries--;
+          delay *= 2; // Exponential backoff
+          continue;
+        }
+
+        console.error(`❌ [FIREWALL] Fetch failed for ${url}:`, errorMessage);
+        
+        // If it's a network error (Failed to fetch), provide more context
+        if (errorMessage === 'Failed to fetch') {
+          console.warn(`💡 [FIREWALL] "Failed to fetch" usually means a network issue, CORS block, or the server is down. URL: ${url}`);
+        }
+        
+        throw err;
       }
-      
-      throw err;
     }
+    throw new Error(`Failed to fetch ${url} after multiple attempts`);
   };
 
   try {
