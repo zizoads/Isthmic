@@ -43,28 +43,38 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
   const fetchData = async () => {
     try {
+      console.log("📡 [HUB] Fetching trends and opportunities...");
       const [trendsRes, oppsRes] = await Promise.all([
-        fetch('/api/trends'),
-        fetch('/api/opportunities')
+        fetch('/api/trends').catch(e => {
+          console.error("❌ [HUB] Trends fetch failed:", e);
+          throw e;
+        }),
+        fetch('/api/opportunities').catch(e => {
+          console.error("❌ [HUB] Opportunities fetch failed:", e);
+          throw e;
+        })
       ]);
       
       // Check if responses are OK and have JSON content type
       const isJson = (res: Response) => res.ok && res.headers.get('content-type')?.includes('application/json');
 
+      if (!trendsRes.ok) {
+        throw new Error(`Trends API error: ${trendsRes.status} ${trendsRes.statusText}`);
+      }
+      if (!oppsRes.ok) {
+        throw new Error(`Opportunities API error: ${oppsRes.status} ${oppsRes.statusText}`);
+      }
+
       if (!isJson(trendsRes)) {
         const text = await trendsRes.text();
-        if (text.includes('<!doctype html>')) {
-          throw new Error("API returned HTML instead of JSON (likely a routing fallback).");
-        }
-        throw new Error(`Trends API error: ${trendsRes.status}`);
+        console.warn("Trends API returned non-JSON:", text.substring(0, 100));
+        throw new Error("Trends API returned invalid format (expected JSON).");
       }
 
       if (!isJson(oppsRes)) {
         const text = await oppsRes.text();
-        if (text.includes('<!doctype html>')) {
-          throw new Error("API returned HTML instead of JSON (likely a routing fallback).");
-        }
-        throw new Error(`Opportunities API error: ${oppsRes.status}`);
+        console.warn("Opportunities API returned non-JSON:", text.substring(0, 100));
+        throw new Error("Opportunities API returned invalid format (expected JSON).");
       }
       
       const trendsData = await trendsRes.json();
@@ -82,9 +92,22 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
+    const poll = async () => {
+      if (!isMounted) return;
+      await fetchData();
+      if (isMounted) {
+        timeoutId = setTimeout(poll, 10000);
+      }
+    };
+
+    poll();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleStartMission = async () => {

@@ -22,9 +22,18 @@ export class ProjectIntelligenceService {
   }
 
   async getProjectContext(): Promise<ProjectContext> {
-    const response = await fetch("/api/project/intelligence");
-    if (!response.ok) throw new Error("Failed to fetch project context");
-    return response.json();
+    try {
+      const response = await fetch("/api/project/intelligence");
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("❌ [INTEL] API error:", response.status, text.substring(0, 100));
+        throw new Error(`Failed to fetch project context: ${response.status}`);
+      }
+      return response.json();
+    } catch (err) {
+      console.error("❌ [INTEL] Fetch failed:", err);
+      throw err;
+    }
   }
 
   async generateInsights(context: ProjectContext): Promise<ProjectInsight[]> {

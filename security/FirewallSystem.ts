@@ -18,8 +18,11 @@ export class MilitaryFirewall {
   }
 
   inspectRequest(url: string, init?: RequestInit): { allowed: boolean; reason?: string } {
-    // 🛡️ [GREEN_PASS] Absolute exception for Firebase domain
-    if (url.includes('firebaseio.com') || url.includes('googleapis.com')) {
+    // 🛡️ [GREEN_PASS] Absolute exception for Firebase and Internal API domains
+    const isInternal = url.startsWith('/') || url.includes(window.location.hostname);
+    const isPythonEngine = url.includes('hf.space');
+    
+    if (url.includes('firebaseio.com') || url.includes('googleapis.com') || isInternal || isPythonEngine) {
       return { allowed: true };
     }
 
@@ -75,7 +78,20 @@ export const MilitaryFirewallInstance = MilitaryFirewall.getInstance();
       });
     }
     
-    return nativeFetch(input, init);
+    try {
+      const response = await nativeFetch(input, init);
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`❌ [FIREWALL] Fetch failed for ${url}:`, errorMessage);
+      
+      // If it's a network error (Failed to fetch), provide more context
+      if (errorMessage === 'Failed to fetch') {
+        console.warn(`💡 [FIREWALL] "Failed to fetch" usually means a network issue, CORS block, or the server is down. URL: ${url}`);
+      }
+      
+      throw err;
+    }
   };
 
   try {

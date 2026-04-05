@@ -75,26 +75,33 @@ async function startServer() {
     }
   });
 
-  // Apply proxy to specific endpoints with improved error handling
-  const handleProxy = (req: any, res: any, next: any) => {
-    apiProxy(req, res, (err) => {
-      if (err) {
-        console.error("[PROXY_MIDDLEWARE_ERROR]", err);
-        res.status(502).json({ 
-          error: "Python engine unreachable", 
-          details: "The background intelligence engine is currently offline or starting up." 
-        });
-      } else {
-        next();
-      }
-    });
-  };
-
-  app.use("/api/crawl", handleProxy);
-  app.use("/api/trends", handleProxy);
-  app.use("/api/opportunities", handleProxy);
-  app.use("/api/health_proxy", (_req, res) => {
-    res.json({ status: "proxy_ok", target: PYTHON_ENGINE_URL });
+  // Apply proxy to specific endpoints
+  app.use("/api/crawl", apiProxy);
+  app.use("/api/trends", apiProxy);
+  app.use("/api/opportunities", apiProxy);
+  
+  app.use("/api/health_proxy", async (_req, res) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(PYTHON_ENGINE_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      res.json({ 
+        status: "proxy_ok", 
+        target: PYTHON_ENGINE_URL,
+        reachable: response.ok,
+        targetStatus: response.status
+      });
+    } catch (e: any) {
+      res.status(503).json({ 
+        status: "proxy_error", 
+        target: PYTHON_ENGINE_URL,
+        reachable: false,
+        error: e.message
+      });
+    }
   });
 
   // Vite middleware for development

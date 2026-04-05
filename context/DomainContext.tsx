@@ -153,6 +153,18 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       // Call the backend brand generator for semantic .com names
       const response = await fetch('/api/generate-brands?domain=ai&niche=general_ai&count=5');
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+      
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Expected JSON but received ${contentType}. Content: ${text.substring(0, 100)}...`);
+      }
+
       const data = await response.json();
       const names = data.names || [];
       

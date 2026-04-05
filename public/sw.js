@@ -51,6 +51,13 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return response;
+      }).catch((err) => {
+        console.error(`❌ [SW] Fetch failed for ${event.request.url}:`, err);
+        // Return a custom error response instead of letting the browser throw "Failed to fetch"
+        return new Response(JSON.stringify({ error: 'OFFLINE_OR_NETWORK_ERROR', details: err.message }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        });
       });
     })
   );
