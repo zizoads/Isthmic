@@ -27,7 +27,6 @@ export class MilitaryVault {
 
   // 🏁 Vault Initialization
   private async initializeVault(): Promise<void> {
-    console.log('🏦 [SECURITY] Initializing Military Vault...');
     
     const stored = localStorage.getItem('military_vault_backup');
     if (stored) {
@@ -36,9 +35,7 @@ export class MilitaryVault {
         for (const [key, value] of Object.entries(parsed)) {
           this.vault.set(key, value as QuantumEncryptedData);
         }
-        console.log(`📂 [SECURITY] Loaded ${this.vault.size} assets from local buffer.`);
       } catch (error) {
-        console.error('❌ [SECURITY] Vault buffer corruption detected. Purging...');
         localStorage.removeItem('military_vault_backup');
       }
     }
@@ -54,8 +51,6 @@ export class MilitaryVault {
     this.logAccess('DEPOSIT', key);
     this.vault.set(key, encrypted);
     this.updateVaultStats();
-    
-    console.log(`💰 [SECURITY] Deposit successful: ${key} (Level: ${securityLevel})`);
   }
 
   // 🏧 Data Withdrawal
@@ -79,7 +74,6 @@ export class MilitaryVault {
     if (this.vault.has(key)) {
       this.vault.delete(key);
       this.logAccess('DESTROY', key);
-      console.log(`🔥 [SECURITY] Tactical destruction complete: ${key}`);
     }
   }
 
@@ -119,14 +113,12 @@ export class MilitaryVault {
       const recentAccess = this.accessLog.filter(a => a.timestamp > lastMinute);
       
       if (recentAccess.length > 100) {
-        console.warn('🚨 [SECURITY] Anomalous access patterns detected in Vault.');
         this.intrusionAttempts++;
       }
     }, 30000);
   }
 
   private triggerLockdown(): void {
-    console.error('🚨 [SECURITY] VAULT_LOCKDOWN_PROTOCOL_ENGAGED');
     // Immediate encryption of all data at the highest level or deletion if not possible
     this.vault.clear();
     localStorage.removeItem('military_vault_backup');
@@ -148,7 +140,6 @@ export class MilitaryVault {
       });
       localStorage.setItem('military_vault_backup', JSON.stringify(backup));
     } catch (error) {
-      console.error('❌ [SECURITY] Backup failure:', error);
     }
   }
 

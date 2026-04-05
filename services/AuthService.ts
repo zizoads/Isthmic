@@ -11,7 +11,6 @@ export class AuthService {
    */
   static async signup(name: string, email: string, _pass: string): Promise<{ success: boolean; requiresConfirmation: boolean }> {
     const normalizedEmail = email.toLowerCase().trim();
-    console.log(`[AUTH] Initiating local-first signup protocol for: ${normalizedEmail}`);
 
     // Self-healing protocol: Create local account (Sovereign Vault)
     const localUser: UserProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, name);
@@ -23,12 +22,10 @@ export class AuthService {
 
   static async login(email: string, _pass: string): Promise<UserProfile> {
     const normalizedEmail = email.toLowerCase().trim();
-    console.log(`[AUTH] Attempting login for: ${normalizedEmail}`);
     
     // 1. Master Identity Recovery Protocol
     // If the user is the owner, allow immediate access and session establishment
     if (normalizedEmail === this.MASTER_IDENTITY) {
-      console.log("[AUTH] Master Identity detected. Validating Sovereign Access...");
       const masterProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, 'Founding Owner');
       
       // Check for existing version in vault
@@ -39,7 +36,6 @@ export class AuthService {
           return cached;
         }
       } catch (e) {
-        console.warn("[AUTH] Local vault corrupted. Bootstrapping master from core logic.");
       }
 
       // Establish master identity locally (Auto-Bootstrap)
@@ -52,12 +48,10 @@ export class AuthService {
     try {
       const cached = await SovereignShield.recover<UserProfile>('profile');
       if (cached && cached.email.toLowerCase().trim() === normalizedEmail) {
-        console.log("[AUTH] Sovereign local identity verified.");
         await SovereignShield.protect('is_local_session', true);
         return cached;
       }
     } catch (e) {
-      console.error("[AUTH] Vault recovery failed during login check.");
     }
 
     // 3. Final rejection

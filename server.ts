@@ -15,9 +15,7 @@ async function startServer() {
   const brandGen = ProfessionalBrandGenerator.getInstance();
   try {
     await brandGen.init();
-    console.log("[SERVER] Brand Generator initialized.");
   } catch (e) {
-    console.error("[SERVER] Brand Generator init failed:", e);
   }
 
   // API Routes
@@ -38,7 +36,6 @@ async function startServer() {
         packageJson
       });
     } catch (e) {
-      console.error("Project intelligence error:", e);
       res.status(500).json({ error: "Failed to fetch project context" });
     }
   });
@@ -53,7 +50,6 @@ async function startServer() {
       );
       res.json({ names });
     } catch (e) {
-      console.error("Brand generation error:", e);
       res.status(500).json({ error: "Failed to generate brands" });
     }
   });
@@ -69,7 +65,6 @@ async function startServer() {
     // Correct event handler for http-proxy-middleware v3
     on: {
       error: (err: Error, _req: any, res: any) => {
-        console.error("[PROXY ERROR]", err.message);
         // Return JSON instead of letting it fall through to SPA fallback
         res.writeHead(502, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: "Python engine unreachable", details: err.message }));
@@ -115,16 +110,13 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    console.log(`[SERVER] Production mode. Serving static files from: ${distPath}`);
     
     app.use(express.static(distPath));
     
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       const indexPath = path.join(distPath, 'index.html');
-      console.log(`[SERVER] Routing request ${req.url} to SPA fallback: ${indexPath}`);
       res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error(`[SERVER] Failed to send index.html:`, err);
           res.status(500).send("CORE_NEGOTIATION_FAILED: The production build is missing or unreachable.");
         }
       });
@@ -132,7 +124,6 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
   });
 
   return app;

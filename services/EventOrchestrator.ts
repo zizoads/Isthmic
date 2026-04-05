@@ -26,7 +26,6 @@ export class EventOrchestrator {
   }
 
   public async start() {
-    console.log("[ORCHESTRATOR] Initializing Sovereign Event Stream on Server...");
     
     // Initialize brand generator
     await this.brandGenerator.init();
@@ -60,7 +59,6 @@ export class EventOrchestrator {
   }
 
   private async handleNewDomain(domain: Domain) {
-    console.log(`[ORCHESTRATOR] New Domain Detected: ${domain.name}. Triggering Forensic Audit...`);
     
     // Simulate Background Audit Work
     setTimeout(async () => {
@@ -82,14 +80,12 @@ export class EventOrchestrator {
         handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
       }
       
-      console.log(`[ORCHESTRATOR] Audit Complete for ${domain.name}.`);
     }, 3000);
   }
 
   private async handleStatusChange(domain: Domain) {
     // If domain is marked as 'purchased', trigger Brand DNA generation automatically
     if (domain.status === 'purchased' && !domain.brandAssets) {
-      console.log(`[ORCHESTRATOR] Domain ${domain.name} Purchased. Generating Brand DNA...`);
       
       try {
         // Use the brand generator to get real names/taglines
@@ -111,16 +107,13 @@ export class EventOrchestrator {
             handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
           }
           
-          console.log(`[ORCHESTRATOR] Brand DNA generated for ${domain.name}.`);
         }, 5000);
       } catch (error) {
-        console.error("[ORCHESTRATOR] Branding Error:", error);
       }
     }
   }
 
   private async handleIntelligenceSignal(signal: IntelligenceSignal) {
-    console.log(`[ORCHESTRATOR] Processing Signal: ${signal.title} (${signal.priority})`);
     
     if (signal.priority === 'CRITICAL' || signal.priority === 'HIGH') {
       // Example: If signal is about AI sector, boost all .ai domains
@@ -133,7 +126,6 @@ export class EventOrchestrator {
           snapshot.docs.forEach(async (domainDoc) => {
             const domain = domainDoc.data() as Domain;
             if (domain.name.endsWith('.ai')) {
-              console.log(`[ORCHESTRATOR] Boosting ${domain.name} based on AI Market Signal.`);
               try {
                 await updateDoc(doc(db, 'domains', domainDoc.id), {
                   probability: Math.min((domain.probability || 0) + 15, 99),

@@ -10,11 +10,9 @@ let commonWordsSet: Set<string> | null = null;
 
 async function getCommonWords(): Promise<Set<string>> {
   if (!commonWordsSet) {
-    console.log("[BRAND_GEN] Loading word list...");
     const data = await readFile(wordList, 'utf8');
     const array = data.split('\n');
     commonWordsSet = new Set(array.map(w => w.toLowerCase()));
-    console.log("[BRAND_GEN] Word list loaded.");
   }
   return commonWordsSet;
 }
@@ -157,11 +155,9 @@ export class ProfessionalBrandGenerator {
 
   async init() {
     if (this.initialized) return;
-    console.log("[BRAND_GEN] Initializing WordNet...");
     await wordnet.init();
     await getCommonWords(); // Trigger lazy load
     this.initialized = true;
-    console.log("[BRAND_GEN] WordNet initialized.");
   }
 
   private async _expand_niche(domain: string, niche: string) {
@@ -180,7 +176,6 @@ export class ProfessionalBrandGenerator {
     
     this.markov_models.set(`${domain}|${niche}`, model);
     this.expanded_niches[domain][niche] = expanded_words;
-    console.log(`[BRAND_GEN] Expanded niche: ${domain}/${niche}`);
   }
 
   private _is_negative(word: string): boolean {
