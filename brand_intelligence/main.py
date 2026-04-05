@@ -4,7 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from pydantic import BaseModel
 import os
-from crawler import SmartBrandIntelligence, get_trends, get_opportunities, init_storage
+from storage import init_storage, get_trends, get_opportunities
+from crawler import SmartBrandIntelligence
 
 # Initialize storage on startup
 init_storage()

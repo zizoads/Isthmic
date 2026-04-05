@@ -110,18 +110,27 @@
     });
 
     async function fetchData(endpoint, elementId) {
+        const container = document.getElementById(elementId);
         try {
             const response = await fetch(`/api/${endpoint}`);
             const data = await response.json();
-            document.getElementById(elementId).innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(data, null, 2);
+            container.innerHTML = '';
+            container.appendChild(pre);
         } catch (err) {
-            document.getElementById(elementId).innerHTML = `<p style="color:#ef4444">خطأ: ${err.message}</p>`;
+            container.innerHTML = '';
+            const p = document.createElement('p');
+            p.style.color = '#ef4444';
+            p.textContent = `خطأ: ${err.message}`;
+            container.appendChild(p);
         }
     }
 
     document.getElementById('crawlBtn').addEventListener('click', async () => {
         const btn = document.getElementById('crawlBtn');
         const statusBadge = document.getElementById('statusBadge');
+        const statusMsg = document.getElementById('statusMsg');
         const selectedPlatforms = Array.from(document.querySelectorAll('#platformsList input:checked')).map(i => i.value);
         
         const payload = {
@@ -141,7 +150,7 @@
 
         btn.disabled = true;
         statusBadge.className = 'status-badge status-running';
-        statusBadge.innerText = 'جاري التحليل...';
+        statusBadge.textContent = 'جاري التحليل...';
         
         try {
             const res = await fetch('/api/crawl', { 
@@ -150,7 +159,11 @@
                 body: JSON.stringify(payload) 
             });
             const data = await res.json();
-            document.getElementById('statusMsg').innerHTML = `<p style="color:#10b981">✅ تم بدء المهمة بنجاح.</p>`;
+            statusMsg.innerHTML = '';
+            const p = document.createElement('p');
+            p.style.color = '#10b981';
+            p.textContent = '✅ تم بدء المهمة بنجاح.';
+            statusMsg.appendChild(p);
             
             // Poll for results
             let attempts = 0;
@@ -162,14 +175,19 @@
                     clearInterval(interval);
                     btn.disabled = false;
                     statusBadge.className = 'status-badge status-idle';
-                    statusBadge.innerText = 'جاهز للعمل';
+                    statusBadge.textContent = 'جاهز للعمل';
                 }
             }, 5000);
         } catch (err) {
-            document.getElementById('statusMsg').innerHTML = `<p style="color:#ef4444">خطأ: ${err.message}</p>`;
+            statusMsg.innerHTML = '';
+            const p = document.createElement('p');
+            p.style.color = '#ef4444';
+            p.textContent = `خطأ: ${err.message}`;
+            statusMsg.appendChild(p);
+            
             btn.disabled = false;
             statusBadge.className = 'status-badge status-idle';
-            statusBadge.innerText = 'خطأ في الاتصال';
+            statusBadge.textContent = 'خطأ في الاتصال';
         }
     });
 

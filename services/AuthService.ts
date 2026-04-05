@@ -1,9 +1,10 @@
 
 import { UserProfile } from '../types';
 import { SovereignShield } from './SovereignShield';
+import { MASTER_IDENTITY, constructBaseProfile } from '../src/lib/auth-utils';
 
 export class AuthService {
-  private static readonly MASTER_IDENTITY = 'zizoadszn@gmail.com';
+  private static readonly MASTER_IDENTITY = MASTER_IDENTITY;
 
   /**
    * Sovereign Registration System (Local-First)
@@ -13,7 +14,7 @@ export class AuthService {
     console.log(`[AUTH] Initiating local-first signup protocol for: ${normalizedEmail}`);
 
     // Self-healing protocol: Create local account (Sovereign Vault)
-    const localUser: UserProfile = this.constructBaseProfile(crypto.randomUUID(), normalizedEmail, name);
+    const localUser: UserProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, name);
     await SovereignShield.protect('profile', localUser);
     await SovereignShield.protect('is_local_session', true);
     
@@ -28,7 +29,7 @@ export class AuthService {
     // If the user is the owner, allow immediate access and session establishment
     if (normalizedEmail === this.MASTER_IDENTITY) {
       console.log("[AUTH] Master Identity detected. Validating Sovereign Access...");
-      const masterProfile = this.constructBaseProfile(crypto.randomUUID(), normalizedEmail, 'Founding Owner');
+      const masterProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, 'Founding Owner');
       
       // Check for existing version in vault
       try {
@@ -61,17 +62,6 @@ export class AuthService {
 
     // 3. Final rejection
     throw new Error("ACCESS_DENIED: Your identity is not registered in this browser's vault. If you just cleared your cache, please use 'Request New Identity' to re-initialize your sovereign key.");
-  }
-
-  private static constructBaseProfile(id: string, email: string, name?: string): UserProfile {
-    return {
-      id,
-      email: email.toLowerCase(),
-      name: name || email.split('@')[0],
-      role: email.toLowerCase() === this.MASTER_IDENTITY ? 'Admin' : 'User',
-      createdAt: new Date().toISOString(),
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${email}`
-    };
   }
 
   static async verify(_userId: string, _email: string, otp: string): Promise<boolean> {
