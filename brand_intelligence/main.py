@@ -4,12 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from pydantic import BaseModel
 import os
-from crawler import SmartBrandIntelligence, init_firebase, get_trends, get_opportunities
+from crawler import SmartBrandIntelligence, get_trends, get_opportunities
 
-try:
-    init_firebase()
-except Exception as e:
-    print(f"Firebase init error: {e}")
+# Storage initialization is now handled inside SmartBrandIntelligence.full_pipeline
+# or can be called explicitly if needed.
 
 app = FastAPI(title="Smart Brand Intelligence API")
 
