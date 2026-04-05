@@ -20,10 +20,14 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'terser',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'recharts'],
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['recharts', 'motion', 'lucide-react'],
+          'three-vendor': ['three'],
+          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
         },
       },
     },
