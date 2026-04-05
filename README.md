@@ -53,7 +53,7 @@ Isthmic Pro is designed to run for free using a hybrid deployment strategy:
 *   **Setup**: Connect your GitHub repo. Vercel will automatically detect the `vercel.json` configuration.
 *   **Environment Variables**:
     *   `GEMINI_API_KEY`: Your Google Gemini API key.
-    *   `PYTHON_ENGINE_URL`: The URL of your Hugging Face Space (e.g., `https://username-space.hf.space`).
+    *   `PYTHON_ENGINE_URL`: The URL of your Hugging Face Space (default: `https://azeddinebeldjilali9-isthmic.hf.space`).
 
 ### 2. Intelligence Engine (Hugging Face Spaces)
 *   **Platform**: [Hugging Face Spaces](https://huggingface.co/spaces)

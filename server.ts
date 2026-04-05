@@ -58,8 +58,8 @@ async function startServer() {
     }
   });
 
-  // Proxy API requests to the Python engine (Render URL will go here)
-  const PYTHON_ENGINE_URL = process.env.PYTHON_ENGINE_URL || "http://localhost:10000";
+  // Proxy API requests to the Python engine (Hugging Face Space URL)
+  const PYTHON_ENGINE_URL = process.env.PYTHON_ENGINE_URL || "https://azeddinebeldjilali9-isthmic.hf.space";
 
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
