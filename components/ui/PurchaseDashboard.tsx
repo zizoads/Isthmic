@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Domain } from '../types';
-import { registrarInquiryAI } from '../services/geminiService';
-import { useDomainContext } from '../context/DomainContext';
-import { translations } from '../translations';
+import { Domain } from '../../types';
+import { registrarInquiryAI } from '../../services/geminiService';
+import { useDomainContext } from '../../context/DomainContext';
+import { translations } from '../../translations';
 
 interface Props {
   domains: Domain[];
