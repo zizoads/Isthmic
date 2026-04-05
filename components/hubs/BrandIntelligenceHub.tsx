@@ -48,17 +48,36 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         fetch('/api/opportunities')
       ]);
       
-      if (!trendsRes.ok) throw new Error(`Trends API error: ${trendsRes.status}`);
-      if (!oppsRes.ok) throw new Error(`Opportunities API error: ${oppsRes.status}`);
+      // Check if responses are OK and have JSON content type
+      const isJson = (res: Response) => res.ok && res.headers.get('content-type')?.includes('application/json');
+
+      if (!isJson(trendsRes)) {
+        const text = await trendsRes.text();
+        if (text.includes('<!doctype html>')) {
+          throw new Error("API returned HTML instead of JSON (likely a routing fallback).");
+        }
+        throw new Error(`Trends API error: ${trendsRes.status}`);
+      }
+
+      if (!isJson(oppsRes)) {
+        const text = await oppsRes.text();
+        if (text.includes('<!doctype html>')) {
+          throw new Error("API returned HTML instead of JSON (likely a routing fallback).");
+        }
+        throw new Error(`Opportunities API error: ${oppsRes.status}`);
+      }
       
       const trendsData = await trendsRes.json();
       const oppsData = await oppsRes.json();
-      setTrends(trendsData);
-      setOpportunities(oppsData);
+      setTrends(Array.isArray(trendsData) ? trendsData : []);
+      setOpportunities(Array.isArray(oppsData) ? oppsData : []);
     } catch (err) {
       console.error("Fetch error:", err);
-      setStatus('error');
-      setStatusMsg(`❌ Fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      // Only set error status if we don't have any data yet to avoid flickering
+      if (trends.length === 0) {
+        setStatus('error');
+        setStatusMsg(`❌ Fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   };
 

@@ -75,10 +75,27 @@ async function startServer() {
     }
   });
 
-  // Apply proxy to specific endpoints
-  app.use("/api/crawl", apiProxy);
-  app.use("/api/trends", apiProxy);
-  app.use("/api/opportunities", apiProxy);
+  // Apply proxy to specific endpoints with improved error handling
+  const handleProxy = (req: any, res: any, next: any) => {
+    apiProxy(req, res, (err) => {
+      if (err) {
+        console.error("[PROXY_MIDDLEWARE_ERROR]", err);
+        res.status(502).json({ 
+          error: "Python engine unreachable", 
+          details: "The background intelligence engine is currently offline or starting up." 
+        });
+      } else {
+        next();
+      }
+    });
+  };
+
+  app.use("/api/crawl", handleProxy);
+  app.use("/api/trends", handleProxy);
+  app.use("/api/opportunities", handleProxy);
+  app.use("/api/health_proxy", (req, res) => {
+    res.json({ status: "proxy_ok", target: PYTHON_ENGINE_URL });
+  });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
