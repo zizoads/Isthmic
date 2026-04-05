@@ -93,7 +93,7 @@ async function startServer() {
   app.use("/api/crawl", handleProxy);
   app.use("/api/trends", handleProxy);
   app.use("/api/opportunities", handleProxy);
-  app.use("/api/health_proxy", (req, res) => {
+  app.use("/api/health_proxy", (_req, res) => {
     res.json({ status: "proxy_ok", target: PYTHON_ENGINE_URL });
   });
 

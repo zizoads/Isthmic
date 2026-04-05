@@ -36,7 +36,7 @@ export class AutopsyService {
     const hash = await this.computeHash(sourceCode);
     
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const loc = sourceCode.split('\n').length;
 
       const response = await ai.models.generateContent({
@@ -114,7 +114,7 @@ export class AutopsyService {
    */
   static async synthesizeProblemCatalog(reports: SovereignAutopsyReport[]): Promise<ProblemCatalog> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const context = reports.map(r => ({
         file: r.specimen.name,
         findings: r.findings.map(f => ({ 
@@ -147,7 +147,7 @@ export class AutopsyService {
    */
   static async synthesizeExecutiveSummary(reports: SovereignAutopsyReport[]): Promise<ProjectExecutiveSummary> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const context = reports.map(r => ({
         file: r.specimen.name,
         health: r.metrics.overallHealthIndex,

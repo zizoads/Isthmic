@@ -2,15 +2,12 @@
 // 🎖️ ملف التفعيل الأمني النهائي - Isthmic Pro Military Edition
 // ⚠️ تم التحديث: إضافة بروتوكول المتانة اللحظية (Stability Pulse)
 
-import MilitaryEnv from './config/MilitaryGradeEnvironment';
 import { QuantumCrypto } from './security/QuantumEncryption';
 import { MilitaryVaultInstance } from './security/MilitaryVault';
 import { SOC } from './security/SecurityOperationsCenter';
 import { HighSpeedDatabaseEngine } from './services/HighSpeedDatabaseEngine';
 
 class UltimateSecurityActivation {
-  public status: 'LOCKED' | 'ARMED' | 'OPERATIONAL' = 'LOCKED';
-
   constructor() {
     console.log('🎖️ [SYSTEM] Initiating High-Velocity Defensive Matrix...');
     this.activateAllSystems();
@@ -18,8 +15,6 @@ class UltimateSecurityActivation {
 
   private async activateAllSystems(): Promise<void> {
     try {
-      this.status = 'ARMED';
-      
       // 1. 🔐 عزل البيئة (Scrubbing)
       // 2. 🛡️ جدار النار
       // 3. 🌌 التشفير الكمي
@@ -41,12 +36,11 @@ class UltimateSecurityActivation {
       // 5. 📡 تفعيل مركز العمليات (SOC)
       SOC.startMonitoring();
 
-      this.status = 'OPERATIONAL';
       this.displaySecurityDashboard();
 
     } catch (error) {
       console.error('❌ [SECURITY_BREACH] CRITICAL_MOUNT_FAILURE:', error);
-      this.emergencyProtocol();
+      // Removed emergencyProtocol() to prevent infinite reload loops
     }
   }
 
@@ -71,11 +65,6 @@ class UltimateSecurityActivation {
     `;
     
     console.log(dashboard);
-  }
-
-  private emergencyProtocol(): void {
-    console.error('🚨 [SECURITY] INITIATING_EMERGENCY_ISOLATION...');
-    MilitaryEnv.selfDestruct();
   }
 }
 

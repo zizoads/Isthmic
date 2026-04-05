@@ -33,7 +33,7 @@ export class MilitaryEnvironment {
   selfDestruct() {
     localStorage.clear();
     sessionStorage.clear();
-    window.location.reload();
+    // window.location.reload(); // Disabled to prevent infinite reload loops
   }
 }
 

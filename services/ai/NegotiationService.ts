@@ -101,7 +101,7 @@ export class NegotiationService {
     return safeAICall(async () => {
       const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 3000);
       
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const historyContext = this.compressHistory(thread.messages);
 
       const [geminiResponse, stateResponse] = await Promise.all([
@@ -134,7 +134,7 @@ export class NegotiationService {
     floorPrice: number
   ): Promise<string> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const historyContext = this.compressHistory(thread.messages);
       
       const response = await ai.models.generateContent({

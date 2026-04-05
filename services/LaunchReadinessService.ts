@@ -19,7 +19,7 @@ export class LaunchReadinessService {
    */
   static async calculateSystemPhi(): Promise<number> {
     const checks = {
-      api: !!process.env.API_KEY,
+      api: !!process.env.GEMINI_API_KEY,
       db: (await HighSpeedDatabaseEngine.verifyStructuralStability()) === 'OPTIMAL',
       vault: MilitaryVaultInstance.getVaultReport().threatStatus === 'STABLE',
       latency: HighSpeedDatabaseEngine.getAverageLatency() < 500
@@ -40,8 +40,8 @@ export class LaunchReadinessService {
     const vaultReport = MilitaryVaultInstance.getVaultReport();
 
     return safeAICall(async () => {
-      const apiKey = process.env.API_KEY;
-      if (!apiKey) throw new Error("API_KEY_MISSING");
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
       const ai = new GoogleGenAI({ apiKey });
       
       const context = {

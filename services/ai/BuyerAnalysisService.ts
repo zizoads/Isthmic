@@ -21,7 +21,7 @@ export class BuyerAnalysisService {
    */
   static async discoverGeographicBuyers(domainName: string, sector: string, region: string): Promise<{ buyers: PotentialBuyer[], narrative: string }> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
       // الخطوة 1: العثور على الكيانات عبر الخرائط
       const response = await ai.models.generateContent({

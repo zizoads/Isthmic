@@ -16,7 +16,7 @@ export class EnvironmentService {
     const environment = process.env.NODE_ENV || 'development';
     
     const firebaseOk = !!auth.app;
-    const geminiOk = !!process.env.API_KEY;
+    const geminiOk = !!process.env.GEMINI_API_KEY;
     
     // Check RLS status and profile email
     let rls: 'ENFORCED' | 'BYPASS_ADMIN' | 'UNKNOWN' = 'ENFORCED';

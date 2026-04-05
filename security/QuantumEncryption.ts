@@ -167,7 +167,13 @@ export class QuantumEncryption {
   }
 
   private arrayToBase64(array: Uint8Array): string {
-    return btoa(String.fromCharCode(...array));
+    // 🛡️ Robust base64 conversion for large buffers
+    let binary = '';
+    const len = array.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(array[i]);
+    }
+    return btoa(binary);
   }
 
   private base64ToArray(base64: string): Uint8Array {

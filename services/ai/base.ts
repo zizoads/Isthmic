@@ -17,11 +17,11 @@ export async function generateStructuredAI<T>(
 ): Promise<{ data: T, latency: number, grounding?: any[] }> {
   const startTime = performance.now();
   
-  // Mandatory: obtain API key exclusively from process.env.API_KEY
-  // Comment above fix: Direct initialization with process.env.API_KEY as per GenAI coding guidelines
-  if (!process.env.API_KEY) throw new Error("AI_GATEWAY_FAILURE: process.env.API_KEY is not configured.");
+  // Mandatory: obtain API key exclusively from process.env.GEMINI_API_KEY
+  // Comment above fix: Direct initialization with process.env.GEMINI_API_KEY as per GenAI coding guidelines
+  if (!process.env.GEMINI_API_KEY) throw new Error("AI_GATEWAY_FAILURE: process.env.GEMINI_API_KEY is not configured.");
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   
   const response = await ai.models.generateContent({
     model: modelName,
@@ -54,10 +54,10 @@ export async function safeAICall<T>(arg: any): Promise<T> {
       return await arg();
     }
 
-    // Comment above fix: Direct initialization with process.env.API_KEY as per GenAI coding guidelines
-    if (!process.env.API_KEY) throw new Error("AI_SAFE_CALL_FAILURE: process.env.API_KEY is not configured.");
+    // Comment above fix: Direct initialization with process.env.GEMINI_API_KEY as per GenAI coding guidelines
+    if (!process.env.GEMINI_API_KEY) throw new Error("AI_SAFE_CALL_FAILURE: process.env.GEMINI_API_KEY is not configured.");
     
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
     const response = await ai.models.generateContent({
       model: arg.model || 'gemini-3-flash-preview',
