@@ -42,6 +42,7 @@ firestore_db = None
 
 def init_storage():
     global firestore_db
+    if firestore_db: return # Already initialized
     cred_json = os.environ.get("FIREBASE_CREDENTIALS")
     if cred_json:
         try:
@@ -55,6 +56,9 @@ def init_storage():
             print(f"❌ Firebase initialization failed: {e}. Falling back to local storage.")
     else:
         print("⚠️ FIREBASE_CREDENTIALS not found. Using local storage.")
+
+# Initialize storage at module level
+init_storage()
 
 def get_local_db():
     if not os.path.exists(LOCAL_DB_PATH):
@@ -149,8 +153,14 @@ def get_opportunities(limit=10):
     return sorted(opps, key=lambda x: x.get('opportunity_score', 0), reverse=True)[:limit]
 
 def get_instincts(min_confidence=0.6):
-    docs = firestore_db.collection('instincts').where('confidence', '>=', min_confidence).order_by('confidence', direction=firestore.Query.DESCENDING).stream()
-    return [doc.to_dict() for doc in docs]
+    if firestore_db:
+        try:
+            docs = firestore_db.collection('instincts').where('confidence', '>=', min_confidence).order_by('confidence', direction=firestore.Query.DESCENDING).stream()
+            return [doc.to_dict() for doc in docs]
+        except: return []
+    db = get_local_db()
+    instincts = db.get("instincts", [])
+    return [i for i in instincts if i.get('confidence', 0) >= min_confidence]
 
 # -------------------- الزاحف المتقدم --------------------
 class AdvancedCrawler:
@@ -197,7 +207,11 @@ class AdvancedCrawler:
         content = await self.fetch_with_retry(url)
         if not content:
             return articles
-        soup = BeautifulSoup(content, 'xml')
+        # Try lxml first, fallback to xml
+        try:
+            soup = BeautifulSoup(content, 'lxml-xml')
+        except:
+            soup = BeautifulSoup(content, 'xml')
         for item in soup.find_all('item')[:limit]:
             title = item.find('title').text if item.find('title') else ''
             link = item.find('link').text if item.find('link') else ''
@@ -298,7 +312,11 @@ class StartupPlatforms:
         content = await crawler.fetch_with_retry(url)
         startups = []
         if content:
-            soup = BeautifulSoup(content, 'html.parser')
+            # Try lxml first, fallback to html.parser
+            try:
+                soup = BeautifulSoup(content, 'lxml')
+            except:
+                soup = BeautifulSoup(content, 'html.parser')
             for item in soup.select('div.startup')[:limit]:
                 name_elem = item.select_one('h3 a')
                 name = name_elem.text.strip() if name_elem else ''
@@ -328,7 +346,11 @@ class StartupPlatforms:
         content = await crawler.fetch_with_retry(url)
         startups = []
         if content:
-            soup = BeautifulSoup(content, 'xml')
+            # Try lxml first, fallback to xml
+            try:
+                soup = BeautifulSoup(content, 'lxml-xml')
+            except:
+                soup = BeautifulSoup(content, 'xml')
             for item in soup.find_all('item')[:limit]:
                 title = item.find('title').text if item.find('title') else ''
                 link = item.find('link').text if item.find('link') else ''
@@ -354,7 +376,11 @@ class StartupPlatforms:
         content = await crawler.fetch_with_retry(url)
         startups = []
         if content:
-            soup = BeautifulSoup(content, 'html.parser')
+            # Try lxml first, fallback to html.parser
+            try:
+                soup = BeautifulSoup(content, 'lxml')
+            except:
+                soup = BeautifulSoup(content, 'html.parser')
             for item in soup.select('div.startup')[:limit]:
                 name_elem = item.select_one('a.startup-link')
                 name = name_elem.text.strip() if name_elem else ''
@@ -634,7 +660,7 @@ class SmartBrandIntelligence:
         self.agents = [self.data_collector, self.trend_analyzer, self.brand_generator, self.evaluator]
         self.session_id = None
     async def full_pipeline(self, config: Dict) -> Dict:
-        init_storage() # Initialize storage (Firebase or Local)
+        # init_storage() is now called at module level
         self.session_id = str(uuid.uuid4())
         start_time = datetime.now().isoformat()
         save_session(self.session_id, start_time)

@@ -4,10 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from pydantic import BaseModel
 import os
-from crawler import SmartBrandIntelligence, get_trends, get_opportunities
+from crawler import SmartBrandIntelligence, get_trends, get_opportunities, init_storage
 
-# Storage initialization is now handled inside SmartBrandIntelligence.full_pipeline
-# or can be called explicitly if needed.
+# Initialize storage on startup
+init_storage()
 
 app = FastAPI(title="Smart Brand Intelligence API")
 

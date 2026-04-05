@@ -2,6 +2,7 @@ fastapi
 uvicorn
 aiohttp
 beautifulsoup4
+lxml
 nltk
 firebase-admin
 python-multipart
