@@ -117,16 +117,7 @@ export class ProfessionalBrandGenerator {
     return shuffle(combined);
   }
 
-  async generate_for_niche(domain: string, niche: string, count = 5, use_markov = true, markov_ratio = 0.3): Promise<string[]> {
-    if (!this.initialized) await this.init();
-    
-    if (!this.expanded_niches[domain] || !this.expanded_niches[domain][niche]) {
-      await this._expand_niche(domain, niche);
-    }
-    
-    if (!this.expanded_niches[domain] || !this.expanded_niches[domain][niche]) return [];
-    const words_list = this._get_niche_words(domain, niche, use_markov, markov_ratio);
-    if (words_list.length < 2) return [];
+  private async _generate_candidates(words_list: string[]): Promise<{ name: string; score: number }[]> {
     const candidates: { name: string; score: number }[] = [];
     for (const f of words_list) {
       for (const s of words_list) {
@@ -137,12 +128,32 @@ export class ProfessionalBrandGenerator {
         }
       }
     }
+    return candidates;
+  }
+
+  private _filter_unique_candidates(candidates: { name: string; score: number }[]): { name: string; score: number }[] {
     const seen = new Set<string>();
-    const unique = candidates.filter(({ name }) => {
+    return candidates.filter(({ name }) => {
       if (seen.has(name)) return false;
       seen.add(name);
       return true;
     });
+  }
+
+  async generate_for_niche(domain: string, niche: string, count = 5, use_markov = true, markov_ratio = 0.3): Promise<string[]> {
+    if (!this.initialized) await this.init();
+    
+    if (!this.expanded_niches[domain] || !this.expanded_niches[domain][niche]) {
+      await this._expand_niche(domain, niche);
+    }
+    
+    if (!this.expanded_niches[domain] || !this.expanded_niches[domain][niche]) return [];
+    const words_list = this._get_niche_words(domain, niche, use_markov, markov_ratio);
+    if (words_list.length < 2) return [];
+
+    const candidates = await this._generate_candidates(words_list);
+    const unique = this._filter_unique_candidates(candidates);
+    
     unique.sort((a, b) => b.score - a.score);
     const best = unique.slice(0, count * 2).map(c => c.name);
     return shuffle(best).slice(0, count);

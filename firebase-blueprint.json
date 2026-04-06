@@ -1,37 +1,45 @@
 {
   "entities": {
-    "IntelligenceSignal": {
-      "title": "Intelligence Signal",
-      "description": "A signal ingested from external sources for market intelligence.",
+    "Article": {
+      "title": "Article",
+      "description": "A crawled article or news item.",
       "type": "object",
       "properties": {
-        "source": { "type": "string", "enum": ["RSS", "TELEGRAM", "API", "ADS-B"] },
-        "category": { "type": "string", "enum": ["MARKET", "TECH", "LEGAL", "GEOPOLITICAL"] },
+        "id": { "type": "string" },
         "title": { "type": "string" },
         "content": { "type": "string" },
-        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "metadata": { "type": "object" }
+        "url": { "type": "string" },
+        "platform": { "type": "string" },
+        "published_at": { "type": "string", "format": "date-time" },
+        "crawled_at": { "type": "string", "format": "date-time" }
       },
-      "required": ["source", "category", "title", "content", "priority", "timestamp"]
+      "required": ["id", "title", "content"]
     },
-    "Domain": {
-      "title": "Domain Asset",
-      "description": "A digital asset (domain name) being tracked or managed.",
+    "Trend": {
+      "title": "Market Trend",
+      "description": "A detected market trend or keyword.",
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "price": { "type": "number" },
-        "status": { "type": "string", "enum": ["available", "purchased", "negotiating", "sold", "processing", "watching"] },
-        "sector": { "type": "string" },
-        "justification": { "type": "string" },
-        "probability": { "type": "number" },
-        "integrityScore": { "type": "number" },
-        "lastChecked": { "type": "string", "format": "date-time" },
-        "technicalMetrics": { "type": "object" },
-        "brandAssets": { "type": "object" }
+        "id": { "type": "string" },
+        "keyword": { "type": "string" },
+        "frequency": { "type": "number" },
+        "platforms": { "type": "array", "items": { "type": "string" } },
+        "opportunity_score": { "type": "number" }
       },
-      "required": ["name", "price", "status"]
+      "required": ["id", "keyword", "opportunity_score"]
+    },
+    "BrandOpportunity": {
+      "title": "Brand Opportunity",
+      "description": "A generated brand name or business opportunity.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "positioning": { "type": "string" },
+        "gap": { "type": "string" },
+        "opportunity_score": { "type": "number" }
+      },
+      "required": ["id", "name", "opportunity_score"]
     },
     "UserProfile": {
       "title": "User Profile",
@@ -40,21 +48,24 @@
       "properties": {
         "email": { "type": "string", "format": "email" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["Admin", "Executive", "Analyst"] },
-        "subscriptionTier": { "type": "string", "enum": ["Free", "Pro", "Sovereign"] },
+        "role": { "type": "string", "enum": ["Admin", "User"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["email", "name", "role", "subscriptionTier", "createdAt"]
+      "required": ["email", "name", "role", "createdAt"]
     }
   },
   "firestore": {
-    "intelligence_signals": {
-      "schema": { "$ref": "IntelligenceSignal" },
-      "description": "Global feed of market intelligence signals."
+    "articles": {
+      "schema": { "$ref": "Article" },
+      "description": "Collection of crawled articles."
     },
-    "domains": {
-      "schema": { "$ref": "Domain" },
-      "description": "Global database of tracked domain assets."
+    "trends": {
+      "schema": { "$ref": "Trend" },
+      "description": "Detected market trends."
+    },
+    "brand_opportunities": {
+      "schema": { "$ref": "BrandOpportunity" },
+      "description": "Generated brand opportunities."
     },
     "users/{userId}": {
       "schema": { "$ref": "UserProfile" },

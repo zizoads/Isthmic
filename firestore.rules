@@ -62,8 +62,20 @@ service cloud.firestore {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
-    function isValidDateString(dateStr) {
-      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    function isValidArticle(data) {
+      return data.id is string && data.title is string && data.content is string &&
+             data.title.size() > 0 && data.title.size() < 500 &&
+             data.content.size() > 0 && data.content.size() < 50000;
+    }
+
+    function isValidTrend(data) {
+      return data.keyword is string && data.opportunity_score is number &&
+             data.opportunity_score >= 0 && data.opportunity_score <= 100;
+    }
+
+    function isValidOpportunity(data) {
+      return data.name is string && data.opportunity_score is number &&
+             data.name.size() > 0 && data.name.size() < 100;
     }
 
     // ===============================================================
@@ -71,32 +83,32 @@ service cloud.firestore {
     // ===============================================================
 
     match /articles/{articleId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidArticle(request.resource.data);
     }
 
     match /patents/{patentId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
     match /startups/{startupId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
     match /trends/{trendId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidTrend(request.resource.data);
     }
 
     match /brand_opportunities/{oppId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidOpportunity(request.resource.data);
     }
 
     match /instincts/{instinctId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
