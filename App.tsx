@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { AgentType } from './types';
+import React, { useEffect } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import HubRenderer from './components/layout/HubRenderer';
 import ProtocolErrorBoundary from './components/ui/ProtocolErrorBoundary';
@@ -10,7 +9,6 @@ import { useAuth } from './context/AuthContext';
 const App: React.FC = () => {
   const context = useDomainContext();
   const { user, loading } = useAuth();
-  const [activeHub, setActiveHub] = useState<AgentType>(AgentType.INTELLIGENCE);
 
   useEffect(() => {
     document.documentElement.dir = 'ltr';
@@ -47,13 +45,10 @@ const App: React.FC = () => {
         ) : (
           <div className="relative z-10 h-screen overflow-hidden">
             <MainLayout 
-              activeHub={activeHub} 
-              setActiveHub={setActiveHub} 
               activityLogs={context.activityLogs} 
               onSearchDomain={(name) => console.log("System targeting:", name)}
             >
               <HubRenderer 
-                activeHub={activeHub}
                 domains={context.domains}
                 stats={context.stats}
                 addLog={context.addLog}

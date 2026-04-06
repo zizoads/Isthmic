@@ -123,10 +123,12 @@
             const data = await response.json();
             const pre = document.createElement('pre');
             pre.textContent = JSON.stringify(data, null, 2);
-            container.innerHTML = '';
+            container.textContent = '';
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(data, null, 2);
             container.appendChild(pre);
         } catch (err) {
-            container.innerHTML = '';
+            container.textContent = '';
             const p = document.createElement('p');
             p.style.color = '#ef4444';
             p.textContent = `خطأ: ${err.message}`;
@@ -166,7 +168,7 @@
                 body: JSON.stringify(payload) 
             });
             const data = await res.json();
-            statusMsg.innerHTML = '';
+            statusMsg.textContent = '';
             const p = document.createElement('p');
             p.style.color = '#10b981';
             p.textContent = '✅ تم بدء المهمة بنجاح.';
@@ -186,7 +188,7 @@
                 }
             }, 5000);
         } catch (err) {
-            statusMsg.innerHTML = '';
+            statusMsg.textContent = '';
             const p = document.createElement('p');
             p.style.color = '#ef4444';
             p.textContent = `خطأ: ${err.message}`;

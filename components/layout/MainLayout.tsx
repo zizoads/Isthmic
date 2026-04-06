@@ -5,19 +5,19 @@ import SonnerNotification from '../SonnerNotification';
 import SovereignHUD from '../ui/SovereignHUD';
 import { useDomainContext } from '../../context/DomainContext';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigation } from '../../context/NavigationContext';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 interface Props {
-  activeHub: AgentType;
-  setActiveHub: (hub: AgentType) => void;
   activityLogs: ActivityLog[];
   children: React.ReactNode;
   onSearchDomain: (name: string) => void;
 }
 
 const MainLayout: React.FC<Props> = ({ 
-  activeHub, setActiveHub, activityLogs, children, onSearchDomain 
+  activityLogs, children, onSearchDomain 
 }) => {
+  const { activeHub, setActiveHub } = useNavigation();
   const { activeProfile, dismissLog } = useDomainContext();
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -43,7 +43,7 @@ const MainLayout: React.FC<Props> = ({
   return (
     <div className="flex h-screen w-full bg-[#050507] text-white overflow-hidden relative" dir="ltr">
       <SovereignHUD />
-      <CommandPalette setActiveTab={setActiveHub} onSearchDomain={onSearchDomain} />
+      <CommandPalette onSearchDomain={onSearchDomain} />
       <SonnerNotification notifications={activityLogs} onDismiss={dismissLog} />
       
       <button 

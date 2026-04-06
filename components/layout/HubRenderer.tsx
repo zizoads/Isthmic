@@ -5,17 +5,19 @@ import AlphaMineHub from '../hubs/AlphaMineHub';
 import { BrandIntelligenceHub } from '../hubs/BrandIntelligenceHub';
 import AdminHub from '../hubs/AdminHub';
 import { UserProfileHub } from '../hubs/UserProfileHub';
+import { useNavigation } from '../../context/NavigationContext';
 
 interface Props {
-  activeHub: AgentType;
   domains: Domain[];
   stats: PlatformStats;
   addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
 }
 
 const HubRenderer: React.FC<Props> = ({ 
-  activeHub, domains, stats 
+  domains, stats 
 }) => {
+  const { activeHub } = useNavigation();
+
   const renderContent = () => {
     switch (activeHub) {
       case AgentType.ALPHA_MINE:

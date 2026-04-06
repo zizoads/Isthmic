@@ -3,6 +3,36 @@ import random
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+def parse_startups_html(content, limit, platform_name, base_url, item_selector, name_selector, desc_selector):
+    startups = []
+    if content:
+        try:
+            soup = BeautifulSoup(content, 'lxml')
+        except Exception:
+            soup = BeautifulSoup(content, 'html.parser')
+        for item in soup.select(item_selector)[:limit]:
+            name_elem = item.select_one(name_selector)
+            name = name_elem.text.strip() if name_elem else ''
+            link = name_elem.get('href') if name_elem else ''
+            if link and not link.startswith('http'):
+                link = base_url + link
+            desc_elem = item.select_one(desc_selector)
+            desc = desc_elem.text.strip() if desc_elem else ''
+            startups.append({
+                'id': str(uuid.uuid4()),
+                'name': name,
+                'description': desc,
+                'url': link,
+                'platform': platform_name,
+                'founded_year': '',
+                'funding_total': 0,
+                'investors': '',
+                'category': '',
+                'crawled_at': datetime.now().isoformat(),
+                'keywords': []
+            })
+    return startups
+
 class PatentPlatforms:
     @staticmethod
     async def fetch_uspto(limit):
@@ -51,34 +81,10 @@ class StartupPlatforms:
     async def fetch_betalist(limit, crawler):
         url = "https://betalist.com/"
         content = await crawler.fetch_with_retry(url)
-        startups = []
-        if content:
-            try:
-                soup = BeautifulSoup(content, 'lxml')
-            except Exception:
-                soup = BeautifulSoup(content, 'html.parser')
-            for item in soup.select('div.startup')[:limit]:
-                name_elem = item.select_one('h3 a')
-                name = name_elem.text.strip() if name_elem else ''
-                link = name_elem.get('href') if name_elem else ''
-                if link and not link.startswith('http'):
-                    link = "https://betalist.com" + link
-                desc_elem = item.select_one('p')
-                desc = desc_elem.text.strip() if desc_elem else ''
-                startups.append({
-                    'id': str(uuid.uuid4()),
-                    'name': name,
-                    'description': desc,
-                    'url': link,
-                    'platform': "BetaList",
-                    'founded_year': '',
-                    'funding_total': 0,
-                    'investors': '',
-                    'category': '',
-                    'crawled_at': datetime.now().isoformat(),
-                    'keywords': []
-                })
-        return startups
+        return parse_startups_html(
+            content, limit, "BetaList", "https://betalist.com", 
+            'div.startup', 'h3 a', 'p'
+        )
 
     @staticmethod
     async def fetch_producthunt(crawler, limit):
@@ -113,34 +119,10 @@ class StartupPlatforms:
     async def fetch_angellist(limit, crawler):
         url = "https://angel.co/companies"
         content = await crawler.fetch_with_retry(url)
-        startups = []
-        if content:
-            try:
-                soup = BeautifulSoup(content, 'lxml')
-            except Exception:
-                soup = BeautifulSoup(content, 'html.parser')
-            for item in soup.select('div.startup')[:limit]:
-                name_elem = item.select_one('a.startup-link')
-                name = name_elem.text.strip() if name_elem else ''
-                link = name_elem.get('href') if name_elem else ''
-                if link and not link.startswith('http'):
-                    link = "https://angel.co" + link
-                desc_elem = item.select_one('p')
-                desc = desc_elem.text.strip() if desc_elem else ''
-                startups.append({
-                    'id': str(uuid.uuid4()),
-                    'name': name,
-                    'description': desc,
-                    'url': link,
-                    'platform': "AngelList",
-                    'founded_year': '',
-                    'funding_total': 0,
-                    'investors': '',
-                    'category': '',
-                    'crawled_at': datetime.now().isoformat(),
-                    'keywords': []
-                })
-        return startups
+        return parse_startups_html(
+            content, limit, "AngelList", "https://angel.co", 
+            'div.startup', 'a.startup-link', 'p'
+        )
 
     @staticmethod
     async def fetch_startupbase(limit):

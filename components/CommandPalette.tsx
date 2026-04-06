@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDomainContext } from '../context/DomainContext';
+import { useNavigation } from '../context/NavigationContext';
 import { AgentType } from '../types';
 
 interface Props {
-  setActiveTab: (tab: AgentType) => void;
   onSearchDomain: (name: string) => void;
 }
 
@@ -16,8 +16,9 @@ interface PaletteItem {
   sub?: string;
 }
 
-const CommandPalette: React.FC<Props> = ({ setActiveTab, onSearchDomain }) => {
+const CommandPalette: React.FC<Props> = ({ onSearchDomain }) => {
   const { domains } = useDomainContext();
+  const { setActiveHub } = useNavigation();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -35,9 +36,9 @@ const CommandPalette: React.FC<Props> = ({ setActiveTab, onSearchDomain }) => {
   }, []);
 
   const commands = useMemo((): PaletteItem[] => [
-    { label: 'Alpha Mine (Discovery)', icon: 'fa-bolt', action: () => setActiveTab(AgentType.ALPHA_MINE), category: 'Navigation' },
-    { label: 'Executive Suite (Strategy)', icon: 'fa-user-shield', action: () => setActiveTab(AgentType.EXECUTIVE), category: 'Navigation' },
-  ], [setActiveTab]);
+    { label: 'Alpha Mine (Discovery)', icon: 'fa-bolt', action: () => setActiveHub(AgentType.ALPHA_MINE), category: 'Navigation' },
+    { label: 'Executive Suite (Strategy)', icon: 'fa-user-shield', action: () => setActiveHub(AgentType.EXECUTIVE), category: 'Navigation' },
+  ], [setActiveHub]);
 
   const filteredItems = useMemo(() => {
     const domainMatches: PaletteItem[] = domains

@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DomainProvider } from './context/DomainContext';
 import { AuthProvider } from './context/AuthContext';
+import { NavigationProvider } from './context/NavigationContext';
 import { SecurityActivation } from './main.security';
 
 /**
@@ -28,7 +29,9 @@ const mountApplication = () => {
       <React.StrictMode>
         <AuthProvider>
           <DomainProvider>
-            <App />
+            <NavigationProvider>
+              <App />
+            </NavigationProvider>
           </DomainProvider>
         </AuthProvider>
       </React.StrictMode>

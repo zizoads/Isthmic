@@ -12,6 +12,7 @@ import {
   Activity
 } from 'lucide-react';
 import { translations } from '../../translations';
+import { isJsonResponse } from '../../utils/shared_utils';
 
 interface BrandIntelligenceHubProps {
 }
@@ -55,9 +56,6 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         })
       ]);
       
-      // Check if responses are OK and have JSON content type
-      const isJson = (res: Response) => res.ok && res.headers.get('content-type')?.includes('application/json');
-
       if (!trendsRes.ok) {
         throw new Error(`Trends API error: ${trendsRes.status} ${trendsRes.statusText}`);
       }
@@ -65,13 +63,13 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         throw new Error(`Opportunities API error: ${oppsRes.status} ${oppsRes.statusText}`);
       }
 
-      if (!isJson(trendsRes)) {
+      if (!isJsonResponse(trendsRes)) {
         const text = await trendsRes.text();
         console.warn("Trends API returned non-JSON:", text.substring(0, 100));
         throw new Error("Trends API returned invalid format (expected JSON).");
       }
 
-      if (!isJson(oppsRes)) {
+      if (!isJsonResponse(oppsRes)) {
         const text = await oppsRes.text();
         console.warn("Opportunities API returned non-JSON:", text.substring(0, 100));
         throw new Error("Opportunities API returned invalid format (expected JSON).");
