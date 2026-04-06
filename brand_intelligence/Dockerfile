@@ -9,5 +9,8 @@ COPY . .
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run uvicorn pointing to main:app directly
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Set PYTHONPATH to the parent directory so 'brand_intelligence' is a package
+ENV PYTHONPATH=/app
+
+# Run uvicorn pointing to the module inside the subdirectory
+CMD ["uvicorn", "brand_intelligence.main:app", "--host", "0.0.0.0", "--port", "7860"]

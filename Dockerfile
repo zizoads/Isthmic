@@ -7,15 +7,18 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# نسخ ملف المتطلبات من المجلد الفرعي وتثبيتها
+# نسخ المتطلبات وتثبيتها
 COPY brand_intelligence/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# نسخ محتويات محرك الذكاء الاصطناعي إلى بيئة العمل
-COPY brand_intelligence/ .
+# نسخ المجلد بالكامل إلى /app/brand_intelligence
+COPY brand_intelligence/ /app/brand_intelligence/
+
+# Set PYTHONPATH to the parent directory so 'brand_intelligence' is a package
+ENV PYTHONPATH=/app
 
 # المنفذ الخاص بـ Hugging Face
 EXPOSE 7860
 
 # تشغيل المحرك
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "brand_intelligence.main:app", "--host", "0.0.0.0", "--port", "7860"]
