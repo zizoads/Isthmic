@@ -62,4 +62,14 @@ async def export():
     opps = get_opportunities(limit=100)
     return {"trends": trends, "opportunities": opps}
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+import os
+
+# Get the directory of the current file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# Ensure static directory exists before mounting
+if os.path.exists(STATIC_DIR):
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+else:
+    logger.warning(f"Static directory not found at {STATIC_DIR}. Skipping mount.")
