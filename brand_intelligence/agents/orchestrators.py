@@ -1,5 +1,5 @@
 from typing import List, Dict
-from .base import BaseAgent
+from brand_intelligence.agents.base import BaseAgent
 
 class LearningLoop:
     def __init__(self, agents: List[BaseAgent], max_iterations: int = 3, target_score: float = 0.8):

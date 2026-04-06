@@ -36,8 +36,8 @@ def setup_nltk():
 setup_nltk()
 
 from crawler_base import AdvancedCrawler
-from platforms import PatentPlatforms, StartupPlatforms
-from agents import DataCollectorAgent, TrendAnalyzerAgent, BrandGeneratorAgent, EvaluatorAgent, LearningLoop, MsgHub
+from brand_intelligence.platforms import PatentPlatforms, StartupPlatforms
+from brand_intelligence.agents import DataCollectorAgent, TrendAnalyzerAgent, BrandGeneratorAgent, EvaluatorAgent, LearningLoop, MsgHub
 
 # -------------------- النظام الرئيسي --------------------
 class SmartBrandIntelligence:

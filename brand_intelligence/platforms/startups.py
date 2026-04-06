@@ -2,7 +2,7 @@ import uuid
 import random
 from datetime import datetime
 from bs4 import BeautifulSoup
-from .base import parse_startups_html
+from brand_intelligence.platforms.base import parse_startups_html
 
 class StartupPlatforms:
     @staticmethod

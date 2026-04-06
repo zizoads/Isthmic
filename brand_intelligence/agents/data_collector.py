@@ -3,7 +3,7 @@ from typing import Dict
 from .base import BaseAgent
 from storage import save_article, save_patent, save_startup
 from crawler_base import AdvancedCrawler
-from platforms import PatentPlatforms, StartupPlatforms
+from brand_intelligence.platforms import PatentPlatforms, StartupPlatforms
 
 class DataCollectorAgent(BaseAgent):
     def __init__(self, crawler: AdvancedCrawler):
