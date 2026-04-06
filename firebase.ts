@@ -1,14 +1,21 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
-import firebaseConfig from './firebase-applet-config.json';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvG4MAsj5ceIRXJhW1fr5Z31mcJ_QjSpg",
+  authDomain: "isthmic-daa47.firebaseapp.com",
+  projectId: "isthmic-daa47",
+  storageBucket: "isthmic-daa47.firebasestorage.app",
+  messagingSenderId: "987275458052",
+  appId: "1:987275458052:web:85e97c6afb54ec190ae751",
+  measurementId: "G-RNYZF6HE8K"
+};
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 // Use default database if firestoreDatabaseId is "(default)" or not provided
-export const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)') 
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId) 
-  : getFirestore(app);
+export const db = getFirestore(app);
 
 export enum OperationType {
   CREATE = 'create',
