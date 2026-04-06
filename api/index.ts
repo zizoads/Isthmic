@@ -3,7 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { ProfessionalBrandGenerator } from "./src/services/ai/ProfessionalBrandGenerator";
+import { ProfessionalBrandGenerator } from "../src/services/ai/ProfessionalBrandGenerator";
 
 async function startServer() {
   const app = express();
@@ -16,6 +16,7 @@ async function startServer() {
   try {
     await brandGen.init();
   } catch (e) {
+    console.error("Brand Generator initialization failed:", e);
   }
 
   // API Routes
@@ -60,19 +61,16 @@ async function startServer() {
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
     changeOrigin: true,
-    proxyTimeout: 30000, // 30 seconds
+    proxyTimeout: 30000, 
     timeout: 30000,
-    // Correct event handler for http-proxy-middleware v3
     on: {
       error: (err: Error, _req: any, res: any) => {
-        // Return JSON instead of letting it fall through to SPA fallback
         res.writeHead(502, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: "Python engine unreachable", details: err.message }));
       },
     }
   });
 
-  // Apply proxy to specific endpoints
   app.use("/api/crawl", apiProxy);
   app.use("/api/trends", apiProxy);
   app.use("/api/opportunities", apiProxy);
@@ -102,7 +100,7 @@ async function startServer() {
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -110,9 +108,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    
     app.use(express.static(distPath));
-    
     app.get('*', (_req, res) => {
       const indexPath = path.join(distPath, 'index.html');
       res.sendFile(indexPath, (err) => {
@@ -123,14 +119,18 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 
   return app;
 }
 
 const appPromise = startServer();
+
 export default async (req: any, res: any) => {
   const app = await appPromise;
-  return app(req, res);
+  app(req, res);
 };

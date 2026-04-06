@@ -2,9 +2,14 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from .models import CrawlRequest
-from .storage import init_storage, get_trends, get_opportunities
-from .crawler import SmartBrandIntelligence
+try:
+    from .models import CrawlRequest
+    from .storage import init_storage, get_trends, get_opportunities
+    from .crawler import SmartBrandIntelligence
+except ImportError:
+    from models import CrawlRequest
+    from storage import init_storage, get_trends, get_opportunities
+    from crawler import SmartBrandIntelligence
 from typing import List, Optional
 import logging
 
