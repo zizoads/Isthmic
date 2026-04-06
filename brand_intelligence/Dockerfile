@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all files
 COPY . .
+
+# Run tests (optional: can be commented out if they require network/credentials)
+# RUN pytest tests/
 
 # Set PYTHONPATH to the current directory
 ENV PYTHONPATH=/app
