@@ -34,19 +34,24 @@ export class QuantumEncryption {
    * Searches for an old seed in storage, and if not found, creates a new one forever.
    */
   private initializePersistentSeed(): Uint8Array {
-    const storedSeed = localStorage.getItem(this.SEED_STORAGE_KEY);
-    
-    if (storedSeed) {
-      try {
-        return this.base64ToArray(storedSeed);
-      } catch (e) {
-        console.error("🚨 [SECURITY] Anchor corrupted. Generating new recovery path.");
+    try {
+      const storedSeed = localStorage.getItem(this.SEED_STORAGE_KEY);
+      
+      if (storedSeed) {
+        try {
+          return this.base64ToArray(storedSeed);
+        } catch (e) {
+          console.error("🚨 [SECURITY] Anchor corrupted. Generating new recovery path.");
+        }
       }
-    }
 
-    const newSeed = this.generateQuantumSeed();
-    localStorage.setItem(this.SEED_STORAGE_KEY, this.arrayToBase64(newSeed));
-    return newSeed;
+      const newSeed = this.generateQuantumSeed();
+      localStorage.setItem(this.SEED_STORAGE_KEY, this.arrayToBase64(newSeed));
+      return newSeed;
+    } catch (error) {
+      console.warn("⚠️ [SECURITY] Local storage access failed. Using ephemeral quantum seed.");
+      return this.generateQuantumSeed();
+    }
   }
 
   private generateQuantumSeed(): Uint8Array {

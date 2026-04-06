@@ -53,13 +53,13 @@
             window.location.reload(true);
         }
 
-        // Boot Watchdog: If app doesn't mount in 5s, show panic UI
+        // Boot Watchdog: If app doesn't mount in 10s, show panic UI
         setTimeout(() => {
             if (!window.isIsthmicMounted) {
                 console.error('🚨 [CRITICAL] Sovereign Engine failed to mount within stability window.');
                 document.getElementById('panic-ui').style.display = 'flex';
             }
-        }, 5000);
+        }, 10000);
     </script>
     <script type="module" src="./index.tsx"></script>
 </body>

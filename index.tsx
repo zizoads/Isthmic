@@ -19,11 +19,11 @@ const mountApplication = () => {
     return;
   }
 
-  // 📡 Activate Security System (Military Suite)
-  // Activation optimized to be non-blocking for critical operations
-  SecurityActivation.activate();
-
   try {
+    // 📡 Activate Security System (Military Suite)
+    // Activation optimized to be non-blocking for critical operations
+    SecurityActivation.activate();
+
     const root = ReactDOM.createRoot(rootElement);
     root.render(
       <React.StrictMode>

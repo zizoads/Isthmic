@@ -27,17 +27,20 @@ export class MilitaryVault {
 
   // 🏁 Vault Initialization
   private async initializeVault(): Promise<void> {
-    
-    const stored = localStorage.getItem('military_vault_backup');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        for (const [key, value] of Object.entries(parsed)) {
-          this.vault.set(key, value as QuantumEncryptedData);
+    try {
+      const stored = localStorage.getItem('military_vault_backup');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          for (const [key, value] of Object.entries(parsed)) {
+            this.vault.set(key, value as QuantumEncryptedData);
+          }
+        } catch (error) {
+          localStorage.removeItem('military_vault_backup');
         }
-      } catch (error) {
-        localStorage.removeItem('military_vault_backup');
       }
+    } catch (error) {
+      console.warn("⚠️ [VAULT] Local storage access failed during initialization.");
     }
     
     this.startAutoBackup();
@@ -144,11 +147,15 @@ export class MilitaryVault {
   }
 
   private updateVaultStats(): void {
-    const stats = {
-      totalItems: this.vault.size,
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem('vault_performance_index', JSON.stringify(stats));
+    try {
+      const stats = {
+        totalItems: this.vault.size,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem('vault_performance_index', JSON.stringify(stats));
+    } catch (error) {
+      // Silent fail for stats
+    }
   }
 
   getVaultReport() {
