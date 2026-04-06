@@ -1,0 +1,10 @@
+name = "isthmic-pro"
+pages_build_output_dir = "dist"
+
+[vars]
+PYTHON_ENGINE_URL = "https://azeddinebeldjilali9-isthmic.hf.space"
+
+# Cloudflare Pages configuration
+[pages]
+build_command = "npm run build"
+output_dir = "dist"

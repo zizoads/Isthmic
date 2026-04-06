@@ -39,7 +39,25 @@ This application uses a hybrid architecture:
 
 ---
 
-## 3. Firebase Integration (Persistence)
+## 3. Frontend & API Gateway (Cloudflare Pages - Recommended Alternative)
+
+### Deployment Steps:
+1. Connect your GitHub repository to **Cloudflare Pages**.
+2. **Framework Preset**: `Vite`.
+3. **Build Command**: `npm run build`
+4. **Output Directory**: `dist`
+5. **Environment Variables (Cloudflare Settings > Functions)**:
+   - `PYTHON_ENGINE_URL`: The URL of your Hugging Face Space.
+   - `GEMINI_API_KEY`: Your Google AI Studio API Key.
+
+### Architecture Note:
+- Cloudflare uses **Pages Functions** (located in `/functions`) to handle API requests.
+- The entry point is `functions/api/[[path]].ts`, which proxies requests to the Python engine.
+- **Advantage**: No deployment rate limits and superior global performance.
+
+---
+
+## 4. Firebase Integration (Persistence)
 
 1. Go to Firebase Console > Project Settings > Service Accounts.
 2. Generate a new private key (JSON).
