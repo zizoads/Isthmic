@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Dict
 from brand_intelligence.agents.base import BaseAgent
-from storage import get_instincts, save_brand_opportunity
+from brand_intelligence.storage import get_instincts, save_brand_opportunity
 
 class BrandGeneratorAgent(BaseAgent):
     def __init__(self):

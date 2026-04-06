@@ -1,11 +1,9 @@
 # ملف main.py
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from typing import List, Optional
-from pydantic import BaseModel
-import os
-from storage import init_storage, get_trends, get_opportunities
-from crawler import SmartBrandIntelligence
+from brand_intelligence.models import CrawlRequest
+from brand_intelligence.storage import init_storage, get_trends, get_opportunities
+from brand_intelligence.crawler import SmartBrandIntelligence
 
 # Initialize storage on startup
 init_storage()

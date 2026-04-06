@@ -6,7 +6,7 @@ from typing import Dict
 import nltk
 from nltk.corpus import stopwords
 from brand_intelligence.agents.base import BaseAgent
-from storage import save_trend
+from brand_intelligence.storage import save_trend
 
 stop_words = set(stopwords.words('english')) if nltk else set()
 

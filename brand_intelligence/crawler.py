@@ -13,7 +13,7 @@ from typing import List, Dict, Optional, Any
 import nltk
 from nltk.corpus import stopwords
 from bs4 import BeautifulSoup
-from storage import (
+from brand_intelligence.storage import (
     init_storage, save_article, save_patent, save_startup, 
     save_trend, save_brand_opportunity, save_session, 
     get_trends, get_opportunities, get_instincts

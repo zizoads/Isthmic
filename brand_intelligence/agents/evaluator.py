@@ -1,6 +1,6 @@
 from typing import Dict
 from brand_intelligence.agents.base import BaseAgent
-from storage import get_instincts
+from brand_intelligence.storage import get_instincts
 
 class EvaluatorAgent(BaseAgent):
     def __init__(self):
