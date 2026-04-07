@@ -6,7 +6,7 @@ import { PlatformStats } from "../../types";
 export class ExecutiveSynthesisService {
   static async synthesizeStrategicBriefing(stats: PlatformStats, sectors: string[]) {
     return generateStructuredAI<any>(
-      'gemini-3-pro-preview',
+      'gemini-1.5-pro',
       "Role: Chief Strategy Officer. Task: Synthesize executive narrative.",
       `Context: Portfolio Value $${stats.estimatedPortfolioValue}. 
        Alignment Velocity: ${stats.alignmentVelocity}%. 

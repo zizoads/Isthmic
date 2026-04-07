@@ -88,8 +88,9 @@ export const MilitaryFirewallInstance = MilitaryFirewall.getInstance();
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         const isNetworkError = errorMessage === 'Failed to fetch' || err instanceof TypeError;
+        const isFirebase = url.includes('firebaseio.com') || url.includes('googleapis.com');
 
-        if (isNetworkError && retries > 1) {
+        if (isNetworkError && retries > 1 && !isFirebase) {
           console.warn(`⚠️ [FIREWALL] Fetch attempt failed for ${url}. Retrying in ${delay}ms... (${retries - 1} retries left)`);
           await new Promise(resolve => setTimeout(resolve, delay));
           retries--;

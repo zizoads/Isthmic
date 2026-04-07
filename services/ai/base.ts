@@ -17,8 +17,8 @@ export async function generateStructuredAI<T>(
 ): Promise<{ data: T, latency: number, grounding?: any[] }> {
   const startTime = performance.now();
   
-  // In production, we prefer calling the backend to avoid exposing keys in the client bundle
-  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'production' || !process.env.GEMINI_API_KEY)) {
+  // In browser, we prefer calling the backend to avoid exposing keys in the client bundle
+  if (typeof window !== 'undefined') {
     try {
       const response = await fetch('/api/ai-proxy', {
         method: 'POST',
@@ -41,9 +41,17 @@ export async function generateStructuredAI<T>(
           latency: Math.round(performance.now() - startTime),
           grounding: result.grounding
         };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn("AI_PROXY_ERROR:", errorData);
+        // Fallback to local call if proxy fails and key is available
+        if (!process.env.GEMINI_API_KEY) {
+           throw new Error(`AI_PROXY_FAILURE: ${response.status} ${JSON.stringify(errorData)}`);
+        }
       }
     } catch (e) {
-      console.warn("AI_PROXY_FALLBACK_FAILED, attempting local call if key exists...", e);
+      console.warn("AI_PROXY_FETCH_FAILED, attempting local call if key exists...", e);
+      if (!process.env.GEMINI_API_KEY) throw e;
     }
   }
 
@@ -78,8 +86,8 @@ export async function generateStructuredAI<T>(
 }
 
 export async function safeAICall<T>(arg: any): Promise<T> {
-  // In production, we prefer calling the backend to avoid exposing keys in the client bundle
-  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'production' || !process.env.GEMINI_API_KEY)) {
+  // In browser, we prefer calling the backend to avoid exposing keys in the client bundle
+  if (typeof window !== 'undefined') {
     try {
       const response = await fetch('/api/ai-proxy', {
         method: 'POST',
@@ -100,9 +108,16 @@ export async function safeAICall<T>(arg: any): Promise<T> {
           return result.data as T;
         }
         return result as unknown as T;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn("AI_SAFE_PROXY_ERROR:", errorData);
+        if (!process.env.GEMINI_API_KEY) {
+          throw new Error(`AI_SAFE_PROXY_FAILURE: ${response.status} ${JSON.stringify(errorData)}`);
+        }
       }
     } catch (e) {
-      console.warn("AI_SAFE_PROXY_FALLBACK_FAILED, attempting local call if key exists...", e);
+      console.warn("AI_SAFE_PROXY_FETCH_FAILED, attempting local call if key exists...", e);
+      if (!process.env.GEMINI_API_KEY) throw e;
     }
   }
 

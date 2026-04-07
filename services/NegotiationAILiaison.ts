@@ -1,14 +1,8 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { MessageAuditInsight, FAANGNegotiationReport } from "../types";
+import { safeAICall } from "./ai/base";
 
 class NegotiationAILiaison {
-  private ai: any;
-
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }
-
   public async analyzeBuyerMessage(
     domainName: string,
     messageHistory: string,
@@ -27,13 +21,13 @@ class NegotiationAILiaison {
     Return ONLY a JSON object with two keys: "insight" (matching MessageAuditInsight) and "report" (matching FAANGNegotiationReport).`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+      const result = await safeAICall<any>({
+        model: "gemini-1.5-flash",
         contents: prompt,
         config: { responseMimeType: "application/json" }
       });
 
-      return JSON.parse(response.text);
+      return result;
     } catch (error) {
       console.error("Negotiation Analysis Error:", error);
       return null;

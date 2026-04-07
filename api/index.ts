@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { GoogleGenAI } from "@google/genai";
 import { ProfessionalBrandGenerator } from "../src/services/ai/ProfessionalBrandGenerator";
 
 async function startServer() {
@@ -103,6 +104,43 @@ async function startServer() {
   app.use("/api/trends", apiProxy);
   app.use("/api/opportunities", apiProxy);
   
+  app.post("/api/ai-proxy", async (req, res) => {
+    const { model, systemInstruction, prompt, schema, tools, configOverrides } = req.body;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+    }
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const modelId = model || 'gemini-1.5-flash';
+      
+      const response = await ai.models.generateContent({
+        model: modelId,
+        contents: prompt,
+        config: { 
+          systemInstruction, 
+          responseMimeType: "application/json", 
+          responseSchema: schema,
+          tools: tools,
+          ...configOverrides
+        }
+      });
+
+      const text = response.text;
+      if (!text) throw new Error("EMPTY_INFERENCE_RECEIVED");
+
+      res.json({ 
+        data: JSON.parse(text),
+        grounding: response.candidates?.[0]?.groundingMetadata?.groundingChunks
+      });
+    } catch (e: any) {
+      console.error("AI Proxy Error:", e.message);
+      res.status(500).json({ error: "AI Proxy failed", details: e.message });
+    }
+  });
+
   app.use("/api/health_proxy", async (_req, res) => {
     try {
       const controller = new AbortController();
