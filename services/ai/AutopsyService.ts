@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { 
   SovereignAutopsyReport, 
   AutomaticFix, 
@@ -18,7 +17,7 @@ import {
  * Phase 1.8: Comprehensive Batching, Problem Cataloging, and Predictive Analytics.
  */
 export class AutopsyService {
-  private static readonly MODEL_PRO = 'gemini-3-pro-preview';
+  private static readonly MODEL_PRO = 'gemini-1.5-pro';
 
   private static async computeHash(str: string): Promise<string> {
     const msgUint8 = new TextEncoder().encode(str);
@@ -36,10 +35,9 @@ export class AutopsyService {
     const hash = await this.computeHash(sourceCode);
     
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const loc = sourceCode.split('\n').length;
 
-      const response = await ai.models.generateContent({
+      const response = await safeAICall<any>({
         model: this.MODEL_PRO,
         contents: `
           System: Chief Forensic Software Architect (FAANG).
@@ -62,7 +60,7 @@ export class AutopsyService {
       });
 
       const endTime = performance.now();
-      const raw = JSON.parse(response.text || '{}');
+      const raw = response;
       
       return {
         id: crypto.randomUUID(),
@@ -114,7 +112,6 @@ export class AutopsyService {
    */
   static async synthesizeProblemCatalog(reports: SovereignAutopsyReport[]): Promise<ProblemCatalog> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const context = reports.map(r => ({
         file: r.specimen.name,
         findings: r.findings.map(f => ({ 
@@ -124,7 +121,7 @@ export class AutopsyService {
         }))
       }));
 
-      const response = await ai.models.generateContent({
+      const response = await safeAICall<any>({
         model: this.MODEL_PRO,
         contents: `Aggregate findings into a standardized Problem Catalog. Frequency must reflect occurrence in these files: ${JSON.stringify(context)}. Calculate institutional health index.`,
         config: {
@@ -133,9 +130,8 @@ export class AutopsyService {
         }
       });
 
-      const raw = JSON.parse(response.text || '{}');
       return {
-        ...raw,
+        ...response,
         lastUpdated: new Date().toISOString(),
         totalFilesAnalyzed: reports.length
       };
@@ -147,7 +143,6 @@ export class AutopsyService {
    */
   static async synthesizeExecutiveSummary(reports: SovereignAutopsyReport[]): Promise<ProjectExecutiveSummary> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const context = reports.map(r => ({
         file: r.specimen.name,
         health: r.metrics.overallHealthIndex,
@@ -156,7 +151,7 @@ export class AutopsyService {
         readiness: r.metrics.architecturalScore // Proxy for readiness
       }));
 
-      const response = await ai.models.generateContent({
+      const response = await safeAICall<any>({
         model: this.MODEL_PRO,
         contents: `Analyze these code audit reports and synthesize an executive summary. Calculate FAANG readiness index based on architecture, quality, and security: ${JSON.stringify(context)}`,
         config: {
@@ -165,7 +160,7 @@ export class AutopsyService {
         }
       });
 
-      return JSON.parse(response.text || '{}');
+      return response;
     });
   }
 }

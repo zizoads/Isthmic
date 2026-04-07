@@ -28,7 +28,7 @@ export class AgentEngine {
     
     // المرحلة 1: التحليل الدلالي
     const analyzerResult = await generateStructuredAI<{vectors: string[]}>(
-      'gemini-3-flash-preview',
+      'gemini-1.5-flash',
       "Analyzer Role: Extract 3 core search vectors.",
       `Mission: ${task}. Strategy: ${strategy}.`,
       { 
@@ -45,7 +45,7 @@ export class AgentEngine {
     // المرحلة 2: التنفيذ التكتيكي
     this.addThought(AgentRole.EXECUTOR, "Scanning global digital frontier...", "thinking");
     const executorResult = await generateStructuredAI<any[]>(
-      'gemini-3-pro-preview',
+      'gemini-1.5-pro',
       "Executor Role: Execute acquisition sweep grounded in verified market data.",
       `Execute acquisition sweep for: ${vectors.join(", ")}.`,
       { 

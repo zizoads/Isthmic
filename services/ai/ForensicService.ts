@@ -10,7 +10,7 @@ import { generateStructuredAI } from "./base";
 export const performOsintInvestigationAI = async (query: string, lang: 'en' = 'en') => {
   // Fix: Extract .data from response for proper UI state management
   const result = await generateStructuredAI<any>(
-    'gemini-3-pro-preview',
+    'gemini-1.5-pro',
     `Deep Forensic OSINT Agent. Language: ${lang}. 
      Mission: Scrutinize the digital footprint of the target.
      Integrate: WHOIS data, Historical snapshots, and Reputation signals.`,
@@ -34,7 +34,7 @@ export const performOsintInvestigationAI = async (query: string, lang: 'en' = 'e
 export const checkTrademarkRiskAI = async (domainName: string) => {
   // Fix: Return .data so the caller receives the trademark risk level string directly
   const result = await generateStructuredAI<string>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     "Intellectual Property Auditor.",
     `Assess trademark risk for "${domainName}" across global classes. Return one word: Safe, Low, Medium, or High.`,
     { type: Type.STRING },

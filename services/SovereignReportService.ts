@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { safeAICall } from "./ai/base";
 import { Domain, PlatformStats, PlatformStrategy } from "../types";
 
 export interface IntelligenceReport {
@@ -21,12 +21,6 @@ export interface IntelligenceReport {
 }
 
 class SovereignReportService {
-  private ai: any;
-
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }
-
   public async synthesizeIntelligence(
     domains: Domain[],
     stats: PlatformStats,
@@ -50,13 +44,12 @@ class SovereignReportService {
     Return ONLY a JSON object matching the IntelligenceReport interface.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+      const report = await safeAICall<IntelligenceReport>({
+        model: "gemini-1.5-flash",
         contents: prompt,
         config: { responseMimeType: "application/json" }
       });
 
-      const report = JSON.parse(response.text);
       return {
         ...report,
         id: crypto.randomUUID(),

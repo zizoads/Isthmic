@@ -1,5 +1,6 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { generateStructuredAI } from "./ai/base";
+import { Type } from "@google/genai";
 
 export interface BrandScore {
   semantic: number;
@@ -15,12 +16,7 @@ export interface GeneratedBrand {
 }
 
 class BrandForgeService {
-  private ai: any;
   private markovModel: Map<string, Map<string, number>> = new Map();
-
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }
 
   // نظام التقييم الصوتي (Phonetic Resonance Scoring)
   private calculatePhoneticScore(first: string, second: string): number {
@@ -76,20 +72,27 @@ class BrandForgeService {
 
   // دمج الذكاء الاصطناعي للتحليل الدلالي والأطروحة الاستثمارية
   public async forgeBrand(niche: string, keywords: string[]): Promise<GeneratedBrand[]> {
-    const prompt = `As a world-class branding expert, generate 5 high-prestige brand names for the niche: "${niche}". 
-    Use these keywords as inspiration: ${keywords.join(", ")}.
-    For each name, provide a 1-sentence investment thesis.
-    Return ONLY a JSON array of objects with "name" and "thesis" keys.`;
-
     try {
-      const response = await this.ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: { responseMimeType: "application/json" }
-      });
+      const result = await generateStructuredAI<any[]>(
+        "gemini-1.5-flash",
+        "Role: World-class branding expert.",
+        `Generate 5 high-prestige brand names for the niche: "${niche}". 
+        Use these keywords as inspiration: ${keywords.join(", ")}.
+        For each name, provide a 1-sentence investment thesis.`,
+        {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              thesis: { type: Type.STRING }
+            },
+            required: ["name", "thesis"]
+          }
+        }
+      );
 
-      const rawData = JSON.parse(response.text);
-      return rawData.map((item: any) => {
+      return result.data.map((item: any) => {
         // Use the phonetic scoring logic for real metrics
         const nameParts = item.name.split(' ');
         const phonetic = nameParts.length > 1 

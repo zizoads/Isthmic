@@ -1,5 +1,4 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { LaunchReadinessReport, SovereignAutopsyReport, EWSAlert } from "../types";
 import { safeAICall } from "./ai/base";
 import { LAUNCH_READINESS_SCHEMA } from "./ai/schemas";
@@ -12,7 +11,7 @@ import { MilitaryVaultInstance } from "../security/MilitaryVault";
  * تم إلغاء العشوائية؛ التقرير الآن يعكس الحالة الحقيقية للبنية التحتية.
  */
 export class LaunchReadinessService {
-  private static readonly MODEL_PRO = 'gemini-3-pro-preview';
+  private static readonly MODEL_PRO = 'gemini-1.5-pro';
 
   /**
    * حساب "معامل التماسك السيادي" (Sovereign Cohesion Index - PHI)
@@ -40,10 +39,6 @@ export class LaunchReadinessService {
     const vaultReport = MilitaryVaultInstance.getVaultReport();
 
     return safeAICall(async () => {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING");
-      const ai = new GoogleGenAI({ apiKey });
-      
       const context = {
         phi,
         dbLatency,
@@ -52,7 +47,7 @@ export class LaunchReadinessService {
         avgSecurityScore: autopsies.reduce((acc, a) => acc + a.metrics.securityScore, 0) / (autopsies.length || 1)
       };
 
-      const response = await ai.models.generateContent({
+      const response = await safeAICall<any>({
         model: this.MODEL_PRO,
         contents: `
           Role: Production Director. 
@@ -72,7 +67,7 @@ export class LaunchReadinessService {
         }
       });
 
-      return JSON.parse(response.text || '{}');
+      return response;
     });
   }
 

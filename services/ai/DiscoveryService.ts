@@ -1,5 +1,5 @@
 
-import { Type, GoogleGenAI } from "@google/genai";
+import { Type } from "@google/genai";
 import { generateStructuredAI } from "./base";
 import { StrategicObjective, CausalRejectionModel } from "../../types";
 import { OrchestrationService } from "./OrchestrationService";
@@ -19,7 +19,7 @@ export const rigorousDiscoveryAI = async (
     : "";
 
   return generateStructuredAI<any[]>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     `Strategic Market Miner (Sovereign Core). 
      Your task: Find high-potential domains based on market gaps. 
      MANDATORY COMPLIANCE:
@@ -71,7 +71,7 @@ export const getDropSniperListAI = async (
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
   const res = await generateStructuredAI<any[]>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     `Domain drop scouting agent. Neural Link Active: ${strategicContext}`,
     `Find domains about to drop in ${sector}. Rank by Strategic Alignment.`,
     {
@@ -95,7 +95,7 @@ export const getDropSniperListAI = async (
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     "Expert drop analyzer.",
     `Analyze value for ${domainName}.`,
     {
@@ -113,7 +113,7 @@ export const analyzeSnipeOpportunityAI = async (domainName: string) => {
 
 export const registrarInquiryAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     "Real-time registrar status scout.",
     `Check availability and price for ${domainName}.`,
     {
@@ -129,17 +129,27 @@ export const registrarInquiryAI = async (domainName: string) => {
 };
 
 export const findLocalBuyersAI = async (query: string, lat?: number, lng?: number) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const toolConfig = lat && lng ? {
     retrievalConfig: { latLng: { latitude: lat, longitude: lng } }
   } : undefined;
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}.`,
-    config: { tools: [{ googleMaps: {} }], toolConfig }
-  });
+
+  const res = await generateStructuredAI<any>(
+    'gemini-1.5-flash',
+    "Expert local buyer scout.",
+    `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}.`,
+    {
+      type: Type.OBJECT,
+      properties: {
+        text: { type: Type.STRING },
+        sources: { type: Type.ARRAY, items: { type: Type.OBJECT } }
+      }
+    },
+    [{ googleMaps: {} }],
+    { toolConfig }
+  );
+
   return {
-    text: response.text || "",
-    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+    text: res.data.text || "",
+    sources: res.grounding || []
   };
 };

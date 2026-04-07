@@ -1,5 +1,4 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { NegotiationThread, MessageAuditInsight, FAANGNegotiationReport, NegotiationMessage, DealState, DealStateEnum, NegotiationSnapshot } from "../../types";
 import { safeAICall, generateStructuredAI } from "./base";
 import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
@@ -9,8 +8,8 @@ import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
  * v2.7: Added Passive Strategic Snapshot for MasterBrain orchestration.
  */
 export class NegotiationService {
-  private static readonly MODEL_PRO = 'gemini-3-pro-preview';
-  private static readonly MODEL_FLASH = 'gemini-3-flash-preview';
+  private static readonly MODEL_PRO = 'gemini-1.5-pro';
+  private static readonly MODEL_FLASH = 'gemini-1.5-flash';
   public static readonly MAX_CONTEXT_MESSAGES = 15;
 
   /**
@@ -100,12 +99,10 @@ export class NegotiationService {
   }> {
     return safeAICall(async () => {
       const sanitizedMessage = newMessage.replace(/[<>]/g, '').slice(0, 3000);
-      
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const historyContext = this.compressHistory(thread.messages);
 
       const [geminiResponse, stateResponse] = await Promise.all([
-        ai.models.generateContent({
+        safeAICall<any>({
           model: this.MODEL_PRO,
           contents: `System: Chief Forensic Negotiator. Target: Digital Asset "${domainName}".
             History Context: ${historyContext}
@@ -119,10 +116,8 @@ export class NegotiationService {
         this.inferStateTransition(sanitizedMessage, thread.messages, thread.currentState)
       ]);
 
-      const result = JSON.parse(geminiResponse.text || '{}');
-
       return {
-        ...result,
+        ...geminiResponse,
         newState: stateResponse.newState
       };
     });
@@ -134,14 +129,13 @@ export class NegotiationService {
     floorPrice: number
   ): Promise<string> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const historyContext = this.compressHistory(thread.messages);
       
-      const response = await ai.models.generateContent({
+      const response = await safeAICall<any>({
         model: this.MODEL_PRO,
         contents: `Draft a game-theory optimized response for "${domainName}". Floor: $${floorPrice}. Context: ${historyContext}`
       });
-      return response.text || "Protocol synthesis failed.";
+      return typeof response === 'string' ? response : response.text || "Protocol synthesis failed.";
     });
   }
 }

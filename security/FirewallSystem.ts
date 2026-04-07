@@ -101,7 +101,10 @@ export const MilitaryFirewallInstance = MilitaryFirewall.getInstance();
         
         // If it's a network error (Failed to fetch), provide more context
         if (errorMessage === 'Failed to fetch') {
-          console.warn(`💡 [FIREWALL] "Failed to fetch" usually means a network issue, CORS block, or the server is down. URL: ${url}`);
+          console.warn(`💡 [FIREWALL] "Failed to fetch" usually means a network issue, DNS failure, or the server is down. 
+            URL: ${url}
+            Origin: ${window.location.origin}
+            Check if the backend server is running and accessible.`);
         }
         
         throw err;

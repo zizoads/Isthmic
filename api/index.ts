@@ -56,17 +56,24 @@ async function startServer() {
   });
 
   // Proxy API requests to the Python engine (Hugging Face Space URL)
-  const PYTHON_ENGINE_URL = process.env.PYTHON_ENGINE_URL || "https://azeddinebeldjilali9-isthmic.hf.space";
+  let PYTHON_ENGINE_URL = process.env.PYTHON_ENGINE_URL || "https://azeddinebeldjilali9-isthmic.hf.space";
+  if (!PYTHON_ENGINE_URL.endsWith('/')) PYTHON_ENGINE_URL += '/';
 
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
     changeOrigin: true,
+    pathRewrite: (path) => path.startsWith('/') ? path.slice(1) : path,
     proxyTimeout: 30000, 
     timeout: 30000,
     on: {
       error: (err: Error, _req: any, res: any) => {
+        console.error("Proxy Error:", err.message);
         res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "Python engine unreachable", details: err.message }));
+        res.end(JSON.stringify({ 
+          error: "Python engine unreachable", 
+          details: err.message,
+          target: PYTHON_ENGINE_URL
+        }));
       },
     }
   });

@@ -1,5 +1,4 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { generateStructuredAI, safeAICall } from "./base";
 import { Type } from "@google/genai";
 
@@ -13,27 +12,39 @@ export interface PotentialBuyer {
 }
 
 export class BuyerAnalysisService {
-  private static readonly MODEL_MAPS = 'gemini-2.5-flash';
-  private static readonly MODEL_LOGIC = 'gemini-3-flash-preview';
+  private static readonly MODEL_MAPS = 'gemini-1.5-flash';
+  private static readonly MODEL_LOGIC = 'gemini-1.5-flash';
 
   /**
    * استخدام Google Maps Grounding للعثور على شركات حقيقية
    */
   static async discoverGeographicBuyers(domainName: string, sector: string, region: string): Promise<{ buyers: PotentialBuyer[], narrative: string }> {
     return safeAICall(async () => {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      
       // الخطوة 1: العثور على الكيانات عبر الخرائط
-      const response = await ai.models.generateContent({
-        model: this.MODEL_MAPS,
-        contents: `Find 5 established businesses in ${region} that operate in the ${sector} sector and could benefit from owning the domain "${domainName}".`,
-        config: {
-          tools: [{ googleMaps: {} }]
-        }
-      });
+      const response = await generateStructuredAI<any>(
+        this.MODEL_MAPS,
+        "Expert geographic business scout.",
+        `Find 5 established businesses in ${region} that operate in the ${sector} sector and could benefit from owning the domain "${domainName}".`,
+        {
+          type: Type.OBJECT,
+          properties: {
+            entities: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  uri: { type: Type.STRING }
+                }
+              }
+            }
+          }
+        },
+        [{ googleMaps: {} }]
+      );
 
-      const grounding = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-      const mapsData = grounding.filter(g => g.maps).map(g => ({
+      const grounding = response.grounding || [];
+      const mapsData = grounding.filter((g: any) => g.maps).map((g: any) => ({
         name: g.maps?.title || 'Unknown Entity',
         uri: g.maps?.uri || '#'
       }));

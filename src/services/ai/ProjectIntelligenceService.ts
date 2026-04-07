@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
+import { generateStructuredAI } from "../../../services/ai/base";
 
 export interface ProjectContext {
   useCases: string;
@@ -15,12 +16,6 @@ export interface ProjectInsight {
 }
 
 export class ProjectIntelligenceService {
-  private ai: GoogleGenAI;
-
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  }
-
   async getProjectContext(): Promise<ProjectContext> {
     try {
       const response = await fetch("/api/project/intelligence");
@@ -50,31 +45,27 @@ export class ProjectIntelligenceService {
       
       Based on this infrastructure, suggest 5 professional, high-impact next steps for the project's evolution. 
       Focus on "making real things done" and "infrastructure hardening" (inspired by the Claw Code philosophy).
-      
-      Return the response as a JSON array of objects with: title, description, impact (High/Medium/Low), and category (Architecture/Security/Feature/Refactor).
     `;
 
-    const response = await this.ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              description: { type: Type.STRING },
-              impact: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
-              category: { type: Type.STRING, enum: ["Architecture", "Security", "Feature", "Refactor"] },
-            },
-            required: ["title", "description", "impact", "category"],
+    const result = await generateStructuredAI<ProjectInsight[]>(
+      "gemini-1.5-flash",
+      "Role: Chief Architect & Strategic Planner.",
+      prompt,
+      {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            description: { type: Type.STRING },
+            impact: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
+            category: { type: Type.STRING, enum: ["Architecture", "Security", "Feature", "Refactor"] },
           },
+          required: ["title", "description", "impact", "category"],
         },
-      },
-    });
+      }
+    );
 
-    return JSON.parse(response.text || "[]");
+    return result.data;
   }
 }

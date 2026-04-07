@@ -78,25 +78,51 @@ export async function generateStructuredAI<T>(
 }
 
 export async function safeAICall<T>(arg: any): Promise<T> {
+  // In production, we prefer calling the backend to avoid exposing keys in the client bundle
+  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'production' || !process.env.GEMINI_API_KEY)) {
+    try {
+      const response = await fetch('/api/ai-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: arg.model || 'gemini-1.5-flash',
+          systemInstruction: arg.systemInstruction || "AI Assistant",
+          prompt: typeof arg.contents === 'string' ? arg.contents : JSON.stringify(arg.contents),
+          schema: arg.config?.responseSchema,
+          tools: arg.config?.tools || arg.tools,
+          configOverrides: arg.config
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (arg.config?.responseMimeType === 'application/json') {
+          return result.data as T;
+        }
+        return result as unknown as T;
+      }
+    } catch (e) {
+      console.warn("AI_SAFE_PROXY_FALLBACK_FAILED, attempting local call if key exists...", e);
+    }
+  }
+
   try {
     if (typeof arg === 'function') {
       return await arg();
     }
 
-    // Comment above fix: Direct initialization with process.env.GEMINI_API_KEY as per GenAI coding guidelines
     if (!process.env.GEMINI_API_KEY) throw new Error("AI_SAFE_CALL_FAILURE: process.env.GEMINI_API_KEY is not configured.");
     
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
     const response = await ai.models.generateContent({
-      model: arg.model || 'gemini-3-flash-preview',
+      model: arg.model || 'gemini-1.5-flash',
       contents: arg.contents,
       config: arg.config || {}
     });
     
-    // Safety check for text property
     const resultText = response.text;
-    if (typeof arg === 'object' && arg.responseMimeType === 'application/json') {
+    if (typeof arg === 'object' && arg.config?.responseMimeType === 'application/json') {
        return JSON.parse(resultText || '{}') as T;
     }
     

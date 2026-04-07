@@ -9,7 +9,7 @@ async function uploadImageToStorage(base64Data: string, _domainName: string): Pr
 
 export const generateBrandIdentityAI = async (domainName: string, sector: string): Promise<{ logoUrl: string, tagline: string, colors: string[] }> => {
   const payload = {
-    model: 'gemini-3-pro-image-preview',
+    model: 'gemini-1.5-pro',
     contents: {
       parts: [{ text: `Design a high-end minimalist corporate logo and brand identity for the domain: ${domainName} in the ${sector} industry. Return identity metadata and the logo.` }]
     },
@@ -48,7 +48,7 @@ export const generateBrandIdentityAI = async (domainName: string, sector: string
 
 export const generateValueProofAI = async (domainName: string, sector: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-3-flash-preview',
+    'gemini-1.5-flash',
     "Business artifact architect.",
     `Generate value proof for ${domainName} in ${sector}.`,
     {
