@@ -48,18 +48,18 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       const [trendsRes, oppsRes] = await Promise.all([
         fetch('/api/trends').catch(e => {
           console.error("❌ [HUB] Trends fetch failed:", e);
-          return { ok: false, status: 500 } as Response;
+          return { ok: false, status: 500 } as any;
         }),
         fetch('/api/opportunities').catch(e => {
           console.error("❌ [HUB] Opportunities fetch failed:", e);
-          return { ok: false, status: 500 } as Response;
+          return { ok: false, status: 500 } as any;
         })
       ]);
       
       let trendsData = [];
       let oppsData = [];
 
-      if (trendsRes.ok && isJsonResponse(trendsRes)) {
+      if (isJsonResponse(trendsRes)) {
         trendsData = await trendsRes.json();
       } else {
         console.warn("Using mock trends fallback");
@@ -70,7 +70,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         ];
       }
 
-      if (oppsRes.ok && isJsonResponse(oppsRes)) {
+      if (isJsonResponse(oppsRes)) {
         oppsData = await oppsRes.json();
       } else {
         console.warn("Using mock opportunities fallback");
@@ -80,20 +80,28 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         ];
       }
       
-      setTrends(Array.isArray(trendsData) ? trendsData : []);
-      setOpportunities(Array.isArray(oppsData) ? oppsData : []);
+      const finalTrends = Array.isArray(trendsData) ? trendsData : [];
+      const finalOpps = Array.isArray(oppsData) ? oppsData : [];
+      
+      setTrends(finalTrends);
+      setOpportunities(finalOpps);
       
       if (!trendsRes.ok || !oppsRes.ok) {
         setStatusMsg('⚠️ Running in offline/fallback mode (Python engine unreachable).');
       } else {
         setStatusMsg('');
+        setStatus(prev => prev === 'error' ? 'idle' : prev);
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      if (trends.length === 0) {
-        setStatus('error');
-        setStatusMsg(`❌ Fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
+      // Use functional update to check latest trends length
+      setTrends(prev => {
+        if (prev.length === 0) {
+          setStatus('error');
+          setStatusMsg(`❌ Fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+        return prev;
+      });
     }
   };
 

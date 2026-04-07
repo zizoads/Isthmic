@@ -62,18 +62,39 @@ async function startServer() {
   const apiProxy = createProxyMiddleware({
     target: PYTHON_ENGINE_URL,
     changeOrigin: true,
-    pathRewrite: (path) => path.startsWith('/') ? path.slice(1) : path,
-    proxyTimeout: 30000, 
-    timeout: 30000,
+    pathRewrite: (path) => {
+      // Remove /api prefix if the target engine doesn't expect it
+      // But based on current setup, we just remove the leading slash
+      return path.startsWith('/') ? path.slice(1) : path;
+    },
+    proxyTimeout: 60000, 
+    timeout: 60000,
+    headers: {
+      'Connection': 'keep-alive',
+    },
     on: {
+      proxyReq: (proxyReq, req, _res) => {
+        // Hugging Face often needs these to be correct
+        proxyReq.setHeader('Origin', PYTHON_ENGINE_URL);
+        proxyReq.setHeader('Referer', PYTHON_ENGINE_URL);
+        
+        if (req.body) {
+          const bodyData = JSON.stringify(req.body);
+          proxyReq.setHeader('Content-Type', 'application/json');
+          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+          proxyReq.write(bodyData);
+        }
+      },
       error: (err: Error, _req: any, res: any) => {
         console.error("Proxy Error:", err.message);
-        res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ 
-          error: "Python engine unreachable", 
-          details: err.message,
-          target: PYTHON_ENGINE_URL
-        }));
+        if (!res.headersSent) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            error: "Python engine unreachable", 
+            details: err.message,
+            target: PYTHON_ENGINE_URL
+          }));
+        }
       },
     }
   });
