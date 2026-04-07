@@ -56,7 +56,14 @@ export class QuantumEncryption {
 
   private generateQuantumSeed(): Uint8Array {
     const seed = new Uint8Array(64);
-    crypto.getRandomValues(seed);
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.getRandomValues) {
+      globalThis.crypto.getRandomValues(seed);
+    } else {
+      console.warn("⚠️ [SECURITY] crypto.getRandomValues not available. Using Math.random fallback.");
+      for (let i = 0; i < seed.length; i++) {
+        seed[i] = Math.floor(Math.random() * 256);
+      }
+    }
     // Add a temporal entropy layer
     const timeBytes = new TextEncoder().encode(Date.now().toString());
     for (let i = 0; i < timeBytes.length; i++) {
@@ -71,9 +78,9 @@ export class QuantumEncryption {
     const dataBuffer = encoder.encode(dataString);
     
     const key = await this.generateLevelKey(level);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
     
-    const encrypted = await crypto.subtle.encrypt(
+    const encrypted = await globalThis.crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
         iv: iv as any,
@@ -117,7 +124,7 @@ export class QuantumEncryption {
     const iv = this.base64ToArray(encryptedData.iv);
 
     try {
-      const decrypted = await crypto.subtle.decrypt(
+      const decrypted = await globalThis.crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
           iv: iv as any,
@@ -134,11 +141,11 @@ export class QuantumEncryption {
   }
 
   private async generateLevelKey(level: string): Promise<CryptoKey> {
-    const baseKey = await crypto.subtle.importKey(
+    const baseKey = await globalThis.crypto.subtle.importKey(
       'raw', this.QUANTUM_SEED as any, 'PBKDF2', false, ['deriveKey']
     );
 
-    return crypto.subtle.deriveKey(
+    return globalThis.crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
         salt: new TextEncoder().encode(`SALT_${level}`),
@@ -153,21 +160,21 @@ export class QuantumEncryption {
   }
 
   private async quantumSign(data: ArrayBuffer, _level: string): Promise<ArrayBuffer> {
-    const signKey = await crypto.subtle.importKey(
+    const signKey = await globalThis.crypto.subtle.importKey(
       'raw', this.QUANTUM_SEED as any, { name: 'HMAC', hash: 'SHA-512' } as any, false, ['sign']
     );
-    return crypto.subtle.sign('HMAC', signKey, data);
+    return globalThis.crypto.subtle.sign('HMAC', signKey, data);
   }
 
   private async verifySignature(data: ArrayBuffer, signature: ArrayBuffer, _level: string): Promise<boolean> {
-    const signKey = await crypto.subtle.importKey(
+    const signKey = await globalThis.crypto.subtle.importKey(
       'raw', this.QUANTUM_SEED as any, { name: 'HMAC', hash: 'SHA-512' } as any, false, ['verify']
     );
-    return crypto.subtle.verify('HMAC', signKey, signature, data);
+    return globalThis.crypto.subtle.verify('HMAC', signKey, signature, data);
   }
 
   private async generateChecksum(data: ArrayBuffer): Promise<string> {
-    const hash = await crypto.subtle.digest('SHA-512', data);
+    const hash = await globalThis.crypto.subtle.digest('SHA-512', data);
     return this.arrayToBase64(new Uint8Array(hash));
   }
 

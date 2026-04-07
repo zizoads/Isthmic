@@ -2,20 +2,48 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDvG4MAsj5ceIRXJhW1fr5Z31mcJ_QjSpg",
-  authDomain: "isthmic-daa47.firebaseapp.com",
-  projectId: "isthmic-daa47",
-  storageBucket: "isthmic-daa47.firebasestorage.app",
-  messagingSenderId: "987275458052",
-  appId: "1:987275458052:web:85e97c6afb54ec190ae751",
-  measurementId: "G-RNYZF6HE8K"
+const getEnvVar = (key: string) => {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env[key] || import.meta.env[`VITE_${key}`];
+  }
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key] || process.env[`VITE_${key}`];
+  }
+  return undefined;
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-// Use default database if firestoreDatabaseId is "(default)" or not provided
-export const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: getEnvVar('FIREBASE_API_KEY') || getEnvVar('VITE_FIREBASE_API_KEY'),
+  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN') || getEnvVar('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnvVar('FIREBASE_PROJECT_ID') || getEnvVar('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET') || getEnvVar('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID') || getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnvVar('FIREBASE_APP_ID') || getEnvVar('VITE_FIREBASE_APP_ID'),
+  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID') || getEnvVar('VITE_FIREBASE_MEASUREMENT_ID')
+};
+
+// Validate required config
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error("FIREBASE_CRITICAL_ERROR: Missing required Firebase configuration. Check environment variables.");
+}
+
+let app;
+let auth: any;
+let db: any;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  // Use default database if firestoreDatabaseId is "(default)" or not provided
+  db = getFirestore(app);
+} catch (error) {
+  console.error("FIREBASE_INIT_ERROR: Failed to initialize Firebase. App will run in degraded mode.", error);
+  // Provide mock objects to prevent immediate crashes in components
+  auth = { currentUser: null } as any;
+  db = {} as any;
+}
+
+export { auth, db };
 
 export enum OperationType {
   CREATE = 'create',
@@ -70,6 +98,10 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 async function testConnection() {
   try {
+    if (!db || !db.type) {
+      console.warn("Skipping Firebase connection test: db is not fully initialized.");
+      return;
+    }
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
     if(error instanceof Error && error.message.includes('the client is offline')) {

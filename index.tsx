@@ -39,8 +39,19 @@ const mountApplication = () => {
     
     (window as any).markAppAsMounted();
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("MOUNT_CRASH:", error);
+    const panicUi = document.getElementById('panic-ui');
+    if (panicUi) {
+      panicUi.style.display = 'flex';
+      const errorMsg = document.createElement('p');
+      errorMsg.style.color = '#ff4444';
+      errorMsg.style.fontSize = '12px';
+      errorMsg.style.marginTop = '10px';
+      errorMsg.style.fontFamily = 'monospace';
+      errorMsg.innerText = 'MOUNT_CRASH: ' + (error.message || String(error));
+      panicUi.appendChild(errorMsg);
+    }
   }
 };
 

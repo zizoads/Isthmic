@@ -46,6 +46,36 @@
             console.log('🎖️ [SYSTEM] Sovereign Engine Mounted Successfully.');
         };
 
+        window.addEventListener('error', function(event) {
+            const panicUi = document.getElementById('panic-ui');
+            if (panicUi) {
+                panicUi.style.display = 'flex';
+                const errorMsg = document.createElement('p');
+                errorMsg.style.color = '#ff4444';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.style.marginTop = '10px';
+                errorMsg.style.fontFamily = 'monospace';
+                errorMsg.style.wordBreak = 'break-all';
+                errorMsg.innerText = 'ERROR: ' + event.message + ' at ' + event.filename + ':' + event.lineno;
+                panicUi.appendChild(errorMsg);
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            const panicUi = document.getElementById('panic-ui');
+            if (panicUi) {
+                panicUi.style.display = 'flex';
+                const errorMsg = document.createElement('p');
+                errorMsg.style.color = '#ff4444';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.style.marginTop = '10px';
+                errorMsg.style.fontFamily = 'monospace';
+                errorMsg.style.wordBreak = 'break-all';
+                errorMsg.innerText = 'PROMISE_ERROR: ' + (event.reason && event.reason.message ? event.reason.message : event.reason);
+                panicUi.appendChild(errorMsg);
+            }
+        });
+
         function hardReboot() {
             localStorage.clear();
             sessionStorage.clear();
