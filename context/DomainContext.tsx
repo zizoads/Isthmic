@@ -1,9 +1,19 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Domain, PlatformStats, UserProfile, ActivityLog, SystemThought } from '../types';
-import { SovereignShield } from '../services/SovereignShield';
-import { AuthService } from '../services/AuthService';
 import { useAuth } from './AuthContext';
+import { generateStructuredAI } from '../services/ai/base';
 
 export interface DomainContextType {
   domains: Domain[];
@@ -15,15 +25,14 @@ export interface DomainContextType {
   activeProfile: UserProfile | null;
   setActiveProfile: (p: UserProfile | null) => void;
   isInitialLoading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
-  logout: () => void;
   updateDomain: (d: Domain) => Promise<void>;
-  addDomain: (d: Domain) => void;
+  addDomain: (d: Domain) => Promise<void>;
   triggerSystemPurge: () => void;
   isBrainActive: boolean;
   setIsBrainActive: (val: boolean) => void;
   systemThoughts: SystemThought[];
   addThought: (agent: string, thought: string, priority?: 'low' | 'medium' | 'high') => void;
+  performStrategicMining: (query: string) => Promise<void>;
 }
 
 const DomainContext = createContext<DomainContextType | undefined>(undefined);
@@ -48,58 +57,57 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSystemThoughts(prev => [newThought, ...prev].slice(0, 5));
   }, []);
 
+  // Sync Profile
   useEffect(() => {
-    const syncProfile = async () => {
-      if (user) {
-        const profile: UserProfile = {
-          id: user.uid,
-          email: user.email || '',
-          name: user.displayName || 'Sovereign User',
-          role: user.email === 'zizoadszn@gmail.com' ? 'Admin' : 'User',
-          createdAt: new Date().toISOString(),
-          avatar: user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`
-        };
-        setActiveProfile(profile);
-      } else {
-        setActiveProfile(null);
-      }
-    };
-    syncProfile();
+    if (user) {
+      const profile: UserProfile = {
+        id: user.uid,
+        email: user.email || '',
+        name: user.displayName || 'Sovereign User',
+        role: user.email === 'zizoadszn@gmail.com' || user.email === 'azeddinebeldjilali9@gmail.com' ? 'Admin' : 'User',
+        createdAt: new Date().toISOString(),
+        avatar: user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`
+      };
+      setActiveProfile(profile);
+    } else {
+      setActiveProfile(null);
+    }
   }, [user]);
 
+  // Real-time Firestore Sync for Domains
   useEffect(() => {
-    const initializeVault = async () => {
-      let d = await SovereignShield.recover<Domain[]>('domains');
-      
-      // Seed Scootic.com for Tactical Liaison testing if not present
-      if (!d || d.length === 0 || !d.find(dom => dom.name === 'Scootic.com')) {
-        const scootic: Domain = {
-          id: 'scootic-001',
-          workspaceId: 'sys',
-          name: 'Scootic.com',
-          price: 25000,
-          status: 'available',
-          sector: 'E-Mobility'
-        };
-        d = d ? [scootic, ...d] : [scootic];
-      }
-
-      if (d) setDomains(d);
-      
+    if (!user) {
+      setDomains([]);
       setIsInitialLoading(false);
-    };
-    initializeVault();
-  }, []);
+      return;
+    }
+
+    const q = query(collection(db, 'brand_opportunities'), orderBy('createdAt', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Domain[];
+      
+      setDomains(docs);
+      setIsInitialLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'brand_opportunities');
+      setIsInitialLoading(false);
+    });
+
+    return unsubscribe;
+  }, [user]);
 
   const addLog = useCallback((agent: string, message: string, type: any = 'info', payload?: any) => {
-    const id = crypto.randomUUID();
+    const id = Math.random().toString(36).substr(2, 9);
     setActivityLogs(prev => [{
       id,
       time: new Date().toLocaleTimeString(),
       agent, message, type, payload
     }, ...prev].slice(0, 30));
 
-    // Auto-dismiss for non-critical logs after 5 seconds
     if (type !== 'critical') {
       setTimeout(() => {
         setActivityLogs(prev => prev.filter(log => log.id !== id));
@@ -111,30 +119,27 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActivityLogs(prev => prev.filter(log => log.id !== id));
   }, []);
 
-  const login = async (email: string, pass: string) => {
+  const updateDomain = async (d: Domain) => {
     try {
-      const profile = await AuthService.login(email, pass);
-      setActiveProfile(profile);
-      await SovereignShield.protect('profile', profile);
-      
-      addLog('System', `Identity confirmed: ${profile.name}`, 'success');
-    } catch (e: any) {
-      throw e;
+      const domainRef = doc(db, 'brand_opportunities', d.id);
+      await updateDoc(domainRef, { ...d, updatedAt: serverTimestamp() });
+      addLog('System', `Asset updated: ${d.name}`, 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `brand_opportunities/${d.id}`);
     }
   };
 
-  const logout = () => { localStorage.clear(); window.location.reload(); };
-
-  const updateDomain = async (d: Domain) => {
-    const next = domains.map(old => old.id === d.id ? d : old);
-    setDomains(next);
-    await SovereignShield.protect('domains', next);
-  };
-
-  const addDomain = (d: Domain) => {
-    const next = [d, ...domains];
-    setDomains(next);
-    SovereignShield.protect('domains', next);
+  const addDomain = async (d: Domain) => {
+    try {
+      await addDoc(collection(db, 'brand_opportunities'), {
+        ...d,
+        createdAt: serverTimestamp(),
+        createdBy: user?.uid
+      });
+      addLog('System', `New asset registered: ${d.name}`, 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'brand_opportunities');
+    }
   };
 
   const triggerSystemPurge = () => { localStorage.clear(); window.location.reload(); };
@@ -146,51 +151,69 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     avgProfit: 340, openRate: 92, messagesSent: 14, alignmentVelocity: 14, adaptiveThreshold: 85
   }), [domains]);
 
-  const performStrategicMining = async (query: string) => {
-    addLog('Alpha Mine', `Initiating strategic sweep for: ${query}`, 'info');
+  const performStrategicMining = async (queryStr: string) => {
+    addLog('Alpha Mine', `Initiating strategic sweep for: ${queryStr}`, 'info');
     setIsBrainActive(true);
     
     try {
-      // Call the backend brand generator for semantic .com names
-      const response = await fetch('/api/generate-brands?domain=ai&niche=general_ai&count=5');
+      const schema = {
+        type: "object",
+        properties: {
+          opportunities: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                price: { type: "number" },
+                sector: { type: "string" },
+                justification: { type: "string" },
+                strategicAlignmentScore: { type: "number" }
+              },
+              required: ["name", "price", "sector", "justification", "strategicAlignmentScore"]
+            }
+          }
+        },
+        required: ["opportunities"]
+      };
+
+      const systemInstruction = `You are the Alpha Mine Strategic Engine. 
+      Generate high-value brand opportunities and domain names based on the user's query.
+      Focus on semantic hand-reg .com assets that have high brandability.
+      Provide realistic prices ($10-$15 for hand-reg).`;
+
+      const prompt = `Generate 5 brand opportunities for the niche: ${queryStr}`;
+
+      const { data } = await generateStructuredAI<{ opportunities: any[] }>(
+        'gemini-1.5-flash',
+        systemInstruction,
+        prompt,
+        schema
+      );
+
+      const opportunities = data.opportunities || [];
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-      }
-      
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        throw new Error(`Expected JSON but received ${contentType}. Content: ${text.substring(0, 100)}...`);
+      for (const opp of opportunities) {
+        await addDoc(collection(db, 'brand_opportunities'), {
+          ...opp,
+          id: Math.random().toString(36).substr(2, 9),
+          workspaceId: 'sys',
+          status: 'available',
+          probability: 0.95,
+          trafficSignal: Math.random() > 0.5 ? 'low' : 'none',
+          trafficSource: 'Direct',
+          createdAt: serverTimestamp(),
+          createdBy: user?.uid
+        });
       }
 
-      const data = await response.json();
-      const names = data.names || [];
-      
-      const mockResults: Domain[] = names.map((name: string) => ({
-        id: crypto.randomUUID(),
-        workspaceId: 'sys',
-        name: `${name}.com`,
-        price: Math.floor(Math.random() * 4) + 10, // $10-$13
-        status: 'available',
-        sector: 'AI / Cognitive',
-        justification: `Semantic "Hand-Reg" composition (${name.length} chars). High brandability, likely available at standard registration price.`,
-        probability: 0.95,
-        strategicAlignmentScore: Math.floor(Math.random() * 10) + 90,
-        trafficSignal: Math.random() > 0.5 ? 'low' : 'none',
-        trafficSource: 'Direct',
-        lastChecked: new Date().toISOString()
-      }));
-
-      setDomains(prev => [...mockResults, ...prev]);
-      addLog('Alpha Mine', `Strategic sweep complete. ${names.length} Semantic Hand-Reg .com assets identified.`, 'success');
-      if (names.length > 0) {
-        addThought('Alpha Mine', `Prioritizing ${names[0]}.com: Perfect semantic composition and high probability of hand-reg availability.`, 'high');
+      addLog('Alpha Mine', `Strategic sweep complete. ${opportunities.length} assets identified and saved to Firestore.`, 'success');
+      if (opportunities.length > 0) {
+        addThought('Alpha Mine', `Prioritizing ${opportunities[0].name}: High strategic alignment detected.`, 'high');
       }
     } catch (e) {
       console.error("Mining Error:", e);
-      addLog('System', 'Strategic mining failed. Reverting to local cache.', 'critical');
+      addLog('System', 'Strategic mining failed. Check AI configuration.', 'critical');
     } finally {
       setIsBrainActive(false);
     }
@@ -200,10 +223,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <DomainContext.Provider value={{ 
       domains, setDomains, stats, addLog, dismissLog,
       activityLogs, activeProfile, setActiveProfile, isInitialLoading, 
-      login, logout, updateDomain, addDomain, triggerSystemPurge,
+      updateDomain, addDomain, triggerSystemPurge,
       isBrainActive, setIsBrainActive,
       systemThoughts, addThought,
-      // @ts-ignore - Adding for demonstration
       performStrategicMining
     }}>
       {children}

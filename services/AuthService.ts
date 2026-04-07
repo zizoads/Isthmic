@@ -1,65 +1,78 @@
 
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { UserProfile } from '../types';
-import { SovereignShield } from './SovereignShield';
-import { MASTER_IDENTITY, constructBaseProfile } from '../src/lib/auth-utils';
 
 export class AuthService {
-  private static readonly MASTER_IDENTITY = MASTER_IDENTITY;
+  private static googleProvider = new GoogleAuthProvider();
 
   /**
-   * Sovereign Registration System (Local-First)
+   * Login with Google (Real Firebase Auth)
    */
-  static async signup(name: string, email: string, _pass: string): Promise<{ success: boolean; requiresConfirmation: boolean }> {
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Self-healing protocol: Create local account (Sovereign Vault)
-    const localUser: UserProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, name);
-    await SovereignShield.protect('profile', localUser);
-    await SovereignShield.protect('is_local_session', true);
-    
-    return { success: true, requiresConfirmation: false };
-  }
-
-  static async login(email: string, _pass: string): Promise<UserProfile> {
-    const normalizedEmail = email.toLowerCase().trim();
-    
-    // 1. Master Identity Recovery Protocol
-    // If the user is the owner, allow immediate access and session establishment
-    if (normalizedEmail === this.MASTER_IDENTITY) {
-      const masterProfile = constructBaseProfile(crypto.randomUUID(), normalizedEmail, 'Founding Owner');
-      
-      // Check for existing version in vault
-      try {
-        const cached = await SovereignShield.recover<UserProfile>('profile');
-        if (cached && cached.email.toLowerCase().trim() === normalizedEmail) {
-          await SovereignShield.protect('is_local_session', true);
-          return cached;
-        }
-      } catch (e) {
-      }
-
-      // Establish master identity locally (Auto-Bootstrap)
-      await SovereignShield.protect('profile', masterProfile);
-      await SovereignShield.protect('is_local_session', true);
-      return masterProfile;
-    }
-
-    // 2. Local identity check for standard users
+  static async loginWithGoogle(): Promise<UserProfile> {
     try {
-      const cached = await SovereignShield.recover<UserProfile>('profile');
-      if (cached && cached.email.toLowerCase().trim() === normalizedEmail) {
-        await SovereignShield.protect('is_local_session', true);
-        return cached;
-      }
-    } catch (e) {
+      const result = await signInWithPopup(auth, this.googleProvider);
+      const user = result.user;
+      
+      return await this.syncUserProfile(user);
+    } catch (error) {
+      console.error("AUTH_LOGIN_FAILURE:", error);
+      throw error;
     }
-
-    // 3. Final rejection
-    throw new Error("ACCESS_DENIED: Your identity is not registered in this browser's vault. If you just cleared your cache, please use 'Request New Identity' to re-initialize your sovereign key.");
   }
 
-  static async verify(_userId: string, _email: string, otp: string): Promise<boolean> {
-    if (otp === '123456') return true;
-    throw new Error("Invalid verification code.");
+  /**
+   * Sync Firebase User with Firestore Profile
+   */
+  static async syncUserProfile(user: User): Promise<UserProfile> {
+    const userRef = doc(db, 'users', user.uid);
+    
+    try {
+      const docSnap = await getDoc(userRef);
+      
+      if (docSnap.exists()) {
+        return docSnap.data() as UserProfile;
+      } else {
+        // Create new profile
+        const newProfile: UserProfile = {
+          id: user.uid,
+          email: user.email || '',
+          name: user.displayName || 'Sovereign User',
+          role: user.email === 'zizoadszn@gmail.com' || user.email === 'azeddinebeldjilali9@gmail.com' ? 'Admin' : 'User',
+          createdAt: new Date().toISOString(),
+          avatar: user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`
+        };
+        
+        await setDoc(userRef, {
+          ...newProfile,
+          updatedAt: serverTimestamp()
+        });
+        
+        return newProfile;
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+      throw error;
+    }
+  }
+
+  static async logout(): Promise<void> {
+    await signOut(auth);
+  }
+
+  static onAuthChange(callback: (user: User | null) => void) {
+    return onAuthStateChanged(auth, callback);
   }
 }

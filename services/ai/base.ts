@@ -17,8 +17,37 @@ export async function generateStructuredAI<T>(
 ): Promise<{ data: T, latency: number, grounding?: any[] }> {
   const startTime = performance.now();
   
-  // Mandatory: obtain API key exclusively from process.env.GEMINI_API_KEY
-  // Comment above fix: Direct initialization with process.env.GEMINI_API_KEY as per GenAI coding guidelines
+  // In production, we prefer calling the backend to avoid exposing keys in the client bundle
+  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'production' || !process.env.GEMINI_API_KEY)) {
+    try {
+      const response = await fetch('/api/ai-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          systemInstruction,
+          prompt,
+          schema,
+          tools,
+          configOverrides
+        }),
+        signal
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return {
+          data: result.data,
+          latency: Math.round(performance.now() - startTime),
+          grounding: result.grounding
+        };
+      }
+    } catch (e) {
+      console.warn("AI_PROXY_FALLBACK_FAILED, attempting local call if key exists...", e);
+    }
+  }
+
+  // Local call (Development or Fallback)
   if (!process.env.GEMINI_API_KEY) throw new Error("AI_GATEWAY_FAILURE: process.env.GEMINI_API_KEY is not configured.");
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
