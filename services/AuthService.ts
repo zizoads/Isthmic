@@ -73,6 +73,17 @@ export class AuthService {
   }
 
   static onAuthChange(callback: (user: User | null) => void) {
-    return onAuthStateChanged(auth, callback);
+    if (!auth || typeof auth.onAuthStateChanged !== 'function') {
+      console.warn("AuthService: Firebase Auth not fully initialized. Using mock listener.");
+      callback(null);
+      return () => {};
+    }
+    try {
+      return onAuthStateChanged(auth, callback);
+    } catch (e) {
+      console.error("AuthService: Failed to attach auth listener", e);
+      callback(null);
+      return () => {};
+    }
   }
 }

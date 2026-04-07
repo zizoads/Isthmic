@@ -2,45 +2,57 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 
-const getEnvVar = (key: string) => {
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env[key] || import.meta.env[`VITE_${key}`];
+// Import the Firebase configuration as the source of truth
+import firebaseConfigData from './firebase-applet-config.json';
+
+const getEnvVar = (key: string): string | undefined => {
+  const meta = import.meta as any;
+  if (typeof meta !== 'undefined' && meta.env) {
+    return meta.env[key] || meta.env[`VITE_${key}`];
   }
   if (typeof process !== 'undefined' && process.env) {
-    return process.env[key] || process.env[`VITE_${key}`];
+    return (process.env as any)[key] || (process.env as any)[`VITE_${key}`];
   }
   return undefined;
 };
 
+// Merge JSON config with environment variables (env vars take precedence if they exist)
 const firebaseConfig = {
-  apiKey: getEnvVar('FIREBASE_API_KEY') || getEnvVar('VITE_FIREBASE_API_KEY'),
-  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN') || getEnvVar('VITE_FIREBASE_AUTH_DOMAIN'),
-  projectId: getEnvVar('FIREBASE_PROJECT_ID') || getEnvVar('VITE_FIREBASE_PROJECT_ID'),
-  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET') || getEnvVar('VITE_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID') || getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: getEnvVar('FIREBASE_APP_ID') || getEnvVar('VITE_FIREBASE_APP_ID'),
-  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID') || getEnvVar('VITE_FIREBASE_MEASUREMENT_ID')
+  apiKey: getEnvVar('FIREBASE_API_KEY') || getEnvVar('VITE_FIREBASE_API_KEY') || firebaseConfigData.apiKey,
+  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN') || getEnvVar('VITE_FIREBASE_AUTH_DOMAIN') || firebaseConfigData.authDomain,
+  projectId: getEnvVar('FIREBASE_PROJECT_ID') || getEnvVar('VITE_FIREBASE_PROJECT_ID') || firebaseConfigData.projectId,
+  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET') || getEnvVar('VITE_FIREBASE_STORAGE_BUCKET') || firebaseConfigData.storageBucket,
+  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID') || getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID') || firebaseConfigData.messagingSenderId,
+  appId: getEnvVar('FIREBASE_APP_ID') || getEnvVar('VITE_FIREBASE_APP_ID') || firebaseConfigData.appId,
+  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID') || getEnvVar('VITE_FIREBASE_MEASUREMENT_ID') || firebaseConfigData.measurementId
 };
 
 // Validate required config
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error("FIREBASE_CRITICAL_ERROR: Missing required Firebase configuration. Check environment variables.");
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId || firebaseConfig.apiKey.includes('TODO')) {
+  console.error("FIREBASE_CRITICAL_ERROR: Missing or invalid Firebase configuration. Check firebase-applet-config.json and environment variables.");
 }
 
-let app;
 let auth: any;
 let db: any;
 
 try {
-  app = initializeApp(firebaseConfig);
+  const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   // Use default database if firestoreDatabaseId is "(default)" or not provided
-  db = getFirestore(app);
+  const dbId = (firebaseConfigData as any).firestoreDatabaseId;
+  db = getFirestore(app, dbId === "(default)" ? undefined : dbId);
 } catch (error) {
   console.error("FIREBASE_INIT_ERROR: Failed to initialize Firebase. App will run in degraded mode.", error);
-  // Provide mock objects to prevent immediate crashes in components
-  auth = { currentUser: null } as any;
-  db = {} as any;
+  // Provide mock objects with required methods to prevent crashes
+  auth = { 
+    currentUser: null,
+    onAuthStateChanged: (cb: any) => { cb(null); return () => {}; },
+    signOut: async () => {},
+    signInWithPopup: async () => { throw new Error("Firebase not initialized"); }
+  } as any;
+  db = {
+    type: 'mock'
+  } as any;
 }
 
 export { auth, db };
@@ -82,7 +94,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
       emailVerified: auth.currentUser?.emailVerified,
       isAnonymous: auth.currentUser?.isAnonymous,
       tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
+      providerInfo: auth.currentUser?.providerData?.map((provider: any) => ({
         providerId: provider.providerId,
         displayName: provider.displayName,
         email: provider.email,
