@@ -3,7 +3,7 @@
 // ⚠️ Storing sensitive data for sovereign investors
 
 import { QuantumCrypto, QuantumEncryptedData } from './QuantumEncryption';
-import MilitaryEnv from '../config/MilitaryGradeEnvironment';
+import { MilitaryEnv } from '../config/MilitaryGradeEnvironment';
 
 export class MilitaryVault {
   private static instance: MilitaryVault;
