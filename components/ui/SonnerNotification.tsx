@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActivityLog } from '../types';
+import { ActivityLog } from '../../types';
 
 interface Props {
   notifications: ActivityLog[];

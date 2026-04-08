@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { AgentType, Domain, PlatformStats } from '../../types';
+import { AgentType, Domain, PlatformStats } from '../../../types';
 import AlphaMineHub from '../hubs/AlphaMineHub';
 import { BrandIntelligenceHub } from '../hubs/BrandIntelligenceHub';
 import AdminHub from '../hubs/AdminHub';
 import { UserProfileHub } from '../hubs/UserProfileHub';
-import { useNavigation } from '../../context/NavigationContext';
+import { useNavigation } from '../../../context/NavigationContext';
 
 interface Props {
   domains: Domain[];

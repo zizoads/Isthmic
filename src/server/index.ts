@@ -4,7 +4,7 @@ import path from "path";
 import { readFile } from "fs/promises";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { GoogleGenAI } from "@google/genai";
-import { ProfessionalBrandGenerator } from "../src/services/ai/ProfessionalBrandGenerator";
+import { ProfessionalBrandGenerator } from "./services/ProfessionalBrandGenerator";
 
 async function startServer() {
   const app = express();

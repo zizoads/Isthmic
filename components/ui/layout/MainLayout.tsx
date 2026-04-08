@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AgentType, ActivityLog } from '../../types';
+import { AgentType, ActivityLog } from '../../../types';
 import CommandPalette from '../CommandPalette';
 import SonnerNotification from '../SonnerNotification';
-import SovereignHUD from '../ui/SovereignHUD';
-import { useDomainContext } from '../../context/DomainContext';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigation } from '../../context/NavigationContext';
+import SovereignHUD from '../SovereignHUD';
+import { useDomainContext } from '../../../context/DomainContext';
+import { useAuth } from '../../../context/AuthContext';
+import { useNavigation } from '../../../context/NavigationContext';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 interface Props {

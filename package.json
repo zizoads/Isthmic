@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx api/index.ts",
+    "dev": "tsx src/server/index.ts",
     "pages:dev": "wrangler pages dev dist --proxy 3000",
     "pages:deploy": "npm run build && wrangler pages deploy dist",
     "build": "vite build",

@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDomainContext } from '../context/DomainContext';
-import { useNavigation } from '../context/NavigationContext';
-import { AgentType } from '../types';
+import { useDomainContext } from '../../context/DomainContext';
+import { useNavigation } from '../../context/NavigationContext';
+import { AgentType } from '../../types';
 
 interface Props {
   onSearchDomain: (name: string) => void;

@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Domain, ThinkingStep } from '../types';
-import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../services/geminiService';
-import { translations } from '../translations';
-import { useDomainContext } from '../context/DomainContext';
+import { Domain, ThinkingStep } from '../../types';
+import { evaluateDomainExpertAI, checkTrademarkRiskAI } from '../../services/geminiService';
+import { translations } from '../../translations';
+import { useDomainContext } from '../../context/DomainContext';
 
 interface Props {
   domains: Domain[];

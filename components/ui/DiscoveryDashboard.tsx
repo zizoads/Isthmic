@@ -1,11 +1,11 @@
 
 import React, { useState, useRef, useMemo } from 'react';
-import { Domain, StrategicObjective } from '../types';
-import { rigorousDiscoveryAI } from '../services/geminiService';
-import { useDomainContext } from '../context/DomainContext';
-import { useSovereignT } from '../hooks/useTranslation';
-import PrestigeLoader from './ui/PrestigeLoader';
-import { OrchestrationService } from '../services/ai/OrchestrationService';
+import { Domain, StrategicObjective } from '../../types';
+import { rigorousDiscoveryAI } from '../../services/geminiService';
+import { useDomainContext } from '../../context/DomainContext';
+import { useSovereignT } from '../../hooks/useTranslation';
+import PrestigeLoader from './PrestigeLoader';
+import { OrchestrationService } from '../../services/ai/OrchestrationService';
 
 interface Props {
   domains: Domain[];

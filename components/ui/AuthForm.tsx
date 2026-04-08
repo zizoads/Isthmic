@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useDomainContext } from '../context/DomainContext';
+import { useAuth } from '../../context/AuthContext';
+import { useDomainContext } from '../../context/DomainContext';
 
 const AuthForm: React.FC = () => {
   const { login } = useAuth();

@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import DiscoveryDashboard from '../DiscoveryDashboard';
 import EvaluationDashboard from '../EvaluationDashboard';
 import DropSniperDashboard from '../DropSniperDashboard';
-import PurchaseDashboard from '../ui/PurchaseDashboard';
+import PurchaseDashboard from '../PurchaseDashboard';
 import { BrandForgeHub } from '../BrandForgeHub';
-import { useDomainContext } from '../../context/DomainContext';
-import { PlatformStats, Domain } from '../../types';
+import { useDomainContext } from '../../../context/DomainContext';
+import { PlatformStats, Domain } from '../../../types';
 
 interface Props {
   stats: PlatformStats;

@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { getDropSniperListAI, analyzeSnipeOpportunityAI } from '../services/ai/DiscoveryService';
-import { translations } from '../translations';
-import { useDomainContext } from '../context/DomainContext';
-import { StrategicObjective } from '../types';
+import { getDropSniperListAI, analyzeSnipeOpportunityAI } from '../../services/ai/DiscoveryService';
+import { translations } from '../../translations';
+import { useDomainContext } from '../../context/DomainContext';
+import { StrategicObjective } from '../../types';
 
 const DropSniperDashboard: React.FC = () => {
   const t = translations.en;

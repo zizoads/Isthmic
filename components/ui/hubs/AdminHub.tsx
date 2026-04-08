@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Shield, Activity, Database, AlertTriangle, CheckCircle, ShieldAlert, FileText, RefreshCw, UserCog } from 'lucide-react';
-import { StrictTestingEnforcer, QualityReport } from '../../quality/StrictTestingEnforcer';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../firebase';
+import { StrictTestingEnforcer, QualityReport } from '../../../quality/StrictTestingEnforcer';
+import { useAuth } from '../../../context/AuthContext';
+import { db } from '../../../firebase';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 
 type AdminView = 'MILITARY_BRIEF' | 'INTEGRITY' | 'USER_MANAGEMENT';

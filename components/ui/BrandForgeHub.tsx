@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Zap, Shield, Target, Award, Info, RefreshCw } from 'lucide-react';
-import { brandForge, GeneratedBrand } from '../services/BrandForgeService';
-import { useDomainContext } from '../context/DomainContext';
+import { brandForge, GeneratedBrand } from '../../services/BrandForgeService';
+import { useDomainContext } from '../../context/DomainContext';
 
 export const BrandForgeHub: React.FC = () => {
   const { addLog, addThought } = useDomainContext();

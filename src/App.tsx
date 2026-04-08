@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import MainLayout from './components/layout/MainLayout';
-import HubRenderer from './components/layout/HubRenderer';
+import MainLayout from './components/ui/layout/MainLayout';
+import HubRenderer from './components/ui/layout/HubRenderer';
 import ProtocolErrorBoundary from './components/ui/ProtocolErrorBoundary';
-import AuthForm from './components/AuthForm';
+import AuthForm from './components/ui/AuthForm';
 import { useDomainContext } from './context/DomainContext';
 import { useAuth } from './context/AuthContext';
 

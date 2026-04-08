@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../firebase';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ApiKeys, ToolDefinition, ToolType } from '../types';
+import { ApiKeys, ToolDefinition, ToolType } from '../../types';
 import { Plus, Trash2, Zap } from 'lucide-react';
 
 const RECOMMENDED_TOOLS: { name: string; type: ToolType }[] = [
