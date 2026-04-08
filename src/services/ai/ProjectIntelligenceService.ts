@@ -1,5 +1,5 @@
 import { Type } from "@google/genai";
-import { generateStructuredAI } from "../../../services/ai/base";
+import { generateStructuredAI } from "./base";
 
 export interface ProjectContext {
   useCases: string;

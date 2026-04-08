@@ -67,8 +67,8 @@ export class MasterBrainEngine {
         return auditedDomains;
       },
       [
-        (res) => ({ valid: res.length >= 0, message: "Result set must be a valid array" }),
-        (res) => ({ valid: res.every(d => !!d.name), message: "All assets must have an identified name" })
+        (res: Domain[]) => ({ valid: res.length >= 0, message: "Result set must be a valid array" }),
+        (res: Domain[]) => ({ valid: res.every((d: Domain) => !!d.name), message: "All assets must have an identified name" })
       ]
     )).result;
   }

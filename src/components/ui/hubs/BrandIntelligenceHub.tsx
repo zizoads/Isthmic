@@ -11,8 +11,8 @@ import {
   Zap,
   Activity
 } from 'lucide-react';
-import { translations } from '../../../../translations';
-import { isJsonResponse } from '../../../../utils/shared_utils';
+import { translations } from '../../../translations';
+import { isJsonResponse } from '../../../utils/shared_utils';
 
 interface BrandIntelligenceHubProps {
 }
