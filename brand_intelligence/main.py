@@ -24,10 +24,10 @@ app = FastAPI(title="Smart Brand Intelligence API")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    logger.error(f"Global error: {exc}")
+    logger.error(f"Unhandled system error: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"status": "error", "message": "Internal server error", "details": str(exc)}
+        content={"status": "error", "message": "Internal server error occurred", "details": str(exc)}
     )
 
 @app.post("/api/crawl")

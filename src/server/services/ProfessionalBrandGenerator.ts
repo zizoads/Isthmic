@@ -39,9 +39,10 @@ export class ProfessionalBrandGenerator {
   }
 
   async init() {
-    if (this.initialized) return;
-    await wordnet.init();
-    await getCommonWords(); // Trigger lazy load
+    if (this.initialized) {
+      return;
+    }
+    await Promise.all([wordnet.init(), getCommonWords()]);
     this.initialized = true;
   }
 

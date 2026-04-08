@@ -6,17 +6,20 @@ class FirebaseProvider(StorageProvider):
     def __init__(self, db):
         self.db = db
     
+    def _save_document(self, collection_name: str, doc_id: str, data: dict):
+        self.db.collection(collection_name).document(doc_id).set(data)
+
     def save_article(self, article):
-        self.db.collection('articles').document(article['id']).set(article)
+        self._save_document('articles', article['id'], article)
     
     def save_patent(self, patent):
-        self.db.collection('patents').document(patent['id']).set(patent)
+        self._save_document('patents', patent['id'], patent)
     
     def save_startup(self, startup):
-        self.db.collection('startups').document(startup['id']).set(startup)
+        self._save_document('startups', startup['id'], startup)
     
     def save_trend(self, trend):
-        self.db.collection('trends').document(trend['id']).set(trend)
+        self._save_document('trends', trend['id'], trend)
     
     def save_brand_opportunity(self, opp):
         if 'id' not in opp: opp['id'] = str(uuid.uuid4())

@@ -5,6 +5,7 @@ from brand_intelligence.storage import get_instincts
 class EvaluatorAgent(BaseAgent):
     def __init__(self):
         super().__init__("Evaluator")
+        # Initialize instincts for evaluation
         self.instincts = get_instincts()
     async def process(self, input_data: Dict) -> Dict:
         opportunities = input_data.get('opportunities', [])

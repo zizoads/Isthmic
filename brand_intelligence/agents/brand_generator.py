@@ -7,6 +7,7 @@ from brand_intelligence.storage import get_instincts, save_brand_opportunity
 class BrandGeneratorAgent(BaseAgent):
     def __init__(self):
         super().__init__("BrandGenerator")
+        # Load instincts dynamically
         self.instincts = get_instincts()
     async def process(self, input_data: Dict) -> Dict:
         trends = input_data.get('trends', [])

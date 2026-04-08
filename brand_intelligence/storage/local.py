@@ -18,20 +18,19 @@ class LocalProvider(StorageProvider):
         with open(self.path, 'w') as f:
             json.dump(data, f, indent=2)
     
-    def save_article(self, article):
+    def _save_to_dict(self, collection_name: str, item: dict):
         db = self._get_db()
-        db["articles"][article['id']] = article
+        db[collection_name][item['id']] = item
         self._save_db(db)
+
+    def save_article(self, article):
+        self._save_to_dict("articles", article)
     
     def save_patent(self, patent):
-        db = self._get_db()
-        db["patents"][patent['id']] = patent
-        self._save_db(db)
+        self._save_to_dict("patents", patent)
     
     def save_startup(self, startup):
-        db = self._get_db()
-        db["startups"][startup['id']] = startup
-        self._save_db(db)
+        self._save_to_dict("startups", startup)
     
     def save_trend(self, trend):
         db = self._get_db()

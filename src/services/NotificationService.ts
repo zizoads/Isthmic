@@ -29,10 +29,11 @@ export class NotificationService {
 
   static async updatePreferences(userId: string, prefs: any) {
     try {
-      await SovereignShield.protect(`prefs_${userId}`, prefs);
+      await SovereignShield.protect(`user_prefs_${userId}`, prefs);
+      return true;
     } catch (e) {
-      console.warn("Preference sync deferred.");
+      console.warn("Preference sync deferred due to shield error.");
+      return false;
     }
-    return true;
   }
 }

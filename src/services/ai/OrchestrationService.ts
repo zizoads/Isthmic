@@ -98,10 +98,9 @@ export class OrchestrationService {
   }
 
   static injectStrategicContext(objectives: StrategicObjective[]): string {
-    if (!objectives || objectives.length === 0) return "General high-alpha strategy.";
-    return objectives
-      .map(o => `- ${o.category} Objective: ${o.description} [Status: ${o.status}]`)
-      .join('\n');
+    if (!objectives?.length) return "General high-alpha strategy.";
+    const contextLines = objectives.map(o => `- ${o.category} Objective: ${o.description} [Status: ${o.status}]`);
+    return contextLines.join('\n');
   }
 
   static async generateInitialObjectives(_thesis: string): Promise<StrategicObjective[]> {
