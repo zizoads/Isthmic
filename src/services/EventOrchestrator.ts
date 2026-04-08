@@ -1,7 +1,7 @@
 import { onSnapshot, collection, doc, updateDoc, query, where, getDocs } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Domain } from '../types';
-import { ProfessionalBrandGenerator } from '../src/services/ai/ProfessionalBrandGenerator';
+import { ProfessionalBrandGenerator } from './ai/ProfessionalBrandGenerator';
 import { SignalMonitorService, IntelligenceSignal } from './SignalMonitorService';
 
 /**

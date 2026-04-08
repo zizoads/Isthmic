@@ -1,5 +1,5 @@
 
-import { auth } from '../firebase';
+import { auth } from '../../firebase';
 
 export interface EnvHealth {
   firebase: boolean;

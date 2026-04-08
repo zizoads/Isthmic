@@ -1,6 +1,6 @@
 
 import { collection, addDoc, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../../firebase';
 
 export interface IntelligenceSignal {
   id: string;
