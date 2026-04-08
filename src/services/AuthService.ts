@@ -12,7 +12,7 @@ import {
   setDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
-import { auth, db, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../../firebase';
 import { UserProfile } from '../types';
 
 export class AuthService {
