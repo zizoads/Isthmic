@@ -12,7 +12,11 @@ import {
   Activity
 } from 'lucide-react';
 import { translations } from '../../../translations';
-import { isJsonResponse } from '../../../utils/shared_utils';
+
+const isJsonResponse = (res: Response) => {
+  const contentType = res.headers.get('content-type');
+  return contentType && contentType.includes('application/json');
+};
 
 interface BrandIntelligenceHubProps {
 }

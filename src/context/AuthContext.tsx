@@ -40,7 +40,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async () => {
-    await AuthService.loginWithGoogle();
+    try {
+      await AuthService.loginWithGoogle();
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-closed-by-user') {
+        console.warn('Login popup closed by user.');
+      } else {
+        console.error('Login failed:', error);
+      }
+    }
   };
 
   const logout = async () => {

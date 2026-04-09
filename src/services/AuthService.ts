@@ -27,8 +27,12 @@ export class AuthService {
       const user = result.user;
       
       return await this.syncUserProfile(user);
-    } catch (error) {
-      console.error("AUTH_LOGIN_FAILURE:", error);
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-closed-by-user') {
+        console.warn("AUTH_LOGIN_CANCELLED: User closed the popup.");
+      } else {
+        console.error("AUTH_LOGIN_FAILURE:", error);
+      }
       throw error;
     }
   }

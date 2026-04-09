@@ -186,7 +186,7 @@ const AdminHub: React.FC = () => {
                           <span className={`text-[10px] font-black uppercase tracking-widest ${
                             value === 'STABLE' || value === 'ACTIVE' || value === 'OPTIMAL' ? 'text-emerald-500' : 'text-red-500'
                           }`}>
-                            {value}
+                            {String(value)}
                           </span>
                         </div>
                       ))}
@@ -198,7 +198,7 @@ const AdminHub: React.FC = () => {
                   <div className="bg-white text-black rounded-[60px] p-12 h-full">
                     <h3 className="text-[10px] font-black opacity-40 uppercase tracking-widest mb-10">Audit Log & Findings</h3>
                     <div className="space-y-8">
-                      {qualityReport.details.map((detail, i) => (
+                      {qualityReport.details.map((detail: string, i: number) => (
                         <div key={i} className="flex items-start gap-6 border-b border-black/5 pb-8 last:border-0">
                           <div className="p-3 rounded-xl bg-black/5 text-black">
                             <FileText className="w-5 h-5" />
@@ -216,7 +216,7 @@ const AdminHub: React.FC = () => {
                             <ShieldAlert className="w-4 h-4" /> Security Vulnerabilities Detected
                           </h4>
                           <div className="space-y-4">
-                            {qualityReport.vulnerabilities.map((v, i) => (
+                            {qualityReport.vulnerabilities.map((v: { description: string; severity: string }, i: number) => (
                               <div key={i} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-red-100">
                                 <span className="text-xs font-bold">{v.description}</span>
                                 <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{v.severity}</span>

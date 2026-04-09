@@ -9,7 +9,7 @@ interface MainLayoutProps {
   onSearchDomain: (name: string) => void;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, activityLogs, onSearchDomain }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { activeHub, setActiveHub } = useNavigation();
   const { user, logout } = useAuth();
 

@@ -22,7 +22,7 @@ export const UserProfile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
-        const docRef = doc(db, 'users', user.uid);
+        const docRef = doc(db, 'users', user.id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setApiKeys(docSnap.data().apiKeys || {});
@@ -37,7 +37,7 @@ export const UserProfile: React.FC = () => {
     setIsLoading(true);
     setStatus(null);
     try {
-      await updateDoc(doc(db, 'users', user.uid), { apiKeys });
+      await updateDoc(doc(db, 'users', user.id), { apiKeys });
       setStatus({ type: 'success', msg: 'API Keys updated successfully.' });
     } catch (e: any) {
       setStatus({ type: 'error', msg: e.message });

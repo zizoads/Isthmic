@@ -60,15 +60,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Sync Profile
   useEffect(() => {
     if (user) {
-      const profile: UserProfile = {
-        id: user.uid,
-        email: user.email || '',
-        name: user.displayName || 'Sovereign User',
-        role: user.email === 'zizoadszn@gmail.com' || user.email === 'azeddinebeldjilali9@gmail.com' ? 'Admin' : 'User',
-        createdAt: new Date().toISOString(),
-        avatar: user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`
-      };
-      setActiveProfile(profile);
+      setActiveProfile(user);
     } else {
       setActiveProfile(null);
     }
@@ -134,7 +126,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await addDoc(collection(db, 'brand_opportunities'), {
         ...d,
         createdAt: serverTimestamp(),
-        createdBy: user?.uid
+        createdBy: user?.id
       });
       addLog('System', `New asset registered: ${d.name}`, 'success');
     } catch (error) {
@@ -203,7 +195,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           trafficSignal: Math.random() > 0.5 ? 'low' : 'none',
           trafficSource: 'Direct',
           createdAt: serverTimestamp(),
-          createdBy: user?.uid
+          createdBy: user?.id
         });
       }
 
