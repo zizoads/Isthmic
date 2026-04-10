@@ -13,11 +13,6 @@ import {
 } from 'lucide-react';
 import { translations } from '../../../translations';
 
-const isJsonResponse = (res: Response) => {
-  const contentType = res.headers.get('content-type');
-  return contentType && contentType.includes('application/json');
-};
-
 interface BrandIntelligenceHubProps {
 }
 
@@ -48,57 +43,60 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
   const fetchData = async () => {
     try {
-      console.log("📡 [HUB] Fetching trends and opportunities...");
-      const [trendsRes, oppsRes] = await Promise.all([
-        fetch('/api/trends').catch(e => {
-          console.error("❌ [HUB] Trends fetch failed:", e);
-          return { ok: false, status: 500 } as any;
-        }),
-        fetch('/api/opportunities').catch(e => {
-          console.error("❌ [HUB] Opportunities fetch failed:", e);
-          return { ok: false, status: 500 } as any;
-        })
-      ]);
+      console.log("📡 [HUB] Fetching trends and opportunities via Gemini...");
       
-      let trendsData = [];
-      let oppsData = [];
+      const { generateStructuredAI } = await import('../../../services/ai/base');
+      
+      // Generate Trends
+      const trendsRes = await generateStructuredAI<any[]>(
+        "gemini-2.5-flash",
+        "You are an expert market analyst. Generate 3 cutting-edge technology trends based on current market signals.",
+        `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}.`,
+        {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              keyword: { type: "string" },
+              opportunity_score: { type: "number" },
+              platforms: { type: "array", items: { type: "string" } },
+              velocity: { type: "number" }
+            },
+            required: ["id", "keyword", "opportunity_score", "platforms", "velocity"]
+          }
+        }
+      );
 
-      if (isJsonResponse(trendsRes)) {
-        trendsData = await trendsRes.json();
-      } else {
-        console.warn("Using mock trends fallback");
-        trendsData = [
-          { id: 't1', keyword: 'Neural Logistics', opportunity_score: 0.92, platforms: ['TechCrunch', 'Product Hunt'], velocity: 0.85 },
-          { id: 't2', keyword: 'Zero-Trust Edge', opportunity_score: 0.88, platforms: ['The Verge', 'Gizmodo'], velocity: 0.72 },
-          { id: 't3', keyword: 'Bio-Synthetic Compute', opportunity_score: 0.95, platforms: ['Engadget', 'Wired'], velocity: 0.91 }
-        ];
-      }
+      // Generate Opportunities
+      const oppsRes = await generateStructuredAI<any[]>(
+        "gemini-2.5-flash",
+        "You are an expert domain name investor and brand strategist. Generate 2 highly valuable brand/domain opportunities based on the trends.",
+        `Generate 2 brand opportunities based on recent tech trends.`,
+        {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              name: { type: "string" },
+              opportunity_score: { type: "number" },
+              positioning: { type: "string" },
+              gap: { type: "string" },
+              supporting_evidence: { type: "array", items: { type: "string" } }
+            },
+            required: ["id", "name", "opportunity_score", "positioning", "gap", "supporting_evidence"]
+          }
+        }
+      );
 
-      if (isJsonResponse(oppsRes)) {
-        oppsData = await oppsRes.json();
-      } else {
-        console.warn("Using mock opportunities fallback");
-        oppsData = [
-          { id: 'o1', name: 'CortexFlow.com', opportunity_score: 0.94, positioning: 'AI-driven supply chain optimization', gap: 'Lack of intuitive neural mapping in logistics', supporting_evidence: ['Neural', 'Logistics', 'Flow'] },
-          { id: 'o2', name: 'ShieldEdge.io', opportunity_score: 0.89, positioning: 'Decentralized security for IoT devices', gap: 'Vulnerable edge nodes in smart cities', supporting_evidence: ['Shield', 'Edge', 'Security'] }
-        ];
-      }
+      setTrends(trendsRes.data || []);
+      setOpportunities(oppsRes.data || []);
       
-      const finalTrends = Array.isArray(trendsData) ? trendsData : [];
-      const finalOpps = Array.isArray(oppsData) ? oppsData : [];
-      
-      setTrends(finalTrends);
-      setOpportunities(finalOpps);
-      
-      if (!trendsRes.ok || !oppsRes.ok) {
-        setStatusMsg('⚠️ Running in offline/fallback mode (Python engine unreachable).');
-      } else {
-        setStatusMsg('');
-        setStatus(prev => prev === 'error' ? 'idle' : prev);
-      }
+      setStatusMsg('');
+      setStatus(prev => prev === 'error' ? 'idle' : prev);
     } catch (err) {
       console.error("Fetch error:", err);
-      // Use functional update to check latest trends length
       setTrends(prev => {
         if (prev.length === 0) {
           setStatus('error');

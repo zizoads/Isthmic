@@ -6,6 +6,8 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: () => Promise<void>;
+  loginWithEmail: (e: string, p: string) => Promise<void>;
+  registerWithEmail: (e: string, p: string, n: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -13,6 +15,8 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: async () => {},
+  loginWithEmail: async () => {},
+  registerWithEmail: async () => {},
   logout: async () => {}
 });
 
@@ -51,12 +55,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithEmail = async (email: string, pass: string) => {
+    await AuthService.loginWithEmail(email, pass);
+  };
+
+  const registerWithEmail = async (email: string, pass: string, name: string) => {
+    await AuthService.registerWithEmail(email, pass, name);
+  };
+
   const logout = async () => {
     await AuthService.logout();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithEmail, registerWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );

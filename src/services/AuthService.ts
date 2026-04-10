@@ -4,7 +4,10 @@ import {
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
-  User
+  User,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { 
   doc, 
@@ -19,20 +22,45 @@ export class AuthService {
   private static googleProvider = new GoogleAuthProvider();
 
   /**
-   * Login with Google (Real Firebase Auth)
+   * Login with Google
    */
   static async loginWithGoogle(): Promise<UserProfile> {
     try {
       const result = await signInWithPopup(auth, this.googleProvider);
-      const user = result.user;
-      
-      return await this.syncUserProfile(user);
+      return await this.syncUserProfile(result.user);
     } catch (error: any) {
       if (error?.code === 'auth/popup-closed-by-user') {
         console.warn("AUTH_LOGIN_CANCELLED: User closed the popup.");
       } else {
         console.error("AUTH_LOGIN_FAILURE:", error);
       }
+      throw error;
+    }
+  }
+
+  /**
+   * Register with Email and Password
+   */
+  static async registerWithEmail(email: string, password: string, name: string): Promise<UserProfile> {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(result.user, { displayName: name });
+      return await this.syncUserProfile(result.user);
+    } catch (error) {
+      console.error("AUTH_REGISTER_FAILURE:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Login with Email and Password
+   */
+  static async loginWithEmail(email: string, password: string): Promise<UserProfile> {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      return await this.syncUserProfile(result.user);
+    } catch (error) {
+      console.error("AUTH_LOGIN_EMAIL_FAILURE:", error);
       throw error;
     }
   }

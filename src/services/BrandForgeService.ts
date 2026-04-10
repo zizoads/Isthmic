@@ -1,6 +1,5 @@
 
 import { generateStructuredAI } from "./ai/base";
-import { Type } from "@google/genai";
 
 export interface BrandScore {
   semantic: number;
@@ -74,25 +73,25 @@ class BrandForgeService {
   public async forgeBrand(niche: string, keywords: string[]): Promise<GeneratedBrand[]> {
     try {
       const result = await generateStructuredAI<any[]>(
-        "gemini-1.5-flash",
-        "Role: World-class branding expert.",
+        "gemini-2.5-flash",
+        "Role: World-class branding expert and domain name investor.",
         `Generate 5 high-prestige brand names for the niche: "${niche}". 
         Use these keywords as inspiration: ${keywords.join(", ")}.
-        For each name, provide a 1-sentence investment thesis.`,
+        For each name, provide a 1-sentence investment thesis explaining why this name is valuable.`,
         {
-          type: Type.ARRAY,
+          type: "array",
           items: {
-            type: Type.OBJECT,
+            type: "object",
             properties: {
-              name: { type: Type.STRING },
-              thesis: { type: Type.STRING }
+              name: { type: "string" },
+              thesis: { type: "string" }
             },
             required: ["name", "thesis"]
           }
         }
       );
 
-      return result.data.map((item: any) => {
+      return (result.data || []).map((item: any) => {
         // Use the phonetic scoring logic for real metrics
         const nameParts = item.name.split(' ');
         const phonetic = nameParts.length > 1 
