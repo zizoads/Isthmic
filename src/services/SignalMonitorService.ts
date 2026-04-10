@@ -41,7 +41,11 @@ export class SignalMonitorService {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'intelligence_signals');
+      try {
+        handleFirestoreError(error, OperationType.WRITE, 'intelligence_signals');
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
     }
   }
 
@@ -59,7 +63,11 @@ export class SignalMonitorService {
       })) as IntelligenceSignal[];
       callback(signals);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'intelligence_signals');
+      try {
+        handleFirestoreError(error, OperationType.GET, 'intelligence_signals');
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
     });
   }
 

@@ -21,15 +21,23 @@ const AdminHub: React.FC = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const usersSnap = await getDocs(collection(db, 'users'));
-      setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
     };
     fetchUsers();
   }, []);
 
   const toggleRole = async (userId: string, newRole: 'admin' | 'user') => {
-    await updateDoc(doc(db, 'users', userId), { role: newRole });
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    try {
+      await updateDoc(doc(db, 'users', userId), { role: newRole });
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    } catch (error) {
+      console.error("Failed to toggle role:", error);
+    }
   };
 
   const switchMyRole = () => {
@@ -38,8 +46,12 @@ const AdminHub: React.FC = () => {
 
   const runIntegrityChecks = async () => {
     setIsRunningChecks(true);
-    const report = await StrictTestingEnforcer.runProductionGateChecks();
-    setQualityReport(report);
+    try {
+      const report = await StrictTestingEnforcer.runProductionGateChecks();
+      setQualityReport(report);
+    } catch (error) {
+      console.error("Integrity checks failed:", error);
+    }
     setIsRunningChecks(false);
   };
 

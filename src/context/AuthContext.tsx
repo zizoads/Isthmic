@@ -50,9 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshProfile = async () => {
-    const currentUser = AuthService.getCurrentUser();
-    if (currentUser) {
-      await fetchAndSetProfile(currentUser);
+    try {
+      const currentUser = AuthService.getCurrentUser();
+      if (currentUser) {
+        await fetchAndSetProfile(currentUser);
+      }
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
     }
   };
 
@@ -69,15 +73,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
-    await AuthService.loginWithEmail(email, pass);
+    try {
+      await AuthService.loginWithEmail(email, pass);
+    } catch (error) {
+      console.error("Login with email failed:", error);
+      throw error;
+    }
   };
 
   const registerWithEmail = async (email: string, pass: string, name: string) => {
-    await AuthService.registerWithEmail(email, pass, name);
+    try {
+      await AuthService.registerWithEmail(email, pass, name);
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await AuthService.logout();
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (

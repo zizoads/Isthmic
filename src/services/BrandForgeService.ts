@@ -115,7 +115,7 @@ class BrandForgeService {
       });
     } catch (error) {
       console.error("Forge Error:", error);
-      return [];
+      throw error;
     }
   }
 }

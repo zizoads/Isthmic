@@ -54,7 +54,11 @@ export class EventOrchestrator {
         }
       });
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'domains');
+      try {
+        handleFirestoreError(error, OperationType.GET, 'domains');
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
     });
   }
 
@@ -77,7 +81,11 @@ export class EventOrchestrator {
           lastChecked: new Date().toISOString()
         });
       } catch (error) {
-        handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+        try {
+          handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+        } catch (e) {
+          // Error is already logged by handleFirestoreError, prevent unhandled rejection
+        }
       }
       
     }, 3000);
@@ -104,7 +112,11 @@ export class EventOrchestrator {
               lastChecked: new Date().toISOString()
             });
           } catch (error) {
-            handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+            try {
+              handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+            } catch (e) {
+              // Prevent unhandled rejection
+            }
           }
           
         }, 5000);
@@ -132,7 +144,11 @@ export class EventOrchestrator {
                   justification: `${domain.justification || ''} [SIGNAL BOOST: ${signal.title}]`
                 });
               } catch (error) {
-                handleFirestoreError(error, OperationType.UPDATE, `domains/${domainDoc.id}`);
+                try {
+                  handleFirestoreError(error, OperationType.UPDATE, `domains/${domainDoc.id}`);
+                } catch (e) {
+                  // Prevent unhandled rejection
+                }
               }
             }
           });

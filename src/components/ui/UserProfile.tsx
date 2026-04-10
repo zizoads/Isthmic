@@ -22,10 +22,14 @@ export const UserProfile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
-        const docRef = doc(db, 'users', user.id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setApiKeys(docSnap.data().apiKeys || {});
+        try {
+          const docRef = doc(db, 'users', user.id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setApiKeys(docSnap.data().apiKeys || {});
+          }
+        } catch (error) {
+          console.error("Failed to fetch profile:", error);
         }
       }
     };

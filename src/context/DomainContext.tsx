@@ -85,7 +85,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setDomains(docs);
       setIsInitialLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'brand_opportunities');
+      try {
+        handleFirestoreError(error, OperationType.LIST, 'brand_opportunities');
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
       setIsInitialLoading(false);
     });
 
@@ -117,7 +121,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await updateDoc(domainRef, { ...d, updatedAt: serverTimestamp() });
       addLog('System', `Asset updated: ${d.name}`, 'success');
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `brand_opportunities/${d.id}`);
+      try {
+        handleFirestoreError(error, OperationType.UPDATE, `brand_opportunities/${d.id}`);
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
     }
   };
 
@@ -130,7 +138,11 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
       addLog('System', `New asset registered: ${d.name}`, 'success');
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'brand_opportunities');
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'brand_opportunities');
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
     }
   };
 

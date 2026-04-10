@@ -99,7 +99,11 @@ export class AuthService {
         return newProfile;
       }
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+      try {
+        handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
       throw error;
     }
   }
@@ -112,7 +116,11 @@ export class AuthService {
         updatedAt: serverTimestamp()
       }, { merge: true });
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+      try {
+        handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+      } catch (e) {
+        // Error is logged by handleFirestoreError
+      }
       throw error;
     }
   }
