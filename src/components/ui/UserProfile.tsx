@@ -14,7 +14,7 @@ const RECOMMENDED_TOOLS: { name: string; type: ToolType }[] = [
 ];
 
 export const UserProfile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
@@ -38,6 +38,7 @@ export const UserProfile: React.FC = () => {
     setStatus(null);
     try {
       await updateDoc(doc(db, 'users', user.id), { apiKeys });
+      await refreshProfile();
       setStatus({ type: 'success', msg: 'API Keys updated successfully.' });
     } catch (e: any) {
       setStatus({ type: 'error', msg: e.message });

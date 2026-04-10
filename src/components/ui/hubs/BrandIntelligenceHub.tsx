@@ -26,6 +26,12 @@ const PLATFORMS = [
 
 export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
   const { user } = useAuth();
+  const userApiKeyRef = React.useRef(user?.apiKeys?.gemini);
+  
+  React.useEffect(() => {
+    userApiKeyRef.current = user?.apiKeys?.gemini;
+  }, [user?.apiKeys?.gemini]);
+
   const t = translations.en.brand_intel;
   const [status, setStatus] = useState<'idle' | 'running' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string>('');
@@ -49,7 +55,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       console.log("📡 [HUB] Fetching trends and opportunities via Gemini...");
       
       const { generateStructuredAI } = await import('../../../services/ai/base');
-      const userApiKey = user?.apiKeys?.gemini;
+      const userApiKey = userApiKeyRef.current;
       
       // Generate Trends
       const trendsRes = await generateStructuredAI<any[]>(

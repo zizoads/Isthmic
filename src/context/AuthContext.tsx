@@ -9,6 +9,7 @@ interface AuthContextType {
   loginWithEmail: (e: string, p: string) => Promise<void>;
   registerWithEmail: (e: string, p: string, n: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -17,23 +18,28 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   loginWithEmail: async () => {},
   registerWithEmail: async () => {},
-  logout: async () => {}
+  logout: async () => {},
+  refreshProfile: async () => {}
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchAndSetProfile = async (firebaseUser: any) => {
+    try {
+      const profile = await AuthService.syncUserProfile(firebaseUser);
+      setUser(profile);
+    } catch (error) {
+      console.error("Failed to sync profile", error);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = AuthService.onAuthChange(async (firebaseUser) => {
       if (firebaseUser) {
-        try {
-          const profile = await AuthService.syncUserProfile(firebaseUser);
-          setUser(profile);
-        } catch (error) {
-          console.error("Failed to sync profile", error);
-          setUser(null);
-        }
+        await fetchAndSetProfile(firebaseUser);
       } else {
         setUser(null);
       }
@@ -42,6 +48,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => unsubscribe();
   }, []);
+
+  const refreshProfile = async () => {
+    const currentUser = AuthService.getCurrentUser();
+    if (currentUser) {
+      await fetchAndSetProfile(currentUser);
+    }
+  };
 
   const login = async () => {
     try {
@@ -68,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithEmail, registerWithEmail, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithEmail, registerWithEmail, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
