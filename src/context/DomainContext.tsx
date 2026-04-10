@@ -208,9 +208,13 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (opportunities.length > 0) {
         addThought('Alpha Mine', `Prioritizing ${opportunities[0].name}: High strategic alignment detected.`, 'high');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Mining Error:", e);
-      addLog('System', 'Strategic mining failed. Check AI configuration.', 'critical');
+      let errorMsg = e.message || 'Unknown error occurred';
+      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+        errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+      }
+      addLog('System', `Strategic mining failed: ${errorMsg}`, 'critical');
     } finally {
       setIsBrainActive(false);
     }

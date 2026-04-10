@@ -68,7 +68,11 @@ export const BrandForgeHub: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Forge Error:", err);
-      setErrorMsg(`Error: ${err.message || 'Unknown error occurred'}`);
+      let errorMsg = err.message || 'Unknown error occurred';
+      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+        errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+      }
+      setErrorMsg(`Error: ${errorMsg}`);
       addLog('Acquisition', 'Forge encountered a critical error.', 'critical');
     } finally {
       setIsForging(false);

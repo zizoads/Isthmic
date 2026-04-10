@@ -113,12 +113,17 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       
       setStatusMsg('');
       setStatus(prev => prev === 'error' ? 'idle' : prev);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Fetch error:", err);
+      let errorMsg = err.message || 'Unknown error';
+      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+        errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+      }
+      
       setTrends(prev => {
         if (prev.length === 0) {
           setStatus('error');
-          setStatusMsg(`❌ Fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          setStatusMsg(`❌ Fetch error: ${errorMsg}`);
         }
         return prev;
       });
@@ -127,20 +132,19 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
 
-    const poll = async () => {
+    const initFetch = async () => {
       if (!isMounted) return;
-      await fetchData();
-      if (isMounted) {
-        timeoutId = setTimeout(poll, 10000);
+      // Only fetch on mount if we don't have data yet
+      if (trends.length === 0 && opportunities.length === 0) {
+        await fetchData();
       }
     };
 
-    poll();
+    initFetch();
+    
     return () => {
       isMounted = false;
-      clearTimeout(timeoutId);
     };
   }, []);
 
