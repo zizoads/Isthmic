@@ -38,6 +38,10 @@ export class AuthService {
     }
   }
 
+  static getCurrentUser(): User | null {
+    return auth.currentUser;
+  }
+
   /**
    * Register with Email and Password
    */
