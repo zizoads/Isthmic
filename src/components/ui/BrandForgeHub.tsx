@@ -12,6 +12,7 @@ export const BrandForgeHub: React.FC = () => {
   const [isForging, setIsForging] = useState(false);
   const [results, setResults] = useState<GeneratedBrand[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const steps = [
     { id: 'semantic', label: 'Semantic Brainstorming', icon: Sparkles },
@@ -29,6 +30,7 @@ export const BrandForgeHub: React.FC = () => {
   const applyTemplate = (t: typeof templates[0]) => {
     setNiche(t.niche);
     setKeywords(t.keywords);
+    setErrorMsg('');
   };
 
   const handleForge = async () => {
@@ -37,6 +39,7 @@ export const BrandForgeHub: React.FC = () => {
     setIsForging(true);
     setResults([]);
     setCurrentStep(0);
+    setErrorMsg('');
     
     addThought('Acquisition', `Initiating Brand Forge for niche: ${niche}`, 'high');
     addLog('Acquisition', 'Identity Forge sequence activated.', 'info');
@@ -48,11 +51,24 @@ export const BrandForgeHub: React.FC = () => {
     }
 
     const keywordList = keywords.split(',').map(k => k.trim()).filter(k => k);
-    const brands = await brandForge.forgeBrand(niche, keywordList);
     
-    setResults(brands);
-    setIsForging(false);
-    addLog('Acquisition', `Forge complete. ${brands.length} high-prestige identities synthesized.`, 'success');
+    try {
+      const brands = await brandForge.forgeBrand(niche, keywordList);
+      
+      if (brands && brands.length > 0) {
+        setResults(brands);
+        addLog('Acquisition', `Forge complete. ${brands.length} high-prestige identities synthesized.`, 'success');
+      } else {
+        setErrorMsg('Failed to generate brands. Please check your API key configuration.');
+        addLog('Acquisition', 'Forge failed. No identities synthesized.', 'warning');
+      }
+    } catch (err: any) {
+      console.error("Forge Error:", err);
+      setErrorMsg(`Error: ${err.message || 'Unknown error occurred'}`);
+      addLog('Acquisition', 'Forge encountered a critical error.', 'critical');
+    } finally {
+      setIsForging(false);
+    }
   };
 
   return (
@@ -144,6 +160,12 @@ export const BrandForgeHub: React.FC = () => {
                 </>
               )}
             </button>
+
+            {errorMsg && (
+              <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs italic relative z-10">
+                {errorMsg}
+              </div>
+            )}
           </div>
 
           <div className="bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-[30px] p-8">
