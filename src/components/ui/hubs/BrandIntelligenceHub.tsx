@@ -16,6 +16,8 @@ import { translations } from '../../../translations';
 interface BrandIntelligenceHubProps {
 }
 
+import { useAuth } from '../../../context/AuthContext';
+
 const PLATFORMS = [
   "TechCrunch", "The Verge", "Engadget", "TechRadar", "GeekWire", 
   "CNET", "Mashable", "Gizmodo", "Lifewire", "PatentsView", 
@@ -23,6 +25,7 @@ const PLATFORMS = [
 ];
 
 export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
+  const { user } = useAuth();
   const t = translations.en.brand_intel;
   const [status, setStatus] = useState<'idle' | 'running' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string>('');
@@ -46,6 +49,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       console.log("📡 [HUB] Fetching trends and opportunities via Gemini...");
       
       const { generateStructuredAI } = await import('../../../services/ai/base');
+      const userApiKey = user?.apiKeys?.gemini;
       
       // Generate Trends
       const trendsRes = await generateStructuredAI<any[]>(
@@ -65,7 +69,11 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
             },
             required: ["id", "keyword", "opportunity_score", "platforms", "velocity"]
           }
-        }
+        },
+        undefined,
+        undefined,
+        undefined,
+        userApiKey
       );
 
       // Generate Opportunities
@@ -87,7 +95,11 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
             },
             required: ["id", "name", "opportunity_score", "positioning", "gap", "supporting_evidence"]
           }
-        }
+        },
+        undefined,
+        undefined,
+        undefined,
+        userApiKey
       );
 
       setTrends(trendsRes.data || []);

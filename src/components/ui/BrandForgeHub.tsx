@@ -5,8 +5,11 @@ import { Sparkles, Zap, Shield, Target, Award, Info, RefreshCw } from 'lucide-re
 import { brandForge, GeneratedBrand } from '../../services/BrandForgeService';
 import { useDomainContext } from '../../context/DomainContext';
 
+import { useAuth } from '../../context/AuthContext';
+
 export const BrandForgeHub: React.FC = () => {
   const { addLog, addThought } = useDomainContext();
+  const { user } = useAuth();
   const [niche, setNiche] = useState('');
   const [keywords, setKeywords] = useState('');
   const [isForging, setIsForging] = useState(false);
@@ -51,9 +54,10 @@ export const BrandForgeHub: React.FC = () => {
     }
 
     const keywordList = keywords.split(',').map(k => k.trim()).filter(k => k);
+    const userApiKey = user?.apiKeys?.gemini;
     
     try {
-      const brands = await brandForge.forgeBrand(niche, keywordList);
+      const brands = await brandForge.forgeBrand(niche, keywordList, userApiKey);
       
       if (brands && brands.length > 0) {
         setResults(brands);

@@ -70,7 +70,7 @@ class BrandForgeService {
   }
 
   // دمج الذكاء الاصطناعي للتحليل الدلالي والأطروحة الاستثمارية
-  public async forgeBrand(niche: string, keywords: string[]): Promise<GeneratedBrand[]> {
+  public async forgeBrand(niche: string, keywords: string[], userApiKey?: string): Promise<GeneratedBrand[]> {
     try {
       const result = await generateStructuredAI<any[]>(
         "gemini-2.5-flash",
@@ -88,7 +88,11 @@ class BrandForgeService {
             },
             required: ["name", "thesis"]
           }
-        }
+        },
+        undefined,
+        undefined,
+        undefined,
+        userApiKey
       );
 
       return (result.data || []).map((item: any) => {

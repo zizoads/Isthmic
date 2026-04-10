@@ -100,6 +100,19 @@ export class AuthService {
     }
   }
 
+  static async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await setDoc(userRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+      throw error;
+    }
+  }
+
   static async logout(): Promise<void> {
     await signOut(auth);
   }

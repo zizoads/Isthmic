@@ -6,6 +6,7 @@ export interface UserProfile {
   role: 'Admin' | 'User';
   avatar?: string;
   createdAt: string;
+  apiKeys?: ApiKeys;
 }
 
 export type ToolType = 'DOMAIN_CHECK' | 'WHOIS' | 'ANALYTICS' | 'OTHER';

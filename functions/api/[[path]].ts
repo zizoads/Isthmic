@@ -133,8 +133,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const body = await request.json() as any;
     const { model, systemInstruction, prompt, schema, tools, configOverrides } = body;
 
-    if (!env.GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: "GEMINI_API_KEY not configured" }), { status: 500 });
+    const userApiKey = request.headers.get('x-user-api-key');
+    const activeApiKey = userApiKey || env.GEMINI_API_KEY;
+
+    if (!activeApiKey) {
+      return new Response(JSON.stringify({ error: "No API key configured (neither user nor system)" }), { status: 500 });
     }
 
     // Ensure model name has the correct prefix
@@ -144,7 +147,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     const callGemini = async (mId: string) => {
-      return await fetch(`https://generativelanguage.googleapis.com/v1beta/${mId}:generateContent?key=${env.GEMINI_API_KEY}`, {
+      return await fetch(`https://generativelanguage.googleapis.com/v1beta/${mId}:generateContent?key=${activeApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

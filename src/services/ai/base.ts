@@ -13,16 +13,22 @@ export async function generateStructuredAI<T>(
   schema: any,
   tools?: any[],
   configOverrides?: any,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  userApiKey?: string
 ): Promise<{ data: T, latency: number, grounding?: any[] }> {
   const startTime = performance.now();
   
   // In browser, we prefer calling the backend to avoid exposing keys in the client bundle
   if (typeof window !== 'undefined') {
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (userApiKey) {
+        headers['x-user-api-key'] = userApiKey;
+      }
+
       const response = await fetch('/api/ai-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           model: modelName,
           systemInstruction,
@@ -45,20 +51,21 @@ export async function generateStructuredAI<T>(
         const errorData = await response.json().catch(() => ({}));
         console.warn("AI_PROXY_ERROR:", errorData);
         // Fallback to local call if proxy fails and key is available
-        if (!process.env.GEMINI_API_KEY) {
+        if (!process.env.GEMINI_API_KEY && !userApiKey) {
            throw new Error(`AI_PROXY_FAILURE: ${response.status} ${JSON.stringify(errorData)}`);
         }
       }
     } catch (e) {
       console.warn("AI_PROXY_FETCH_FAILED, attempting local call if key exists...", e);
-      if (!process.env.GEMINI_API_KEY) throw e;
+      if (!process.env.GEMINI_API_KEY && !userApiKey) throw e;
     }
   }
 
   // Local call (Development or Fallback)
-  if (!process.env.GEMINI_API_KEY) throw new Error("AI_GATEWAY_FAILURE: process.env.GEMINI_API_KEY is not configured.");
+  const activeKey = userApiKey || process.env.GEMINI_API_KEY;
+  if (!activeKey) throw new Error("AI_GATEWAY_FAILURE: No API key configured (neither user nor system).");
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: activeKey });
   
   const response = await ai.models.generateContent({
     model: modelName,
@@ -85,13 +92,18 @@ export async function generateStructuredAI<T>(
   return { data, latency, grounding };
 }
 
-export async function safeAICall<T>(arg: any): Promise<T> {
+export async function safeAICall<T>(arg: any, userApiKey?: string): Promise<T> {
   // In browser, we prefer calling the backend to avoid exposing keys in the client bundle
   if (typeof window !== 'undefined') {
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (userApiKey) {
+        headers['x-user-api-key'] = userApiKey;
+      }
+
       const response = await fetch('/api/ai-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           model: arg.model || 'gemini-1.5-flash',
           systemInstruction: arg.systemInstruction || "AI Assistant",
@@ -111,13 +123,13 @@ export async function safeAICall<T>(arg: any): Promise<T> {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.warn("AI_SAFE_PROXY_ERROR:", errorData);
-        if (!process.env.GEMINI_API_KEY) {
+        if (!process.env.GEMINI_API_KEY && !userApiKey) {
           throw new Error(`AI_SAFE_PROXY_FAILURE: ${response.status} ${JSON.stringify(errorData)}`);
         }
       }
     } catch (e) {
       console.warn("AI_SAFE_PROXY_FETCH_FAILED, attempting local call if key exists...", e);
-      if (!process.env.GEMINI_API_KEY) throw e;
+      if (!process.env.GEMINI_API_KEY && !userApiKey) throw e;
     }
   }
 
@@ -126,9 +138,10 @@ export async function safeAICall<T>(arg: any): Promise<T> {
       return await arg();
     }
 
-    if (!process.env.GEMINI_API_KEY) throw new Error("AI_SAFE_CALL_FAILURE: process.env.GEMINI_API_KEY is not configured.");
+    const activeKey = userApiKey || process.env.GEMINI_API_KEY;
+    if (!activeKey) throw new Error("AI_SAFE_CALL_FAILURE: No API key configured.");
     
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: activeKey });
     
     const response = await ai.models.generateContent({
       model: arg.model || 'gemini-1.5-flash',

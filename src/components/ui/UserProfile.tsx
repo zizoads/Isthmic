@@ -83,7 +83,17 @@ export const UserProfile: React.FC = () => {
         </div>
       )}
 
-      {/* ... (Existing static inputs) ... */}
+      <div className="space-y-4">
+        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block">Gemini API Key (BYOK)</label>
+        <p className="text-xs text-slate-400 mb-2">Enter your personal Gemini API key to power the AI features. This key is stored securely in your profile.</p>
+        <input 
+          type="password" 
+          value={apiKeys.gemini || ''} 
+          onChange={e => setApiKeys({ ...apiKeys, gemini: e.target.value })} 
+          className="w-full bg-[#111113] border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-slate-500 focus:border-[#d4af37]/50 outline-none transition-all text-sm" 
+          placeholder="AIzaSy..." 
+        />
+      </div>
       
       <div className="pt-8 border-t border-white/5 space-y-4">
         <div className="flex justify-between items-center">

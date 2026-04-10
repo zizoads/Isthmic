@@ -175,12 +175,17 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       Provide realistic prices ($10-$15 for hand-reg).`;
 
       const prompt = `Generate 5 brand opportunities for the niche: ${queryStr}`;
+      const userApiKey = user?.apiKeys?.gemini;
 
       const { data } = await generateStructuredAI<{ opportunities: any[] }>(
         'gemini-1.5-flash',
         systemInstruction,
         prompt,
-        schema
+        schema,
+        undefined,
+        undefined,
+        undefined,
+        userApiKey
       );
 
       const opportunities = data.opportunities || [];
