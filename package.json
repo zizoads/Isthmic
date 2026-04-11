@@ -8,6 +8,7 @@
     "pages:dev": "wrangler pages dev dist --proxy 3000",
     "pages:deploy": "npm run build && wrangler pages deploy dist",
     "build": "vite build",
+    "start": "NODE_ENV=production tsx src/server/index.ts",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },

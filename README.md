@@ -1,3 +1,12 @@
+---
+title: Isthmic Pro
+emoji: 🎖️
+colorFrom: yellow
+colorTo: black
+sdk: docker
+pinned: false
+---
+
 # 🎖️ Isthmic Pro: Sovereign Core v3.0.0
 
 Isthmic Pro is a high-prestige, multi-agent strategic engine designed for elite domain acquisition and brand intelligence. It operates on a "Sovereign" architecture, combining real-time market signals with deep AI synthesis to identify and forge digital assets.
