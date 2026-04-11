@@ -190,7 +190,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const userApiKey = user?.apiKeys?.gemini;
 
       const { data } = await generateStructuredAI<{ opportunities: any[] }>(
-        'gemini-1.5-flash',
+        'gemini-3-flash-preview',
         systemInstruction,
         prompt,
         schema,

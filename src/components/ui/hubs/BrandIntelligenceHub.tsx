@@ -67,7 +67,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       
       // Generate Trends
       const trendsRes = await generateStructuredAI<any[]>(
-        "gemini-1.5-flash",
+        "gemini-3-flash-preview",
         "You are an expert market analyst. Generate 3 cutting-edge technology trends based on current market signals.",
         `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}.`,
         {
@@ -92,7 +92,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
       // Generate Opportunities
       const oppsRes = await generateStructuredAI<any[]>(
-        "gemini-1.5-flash",
+        "gemini-3-flash-preview",
         "You are an expert domain name investor and brand strategist. Generate 2 highly valuable brand/domain opportunities based on the trends.",
         `Generate 2 brand opportunities based on recent tech trends.`,
         {

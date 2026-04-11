@@ -8,8 +8,8 @@ import { NEGOTIATION_AUDIT_SCHEMA, STATE_INFERENCE_SCHEMA } from "./schemas";
  * v2.7: Added Passive Strategic Snapshot for MasterBrain orchestration.
  */
 export class NegotiationService {
-  private static readonly MODEL_PRO = 'gemini-1.5-pro';
-  private static readonly MODEL_FLASH = 'gemini-1.5-flash';
+  private static readonly MODEL_PRO = 'gemini-3.1-pro-preview';
+  private static readonly MODEL_FLASH = 'gemini-3-flash-preview';
   public static readonly MAX_CONTEXT_MESSAGES = 15;
 
   /**

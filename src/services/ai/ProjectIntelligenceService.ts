@@ -48,7 +48,7 @@ export class ProjectIntelligenceService {
     `;
 
     const result = await generateStructuredAI<ProjectInsight[]>(
-      "gemini-1.5-flash",
+      "gemini-3-flash-preview",
       "Role: Chief Architect & Strategic Planner.",
       prompt,
       {

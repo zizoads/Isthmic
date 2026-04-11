@@ -17,7 +17,7 @@ import {
  * Phase 1.8: Comprehensive Batching, Problem Cataloging, and Predictive Analytics.
  */
 export class AutopsyService {
-  private static readonly MODEL_PRO = 'gemini-1.5-pro';
+  private static readonly MODEL_PRO = 'gemini-3.1-pro-preview';
 
   private static async computeHash(str: string): Promise<string> {
     const msgUint8 = new TextEncoder().encode(str);

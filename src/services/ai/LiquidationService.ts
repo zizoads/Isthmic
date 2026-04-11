@@ -6,7 +6,7 @@ import { LeadProspect } from "../../types";
 export const optimizeAfternicListingAI = async (domainName: string, sector: string) => {
   // Fix: Extract .data for the optimization console to prevent rendering errors
   const result = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Registrar metadata optimizer.",
     `Optimize ${domainName} for Afternic in ${sector}.`,
     {
@@ -35,7 +35,7 @@ export const optimizeAfternicListingAI = async (domainName: string, sector: stri
 export const harvestBulkLeadsAI = async (domainName: string, sector: string): Promise<LeadProspect[]> => {
   // Fix: Extract .data from the response to match Promise<LeadProspect[]> and fix 5-argument error
   const result = await generateStructuredAI<LeadProspect[]>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     `Corporate prospecting engine. 
      Mission: Identify high-ticket acquirers and their key decision makers.
      Context: Using integrated datasets from LinkedIn/Apollo.`,
@@ -65,7 +65,7 @@ export const harvestBulkLeadsAI = async (domainName: string, sector: string): Pr
 export const analyzeMarketPulseAI = async (sector: string, lang: 'en' = 'en') => {
   // Fix: Return .data for the market momentum chart to receive the structured pulse object
   const result = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     `Market momentum analyzer. Language: ${lang}.`,
     `Analyze pulse for ${sector}.`,
     {
@@ -91,7 +91,7 @@ export const analyzeMarketPulseAI = async (sector: string, lang: 'en' = 'en') =>
 export const generateLeadGenBlueprintAI = async (domainName: string, _sector: string) => {
   // Fix: Return .data for the value multiplier dashboard to fix data property access errors
   const result = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Business model architect.",
     `Design blueprint for ${domainName}.`,
     {
@@ -110,7 +110,7 @@ export const generateLeadGenBlueprintAI = async (domainName: string, _sector: st
 export const generatePersonaPitchAI = async (domainName: string, company: LeadProspect, persona: string): Promise<string> => {
   // Extract .data from the response to match Promise<string>
   const result = await generateStructuredAI<string>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "High-conversion sales writer.",
     `Draft pitch for ${domainName} targeting ${persona} at ${company.companyName}. 
      Synergy: ${company.synergyReason}. Profile context: ${company.jobTitle}. 
@@ -123,7 +123,7 @@ export const generatePersonaPitchAI = async (domainName: string, company: LeadPr
 export const getAuctionIntelligenceAI = async (sectors: string[]) => {
   // Fix: Return .data for the auction watch dashboard to prevent undefined property errors
   const result = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Auction market intelligence scout.",
     `Analyze auction trends and recent sales for: ${sectors.join(', ')}.`,
     {

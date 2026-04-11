@@ -42,7 +42,7 @@ import { generateStructuredAI } from "./ai/base";
 
 export const getMarketSignalsAI = async (domainPart: string) => {
   const result = await generateStructuredAI(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Role: Market Signals Analyzer.",
     `Analyze pricing signals for: "${domainPart}"`,
     {

@@ -71,11 +71,11 @@ async function startServer() {
       });
     }
 
-    console.log(`📡 [SERVER] AI Proxy request for model: ${model || 'gemini-1.5-flash'}`);
+    console.log(`📡 [SERVER] AI Proxy request for model: ${model || 'gemini-3-flash-preview'}`);
 
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const modelId = model || 'gemini-1.5-flash';
+      const modelId = model || 'gemini-3-flash-preview';
       
       const response = await ai.models.generateContent({
         model: modelId,

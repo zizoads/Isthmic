@@ -105,7 +105,7 @@ export async function safeAICall<T>(arg: any, userApiKey?: string): Promise<T> {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: arg.model || 'gemini-1.5-flash',
+          model: arg.model || 'gemini-3-flash-preview',
           systemInstruction: arg.systemInstruction || "AI Assistant",
           prompt: typeof arg.contents === 'string' ? arg.contents : JSON.stringify(arg.contents),
           schema: arg.config?.responseSchema,
@@ -144,7 +144,7 @@ export async function safeAICall<T>(arg: any, userApiKey?: string): Promise<T> {
     const ai = new GoogleGenAI({ apiKey: activeKey });
     
     const response = await ai.models.generateContent({
-      model: arg.model || 'gemini-1.5-flash',
+      model: arg.model || 'gemini-3-flash-preview',
       contents: arg.contents,
       config: arg.config || {}
     });

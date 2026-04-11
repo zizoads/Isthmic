@@ -73,7 +73,7 @@ class BrandForgeService {
   public async forgeBrand(niche: string, keywords: string[], userApiKey?: string): Promise<GeneratedBrand[]> {
     try {
       const result = await generateStructuredAI<any[]>(
-        "gemini-1.5-flash",
+        "gemini-3-flash-preview",
         "Role: World-class branding expert and domain name investor.",
         `Generate 5 high-prestige brand names for the niche: "${niche}". 
         Use these keywords as inspiration: ${keywords.join(", ")}.

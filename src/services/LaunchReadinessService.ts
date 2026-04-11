@@ -11,7 +11,7 @@ import { MilitaryVaultInstance } from "../security/MilitaryVault";
  * تم إلغاء العشوائية؛ التقرير الآن يعكس الحالة الحقيقية للبنية التحتية.
  */
 export class LaunchReadinessService {
-  private static readonly MODEL_PRO = 'gemini-1.5-pro';
+  private static readonly MODEL_PRO = 'gemini-3.1-pro-preview';
 
   /**
    * حساب "معامل التماسك السيادي" (Sovereign Cohesion Index - PHI)

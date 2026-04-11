@@ -5,7 +5,7 @@ import { PlatformStats, DecompositionPlan } from "../../types";
 
 export const decomposeStrategyAI = async (thesis: string): Promise<DecompositionPlan> => {
   const result = await generateStructuredAI<any>(
-    'gemini-1.5-pro',
+    'gemini-3.1-pro-preview',
     `Strategic Planner (Sovereign Core). 
      Task: Decompose a high-level investment thesis into 5 discrete execution nodes.
      Nodes must follow this sequence: 1. Vector Extraction, 2. Gap Identification, 3. Forensic Filtering, 4. Liquidity Benchmarking, 5. Alpha Synthesis.`,
@@ -38,7 +38,7 @@ export const decomposeStrategyAI = async (thesis: string): Promise<Decomposition
 
 export const evaluateDomainExpertAI = async (domainName: string, signal?: AbortSignal) => {
   return generateStructuredAI<any>(
-    'gemini-1.5-pro',
+    'gemini-3.1-pro-preview',
     `Forensic Domain Auditor. Integrity check for SEO, Branding, and Risk.`,
     `Audit domain: ${domainName}. Evaluate historical integrity and market liquidity.`,
     {
@@ -67,7 +67,7 @@ export const evaluateDomainExpertAI = async (domainName: string, signal?: AbortS
 
 export const debateDomainStrategyAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-pro',
+    'gemini-3.1-pro-preview',
     `Multi-agent strategist lab.`,
     `Debate investment value of ${domainName}.`,
     {
@@ -85,7 +85,7 @@ export const debateDomainStrategyAI = async (domainName: string) => {
 
 export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: string[]) => {
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-pro',
+    'gemini-3.1-pro-preview',
     "Chief Investment Officer report synthesizer.",
     `Synthesize report for portfolio with $${stats.estimatedPortfolioValue} value in sectors: ${sectors.join(', ')}.`,
     {
@@ -107,7 +107,7 @@ export const generateExecutiveReportAI = async (stats: PlatformStats, sectors: s
 
 export const nexusPrimeIntelligenceAI = async (mode: string, context: string, lang: 'en' = 'en') => {
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-pro',
+    'gemini-3.1-pro-preview',
     `Nexus Prime Core Intelligence. Mode: ${mode}. Lang: ${lang}`,
     `Execute deep context analysis for: ${context}`,
     {

@@ -4,7 +4,7 @@ import { generateStructuredAI, safeAICall } from "./base";
 import { Type } from "@google/genai";
 
 export class OrchestrationService {
-  private static readonly MODEL = 'gemini-1.5-flash';
+  private static readonly MODEL = 'gemini-3-flash-preview';
 
   /**
    * Calculates Alignment Velocity using a weighted moving average.

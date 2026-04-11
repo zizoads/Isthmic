@@ -19,7 +19,7 @@ export const rigorousDiscoveryAI = async (
     : "";
 
   return generateStructuredAI<any[]>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     `Strategic Market Miner (Sovereign Core). 
      Your task: Find high-potential domains based on market gaps. 
      MANDATORY COMPLIANCE:
@@ -71,7 +71,7 @@ export const getDropSniperListAI = async (
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
   const res = await generateStructuredAI<any[]>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     `Domain drop scouting agent. Neural Link Active: ${strategicContext}`,
     `Find domains about to drop in ${sector}. Rank by Strategic Alignment.`,
     {
@@ -95,7 +95,7 @@ export const getDropSniperListAI = async (
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Expert drop analyzer.",
     `Analyze value for ${domainName}.`,
     {
@@ -113,7 +113,7 @@ export const analyzeSnipeOpportunityAI = async (domainName: string) => {
 
 export const registrarInquiryAI = async (domainName: string) => {
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Real-time registrar status scout.",
     `Check availability and price for ${domainName}.`,
     {
@@ -134,7 +134,7 @@ export const findLocalBuyersAI = async (query: string, lat?: number, lng?: numbe
   } : undefined;
 
   const res = await generateStructuredAI<any>(
-    'gemini-1.5-flash',
+    'gemini-3-flash-preview',
     "Expert local buyer scout.",
     `Find potential local buyers for "${query}" near coordinates ${lat || 0}, ${lng || 0}.`,
     {

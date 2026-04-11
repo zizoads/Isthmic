@@ -12,8 +12,8 @@ export interface PotentialBuyer {
 }
 
 export class BuyerAnalysisService {
-  private static readonly MODEL_MAPS = 'gemini-1.5-flash';
-  private static readonly MODEL_LOGIC = 'gemini-1.5-flash';
+  private static readonly MODEL_MAPS = 'gemini-3-flash-preview';
+  private static readonly MODEL_LOGIC = 'gemini-3-flash-preview';
 
   /**
    * استخدام Google Maps Grounding للعثور على شركات حقيقية

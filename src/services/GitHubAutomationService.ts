@@ -12,7 +12,7 @@ export interface DispatchStep {
 }
 
 export class GitHubAutomationService {
-  private static readonly MODEL = 'gemini-1.5-flash';
+  private static readonly MODEL = 'gemini-3-flash-preview';
 
   static async generateCommitMessage(changesSummary: string): Promise<string> {
     const result = await generateStructuredAI<any>(
