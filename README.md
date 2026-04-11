@@ -2,7 +2,7 @@
 title: Isthmic Pro
 emoji: 🎖️
 colorFrom: yellow
-colorTo: black
+colorTo: gray
 sdk: docker
 app_port: 7860
 pinned: false
