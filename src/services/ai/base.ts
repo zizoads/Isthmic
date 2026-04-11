@@ -81,7 +81,7 @@ export async function generateStructuredAI<T>(
     signal: signal
   });
 
-  // Mandatory: access .text as a property, not a method
+  // Mandatory: access .text as a property
   const text = response.text;
   if (!text) throw new Error("EMPTY_INFERENCE_RECEIVED");
 

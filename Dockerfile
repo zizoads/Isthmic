@@ -30,5 +30,10 @@ EXPOSE 7860
 ENV PORT=7860
 ENV NODE_ENV=production
 
+# Create a non-root user and switch to it
+RUN useradd -m -u 1000 user
+RUN chown -R user:user /app
+USER user
+
 # Start the application
 CMD ["npm", "start"]

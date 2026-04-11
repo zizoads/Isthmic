@@ -64,9 +64,11 @@ async function startServer() {
     const userApiKey = req.headers['x-user-api-key'] as string;
     
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("❌ [SERVER] AI Proxy failed: No API key provided.");
-      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server and no user key provided" });
+    if (!apiKey || apiKey.includes('TODO')) {
+      console.error("❌ [SERVER] AI Proxy failed: No valid API key provided.");
+      return res.status(401).json({ 
+        error: "GEMINI_API_KEY not configured or invalid. Please provide a valid key in Settings or via header." 
+      });
     }
 
     console.log(`📡 [SERVER] AI Proxy request for model: ${model || 'gemini-1.5-flash'}`);
@@ -77,10 +79,10 @@ async function startServer() {
       
       const response = await ai.models.generateContent({
         model: modelId,
-        contents: prompt,
-        config: { 
-          systemInstruction, 
-          responseMimeType: "application/json", 
+        contents: [{ role: 'user', parts: [{ text: typeof prompt === 'string' ? prompt : JSON.stringify(prompt) }] }],
+        config: {
+          systemInstruction: systemInstruction,
+          responseMimeType: "application/json",
           responseSchema: schema,
           tools: tools,
           ...configOverrides
@@ -88,6 +90,7 @@ async function startServer() {
       });
 
       const text = response.text;
+      
       if (!text) throw new Error("EMPTY_INFERENCE_RECEIVED");
 
       res.json({ 
@@ -96,7 +99,7 @@ async function startServer() {
       });
     } catch (e: any) {
       console.error("AI Proxy Error:", e.message);
-      res.status(500).json({ error: "AI Proxy failed", details: e.message });
+      res.status(500).json({ error: "AI Synthesis failed", details: e.message });
     }
   });
 
@@ -131,8 +134,11 @@ async function startServer() {
   }
 
   if (!process.env.VERCEL) {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    const portNum = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
+    app.listen(portNum, "0.0.0.0", () => {
+      console.log(`🚀 [SERVER] Isthmic Pro active on port ${portNum}`);
+      console.log(`🌍 [SERVER] Environment: ${process.env.NODE_ENV}`);
+      console.log(`🔑 [SERVER] Gemini API Key: ${process.env.GEMINI_API_KEY ? 'CONFIGURED' : 'MISSING'}`);
     });
   }
 
