@@ -32,7 +32,6 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'ui-vendor': ['recharts', 'motion', 'lucide-react'],
-          'three-vendor': ['three'],
           'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
         },
       },
