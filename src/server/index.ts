@@ -2,9 +2,9 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
-import { createProxyMiddleware } from "http-proxy-middleware";
 import { GoogleGenAI } from "@google/genai";
 import { ProfessionalBrandGenerator } from "./services/ProfessionalBrandGenerator";
+import { EventOrchestrator } from "../services/EventOrchestrator";
 
 async function startServer() {
   const app = express();
@@ -12,12 +12,15 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Initialize Brand Generator
+  // Initialize Brand Generator & Event Orchestrator
   const brandGen = ProfessionalBrandGenerator.getInstance();
+  const orchestrator = EventOrchestrator.getInstance();
   try {
     await brandGen.init();
+    await orchestrator.start();
+    console.log("🎖️ [SYSTEM] Event Orchestrator active.");
   } catch (e) {
-    console.error("Brand Generator initialization failed:", e);
+    console.error("System initialization failed:", e);
   }
 
   // API Routes
@@ -33,7 +36,7 @@ async function startServer() {
 
       res.json({
         useCases: "Brand Intelligence, Domain Acquisition, Strategic Mining, Market Analysis",
-        refactorPlan: "1. Core Infrastructure Hardening\n2. Python Engine Integration\n3. Real-time Dashboard Implementation\n4. Multi-agent Coordination",
+        refactorPlan: "1. Core Infrastructure Hardening\n2. Real-time Dashboard Implementation\n3. Multi-agent Coordination\n4. Sovereign Mesh Expansion",
         metadata,
         packageJson
       });
@@ -56,54 +59,6 @@ async function startServer() {
     }
   });
 
-  // Proxy API requests to the Python engine (Hugging Face Space URL)
-  let PYTHON_ENGINE_URL = process.env.PYTHON_ENGINE_URL || "https://azeddinebeldjilali9-isthmic.hf.space";
-  if (!PYTHON_ENGINE_URL.endsWith('/')) PYTHON_ENGINE_URL += '/';
-
-  const apiProxy = createProxyMiddleware({
-    target: PYTHON_ENGINE_URL,
-    changeOrigin: true,
-    pathRewrite: (path) => {
-      // Remove /api prefix if the target engine doesn't expect it
-      // But based on current setup, we just remove the leading slash
-      return path.startsWith('/') ? path.slice(1) : path;
-    },
-    proxyTimeout: 60000, 
-    timeout: 60000,
-    headers: {
-      'Connection': 'keep-alive',
-    },
-    on: {
-      proxyReq: (proxyReq, req, _res) => {
-        // Hugging Face often needs these to be correct
-        proxyReq.setHeader('Origin', PYTHON_ENGINE_URL);
-        proxyReq.setHeader('Referer', PYTHON_ENGINE_URL);
-        
-        if (req.body) {
-          const bodyData = JSON.stringify(req.body);
-          proxyReq.setHeader('Content-Type', 'application/json');
-          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-          proxyReq.write(bodyData);
-        }
-      },
-      error: (err: Error, _req: any, res: any) => {
-        console.error("Proxy Error:", err.message);
-        if (!res.headersSent) {
-          res.writeHead(502, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ 
-            error: "Python engine unreachable", 
-            details: err.message,
-            target: PYTHON_ENGINE_URL
-          }));
-        }
-      },
-    }
-  });
-
-  app.use("/api/crawl", apiProxy);
-  app.use("/api/trends", apiProxy);
-  app.use("/api/opportunities", apiProxy);
-  
   app.post("/api/ai-proxy", async (req, res) => {
     const { model, systemInstruction, prompt, schema, tools, configOverrides } = req.body;
     
@@ -141,28 +96,14 @@ async function startServer() {
     }
   });
 
-  app.use("/api/health_proxy", async (_req, res) => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch(PYTHON_ENGINE_URL, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      
-      res.json({ 
-        status: "proxy_ok", 
-        target: PYTHON_ENGINE_URL,
-        reachable: response.ok,
-        targetStatus: response.status
-      });
-    } catch (e: any) {
-      res.status(503).json({ 
-        status: "proxy_error", 
-        target: PYTHON_ENGINE_URL,
-        reachable: false,
-        error: e.message
-      });
-    }
+  // Health check
+  app.get("/api/health", (_req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      version: "2.3.5",
+      engine: "Sovereign Core"
+    });
   });
 
   // Vite middleware for development

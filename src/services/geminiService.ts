@@ -37,9 +37,6 @@ export {
   getAuctionIntelligenceAI 
 } from "./ai/LiquidationService";
 
-// Identity & Proofing
-export { generateBrandIdentityAI, generateValueProofAI } from "./ai/ValueService";
-
 import { Type } from "@google/genai";
 import { generateStructuredAI } from "./ai/base";
 

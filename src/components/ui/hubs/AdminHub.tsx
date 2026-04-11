@@ -17,7 +17,7 @@ const AdminHub: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [currentRole, setCurrentRole] = useState<'admin' | 'user'>('admin');
 
-  const isAuthorized = user?.email?.toLowerCase() === 'zizoadszn@gmail.com';
+  const isAuthorized = user?.email?.toLowerCase() === 'azeddinebeldjilali9@gmail.com';
 
   useEffect(() => {
     const fetchUsers = async () => {

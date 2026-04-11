@@ -8,7 +8,6 @@ import {
   Settings, 
   RefreshCw, 
   Download, 
-  Zap,
   Activity
 } from 'lucide-react';
 import { translations } from '../../../translations';
@@ -59,7 +58,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       
       // Generate Trends
       const trendsRes = await generateStructuredAI<any[]>(
-        "gemini-2.5-flash",
+        "gemini-1.5-flash",
         "You are an expert market analyst. Generate 3 cutting-edge technology trends based on current market signals.",
         `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}.`,
         {
@@ -84,7 +83,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
       // Generate Opportunities
       const oppsRes = await generateStructuredAI<any[]>(
-        "gemini-2.5-flash",
+        "gemini-1.5-flash",
         "You are an expert domain name investor and brand strategist. Generate 2 highly valuable brand/domain opportunities based on the trends.",
         `Generate 2 brand opportunities based on recent tech trends.`,
         {
@@ -147,47 +146,6 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       isMounted = false;
     };
   }, []);
-
-  const handleStartMission = async () => {
-    setStatus('running');
-    setStatusMsg('');
-    
-    const payload = {
-      selected_platforms: selectedPlatforms,
-      min_keyword_length: minKeywordLength,
-      min_keyword_frequency: minKeywordFrequency,
-      weight_articles: weightArticles,
-      weight_patents: weightPatents,
-      weight_startups: weightStartups,
-      brand_name_style: brandStyle,
-      enable_loop: enableLoop,
-      max_iterations: maxIterations,
-      target_score: targetScore,
-      max_brands: 5,
-      limit_per_source: 10
-    };
-
-    try {
-      const res = await fetch('/api/crawl', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!res.ok) throw new Error("Failed to start crawl");
-      
-      setStatusMsg('✅ Mission started successfully.');
-      
-      // Auto-refresh after a delay
-      setTimeout(fetchData, 5000);
-      
-      // Reset status after some time or based on polling (simplified here)
-      setTimeout(() => setStatus('idle'), 30000);
-    } catch (err) {
-      setStatus('error');
-      setStatusMsg('❌ Connection error.');
-    }
-  };
 
   const togglePlatform = (p: string) => {
     setSelectedPlatforms(prev => 
@@ -332,16 +290,16 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
           </div>
 
           <button
-            onClick={handleStartMission}
+            onClick={fetchData}
             disabled={status === 'running'}
             className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
           >
             {status === 'running' ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
-              <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
             )}
-            {t.start}
+            Refresh Intelligence
           </button>
 
           <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
