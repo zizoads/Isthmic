@@ -36,7 +36,7 @@ class UltimateSecurityActivation {
       // 5. 📡 تفعيل مركز العمليات (SOC)
       SOC.startMonitoring();
 
-      this.displaySecurityDashboard();
+      await this.displaySecurityDashboard();
 
     } catch (error) {
       console.error('❌ [SECURITY_BREACH] CRITICAL_MOUNT_FAILURE:', error);

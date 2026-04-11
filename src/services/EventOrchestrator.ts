@@ -37,7 +37,7 @@ export class EventOrchestrator {
     this.signalService.subscribeToSignals((signals) => {
       const latestSignal = signals[0];
       if (latestSignal) {
-        this.handleIntelligenceSignal(latestSignal);
+        this.handleIntelligenceSignal(latestSignal).catch(e => console.error('Error in handleIntelligenceSignal:', e));
       }
     });
 
@@ -48,9 +48,9 @@ export class EventOrchestrator {
         const domain = { id: change.doc.id, ...change.doc.data() } as Domain;
 
         if (change.type === 'added' && domain.status === 'processing') {
-          this.handleNewDomain(domain);
+          this.handleNewDomain(domain).catch(e => console.error('Error in handleNewDomain:', e));
         } else if (change.type === 'modified') {
-          this.handleStatusChange(domain);
+          this.handleStatusChange(domain).catch(e => console.error('Error in handleStatusChange:', e));
         }
       });
     }, (error) => {
@@ -153,7 +153,11 @@ export class EventOrchestrator {
             }
           });
         } catch (error) {
-          handleFirestoreError(error, OperationType.LIST, 'domains');
+          try {
+            handleFirestoreError(error, OperationType.LIST, 'domains');
+          } catch (e) {
+            // Prevent unhandled rejection
+          }
         }
       }
     }
