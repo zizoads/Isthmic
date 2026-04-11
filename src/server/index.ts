@@ -61,11 +61,15 @@ async function startServer() {
 
   app.post("/api/ai-proxy", async (req, res) => {
     const { model, systemInstruction, prompt, schema, tools, configOverrides } = req.body;
+    const userApiKey = req.headers['x-user-api-key'] as string;
     
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = userApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+      console.error("❌ [SERVER] AI Proxy failed: No API key provided.");
+      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server and no user key provided" });
     }
+
+    console.log(`📡 [SERVER] AI Proxy request for model: ${model || 'gemini-1.5-flash'}`);
 
     try {
       const ai = new GoogleGenAI({ apiKey });

@@ -51,6 +51,15 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
 
   const fetchData = async () => {
     try {
+      setStatus('running');
+      setStatusMsg('📡 Connecting to Sovereign Core...');
+      
+      // Check server health first
+      const healthRes = await fetch('/api/health').catch(() => null);
+      if (!healthRes || !healthRes.ok) {
+        throw new Error("Sovereign Core is offline or unreachable. Please check your connection.");
+      }
+
       console.log("📡 [HUB] Fetching trends and opportunities via Gemini...");
       
       const { generateStructuredAI } = await import('../../../services/ai/base');
@@ -299,14 +308,14 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
             ) : (
               <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
             )}
-            Refresh Intelligence
+            {t.start}
           </button>
 
           <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
             status === 'running' ? 'bg-[#d4af37]/20 text-[#d4af37] animate-pulse' : 
             status === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-white/2 text-slate-600'
           }`}>
-            {status === 'running' ? t.status_running : t.status_idle}
+            {status === 'running' ? t.status_running : status === 'error' ? 'Protocol Interruption' : t.status_idle}
           </div>
           
           {statusMsg && (

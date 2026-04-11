@@ -32,7 +32,7 @@ export async function generateStructuredAI<T>(
         body: JSON.stringify({
           model: modelName,
           systemInstruction,
-          prompt,
+          prompt: typeof prompt === 'string' ? prompt : JSON.stringify(prompt),
           schema,
           tools,
           configOverrides
