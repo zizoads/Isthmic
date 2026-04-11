@@ -40,7 +40,7 @@ A low-latency abstraction layer (`src/services/HighSpeedDatabaseEngine.ts`) that
 
 ### 💎 Alpha Mine (Discovery & Audit)
 A high-velocity interface for scanning the digital frontier.
-*   **Real-time Trend Analysis**: Powered by Gemini 1.5 Flash to identify emerging tech vectors.
+*   **Real-time Trend Analysis**: Powered by Gemini 3 Flash Preview to identify emerging tech vectors.
 *   **Strategic Opportunity Synthesis**: Automatically generates brand opportunities based on detected market gaps.
 
 ### ⚒️ Brand Forge (Identity Synthesis)
@@ -57,7 +57,7 @@ A command-and-control center for monitoring system health, agent performance, an
 
 *   **Frontend**: React 18, Vite, Tailwind CSS, Motion (Animations).
 *   **Backend**: Node.js (Express) with Vite Middleware.
-*   **AI Engine**: Google Gemini 1.5 Pro & Flash (via `@google/genai`).
+*   **AI Engine**: Google Gemini 3.1 Pro Preview & 3 Flash Preview (via `@google/genai`).
 *   **Database**: Firebase Firestore (Real-time synchronization).
 *   **Security**: Custom AES-256 encryption (Sovereign Shield).
 

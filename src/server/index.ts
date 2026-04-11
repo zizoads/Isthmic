@@ -18,9 +18,8 @@ async function startServer() {
   try {
     await brandGen.init();
     await orchestrator.start();
-    console.log("🎖️ [SYSTEM] Event Orchestrator active.");
   } catch (e) {
-    console.error("System initialization failed:", e);
+    // Initialization failed
   }
 
   // API Routes
@@ -65,13 +64,10 @@ async function startServer() {
     
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey.includes('TODO')) {
-      console.error("❌ [SERVER] AI Proxy failed: No valid API key provided.");
       return res.status(401).json({ 
         error: "GEMINI_API_KEY not configured or invalid. Please provide a valid key in Settings or via header." 
       });
     }
-
-    console.log(`📡 [SERVER] AI Proxy request for model: ${model || 'gemini-3-flash-preview'}`);
 
     try {
       const ai = new GoogleGenAI({ apiKey });
@@ -98,7 +94,6 @@ async function startServer() {
         grounding: response.candidates?.[0]?.groundingMetadata?.groundingChunks
       });
     } catch (e: any) {
-      console.error("AI Proxy Error:", e.message);
       res.status(500).json({ error: "AI Synthesis failed", details: e.message });
     }
   });
@@ -136,9 +131,7 @@ async function startServer() {
   if (!process.env.VERCEL) {
     const portNum = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
     app.listen(portNum, "0.0.0.0", () => {
-      console.log(`🚀 [SERVER] Isthmic Pro active on port ${portNum}`);
-      console.log(`🌍 [SERVER] Environment: ${process.env.NODE_ENV}`);
-      console.log(`🔑 [SERVER] Gemini API Key: ${process.env.GEMINI_API_KEY ? 'CONFIGURED' : 'MISSING'}`);
+      // Server started
     });
   }
 
