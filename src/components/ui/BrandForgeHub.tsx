@@ -27,7 +27,12 @@ export const BrandForgeHub: React.FC = () => {
   const templates = [
     { name: 'AI & Neural Tech', niche: 'Neural Network Infrastructure', keywords: 'synapse, cortex, logic, flow' },
     { name: 'Fintech Elite', niche: 'High-Frequency Trading Platform', keywords: 'vault, gold, swift, pulse' },
-    { name: 'Cyber Security', niche: 'Zero-Trust Defense Systems', keywords: 'shield, guard, cipher, lock' }
+    { name: 'Cyber Security', niche: 'Zero-Trust Defense Systems', keywords: 'shield, guard, cipher, lock' },
+    { name: 'Autonomous Agents', niche: 'Agentic AI & Automation', keywords: 'agent, workflow, automate, copilot' },
+    { name: 'Data Intelligence', niche: 'Big Data & Analytics', keywords: 'pipeline, analyze, predict, scale' },
+    { name: 'Cloud Infrastructure', niche: 'Cloud Native Deployment', keywords: 'fabric, deploy, cluster, node' },
+    { name: 'Generative AI', niche: 'Multimodal Generative Models', keywords: 'diffusion, multimodal, generate, create' },
+    { name: 'Smart Robotics', niche: 'Autonomous Robotics', keywords: 'robotics, vision, action, task' }
   ];
 
   const applyTemplate = (t: typeof templates[0]) => {

@@ -14,6 +14,13 @@ export interface GeneratedBrand {
   thesis: string;
 }
 
+const BRAND_LEXICON = `
+Starts: get, join, try, go, my, Train, private, Ai, open, deep, fast, run, build, launch, scale, meta, hyper, ultra, super, next, pro, neo, auto, smart, zero, one, true, real, flow, data, edge, core, nova, apex, flux, sync, cloud, web, mind, bot, lab, hub, studio, forge
+Virals: Neural, forge, PLUS, PLUSE, Defense, Robotics, judge, Runtime, Engine, Agent, Cloud, Fabric, Cognitive, Vision, Multimodal, Large, Model, Action, Task, Self, Knowledge, Reasoning, Diffusion, Auto, Network, Video, smart, Solutions, Toolbox, Dash, Builder, Prompt, Shield, verse, host, Copilot, Assistant, Inference, Pipeline, Orchestrate, Deploy, Embed, Retrieval, Finetune, Align, Synthetic, Generative, Foundation, Frontier, Benchmark, Evaluate, Augment, Distill, Cluster, Vector, Embedding, Semantic, Context, Attention, Transformer, Encoder, Decoder, Tokenize, Stream, Batch, Agentic, Workflow, Automate, Integrate, Monitor, Observe, Analyze, Predict, Classify, Detect, Extract, Summarize, Translate, Generate, Create, Design, Optimize, Accelerate, Scale, Launch, Deploy, Iterate, Experiment, Research, Explore, Discover, Innovate, Pioneer, Advance, Evolve
+Modifiers: brain, mesh, mind, Quantum, health, intelligence, logic, compute, data, flow, chain, link, node, graph, layer, space, base, core, hub, lab, kit, suite, stack, platform, cloud, signal, pulse, wave, beam, spark, flash, bolt, forge, craft, works, labs, studio, ventures, systems, solutions, technologies, innovations, intelligence, dynamics
+Ends: Ai, os, app, hq, gen, io, co, dev, api, sdk, cli, ui, ux, pro, plus, max, ultra, prime, elite, premium, hub, lab, base, core, cloud, net, tech, bot, gpt, llm, ml, dl, nlp, cv, rl, ag, x, ly, fy, ify, ize, ise, er, or, one, zero, now, live, go, run, do
+`;
+
 class BrandForgeService {
   private markovModel: Map<string, Map<string, number>> = new Map();
 
@@ -76,8 +83,19 @@ class BrandForgeService {
         "gemini-3-flash-preview",
         "Role: World-class branding expert and domain name investor.",
         `Generate 5 high-prestige brand names for the niche: "${niche}". 
-        Use these keywords as inspiration: ${keywords.join(", ")}.
-        For each name, provide a 1-sentence investment thesis explaining why this name is valuable.`,
+        The user provided these seed keywords to indicate the THEME: ${keywords.join(", ")}.
+        
+        CRITICAL INSTRUCTION: DO NOT just reuse the exact seed keywords. You MUST use the following BACKGROUND LEXICON to source the actual words for the brand names.
+        
+        BACKGROUND LEXICON:
+        ${BRAND_LEXICON}
+        
+        INSTRUCTIONS:
+        1. Use the seed keywords ONLY to understand the desired vibe/theme.
+        2. Select words PRIMARILY from the BACKGROUND LEXICON (Starts, Virals, Modifiers, Ends) to construct the brand names.
+        3. Combine them intelligently (e.g., Start + Viral, Viral + End, Modifier + End) to create high-prestige, valuable, and natural-sounding brand names.
+        4. Do not accept any randomness. Ensure semantic alignment, phonetic resonance, and market prestige.
+        5. For each name, provide a 1-sentence investment thesis explaining why this name is valuable.`,
         {
           type: "array",
           items: {
