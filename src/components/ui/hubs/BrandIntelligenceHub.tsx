@@ -137,8 +137,32 @@ const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx
   </motion.div>
 );
 
+interface BrandIntelTranslations {
+  settings: string;
+  platforms: string;
+  keywords: string;
+  min_len: string;
+  min_freq: string;
+  weights: string;
+  weight_art: string;
+  weight_pat: string;
+  weight_sta: string;
+  style: string;
+  optimization: string;
+  iterations: string;
+  target_score: string;
+  start: string;
+  status_running: string;
+  status_idle: string;
+  title: string;
+  subtitle: string;
+  trends: string;
+  opportunities: string;
+  no_data: string;
+}
+
 interface SidebarFiltersProps {
-  brandIntelTranslations: any;
+  brandIntelTranslations: BrandIntelTranslations;
   selectedPlatforms: string[];
   togglePlatform: (p: string) => void;
   minLength: number;
@@ -177,6 +201,175 @@ interface SidebarFiltersProps {
   statusMsg: string;
   toggleFetch: () => void;
 }
+
+const PlatformSection: React.FC<{
+  translations: BrandIntelTranslations;
+  selectedPlatforms: string[];
+  togglePlatform: (p: string) => void;
+}> = ({ translations, selectedPlatforms, togglePlatform }) => (
+  <div>
+    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+      {translations.platforms}
+    </label>
+    <div className="space-y-4">
+      {[1, 2, 3, 4, 5].map(tier => (
+        <div key={tier}>
+          <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
+            {tier === 1 && "TIER 1 — EARLY SIGNALS"}
+            {tier === 2 && "TIER 2 — MONEY SIGNALS"}
+            {tier === 3 && "TIER 3 — JOB MARKET"}
+            {tier === 4 && "TIER 4 — PATENTS"}
+            {tier === 5 && "TIER 5 — MEDIA"}
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
+            {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
+              <button
+                key={p.id}
+                onClick={() => togglePlatform(p.id)}
+                className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
+                  selectedPlatforms.includes(p.id)
+                    ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
+                    : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {p.id}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const KeywordSection: React.FC<{
+  translations: BrandIntelTranslations;
+  minLength: number;
+  setMinLength: (v: number) => void;
+  minFrequency: number;
+  setMinFrequency: (v: number) => void;
+}> = ({ translations, minLength, setMinLength, minFrequency, setMinFrequency }) => (
+  <div>
+    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+      {translations.keywords}
+    </label>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{translations.min_len}</span>
+        <input 
+          type="number" 
+          value={minLength} 
+          onChange={e => setMinLength(parseInt(e.target.value))}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
+        />
+      </div>
+      <div className="space-y-2">
+        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{translations.min_freq}</span>
+        <input 
+          type="number" 
+          value={minFrequency} 
+          onChange={e => setMinFrequency(parseInt(e.target.value))}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const WeightSection: React.FC<{
+  translations: BrandIntelTranslations;
+  weights: { label: string; value: number; setter: (v: number) => void }[];
+}> = ({ translations, weights }) => (
+  <div>
+    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+      {translations.weights}
+    </label>
+    <div className="space-y-3">
+      {weights.map((w) => (
+        <div key={w.label} className="flex items-center justify-between bg-white/2 p-3 rounded-xl border border-white/5">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{w.label}</span>
+          <input 
+            type="number" step="0.1" 
+            value={w.value} 
+            onChange={e => w.setter(parseFloat(e.target.value))}
+            className="w-12 bg-transparent text-xs text-right font-mono text-[#d4af37] focus:outline-none"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const OptimizationSection: React.FC<{
+  translations: BrandIntelTranslations;
+  comOnly: boolean;
+  setComOnly: (v: boolean) => void;
+  enableLoop: boolean;
+  setEnableLoop: (v: boolean) => void;
+  maxIterations: number;
+  setMaxIterations: (v: number) => void;
+  targetScore: number;
+  setTargetScore: (v: number) => void;
+  recencyDays: number;
+  setRecencyDays: (v: number) => void;
+  minValidationSignals: number;
+  setMinValidationSignals: (v: number) => void;
+  minAlignmentScore: number;
+  setMinAlignmentScore: (v: number) => void;
+  maxPerSector: number;
+  setMaxPerSector: (v: number) => void;
+}> = ({ 
+  translations, comOnly, setComOnly, enableLoop, setEnableLoop, 
+  maxIterations, setMaxIterations, targetScore, setTargetScore,
+  recencyDays, setRecencyDays, minValidationSignals, setMinValidationSignals,
+  minAlignmentScore, setMinAlignmentScore, maxPerSector, setMaxPerSector
+}) => (
+  <div className="pt-6 border-t border-white/5">
+    <div className="flex items-center justify-between mb-6">
+      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+        {translations.optimization}
+      </label>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
+          <input 
+            type="checkbox" 
+            checked={comOnly} 
+            onChange={e => setComOnly(e.target.checked)}
+            className="w-4 h-4 accent-[#d4af37]"
+          />
+        </div>
+        <input 
+          type="checkbox" 
+          checked={enableLoop} 
+          onChange={e => setEnableLoop(e.target.checked)}
+          className="w-4 h-4 accent-[#d4af37]"
+        />
+      </div>
+    </div>
+    <div className="grid grid-cols-2 gap-4">
+      {[
+        { label: translations.iterations, value: maxIterations, setter: setMaxIterations, step: 1, disabled: !enableLoop },
+        { label: translations.target_score, value: targetScore, setter: setTargetScore, step: 0.05, disabled: !enableLoop },
+        { label: "Recency (Days)", value: recencyDays, setter: setRecencyDays, step: 1 },
+        { label: "Min Signals", value: minValidationSignals, setter: setMinValidationSignals, step: 1 },
+        { label: "Min Score", value: minAlignmentScore, setter: setMinAlignmentScore, step: 1 },
+        { label: "Max/Sector", value: maxPerSector, setter: setMaxPerSector, step: 1 }
+      ].map(opt => (
+        <div key={opt.label} className="space-y-2">
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{opt.label}</span>
+          <input 
+            type="number" step={opt.step}
+            value={opt.value} 
+            onChange={e => opt.setter(parseFloat(e.target.value))}
+            disabled={opt.disabled}
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const SidebarFilters: React.FC<SidebarFiltersProps> = ({
   brandIntelTranslations,
@@ -225,95 +418,31 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
     </div>
 
     <div className="space-y-8">
-      {/* Platforms */}
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-          {brandIntelTranslations.platforms}
-        </label>
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map(tier => (
-            <div key={tier}>
-              <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
-                {tier === 1 && "TIER 1 — EARLY SIGNALS"}
-                {tier === 2 && "TIER 2 — MONEY SIGNALS"}
-                {tier === 3 && "TIER 3 — JOB MARKET"}
-                {tier === 4 && "TIER 4 — PATENTS"}
-                {tier === 5 && "TIER 5 — MEDIA"}
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => togglePlatform(p.id)}
-                    className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
-                      selectedPlatforms.includes(p.id)
-                        ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
-                        : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {p.id}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <PlatformSection 
+        translations={brandIntelTranslations} 
+        selectedPlatforms={selectedPlatforms} 
+        togglePlatform={togglePlatform} 
+      />
 
-      {/* Keywords */}
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-          {brandIntelTranslations.keywords}
-        </label>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_len}</span>
-            <input 
-              type="number" 
-              value={minLength} 
-              onChange={e => setMinLength(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_freq}</span>
-            <input 
-              type="number" 
-              value={minFrequency} 
-              onChange={e => setMinFrequency(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
-            />
-          </div>
-        </div>
-      </div>
+      <KeywordSection 
+        translations={brandIntelTranslations} 
+        minLength={minLength} 
+        setMinLength={setMinLength} 
+        minFrequency={minFrequency} 
+        setMinFrequency={setMinFrequency} 
+      />
 
-      {/* Weights */}
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-          {brandIntelTranslations.weights}
-        </label>
-        <div className="space-y-3">
-          {[
-            { label: brandIntelTranslations.weight_art, value: weightArticles, setter: setWeightArticles },
-            { label: brandIntelTranslations.weight_pat, value: weightPatents, setter: setWeightPatents },
-            { label: brandIntelTranslations.weight_sta, value: weightStartups, setter: setWeightStartups },
-            { label: "Jobs", value: weightJobs, setter: setWeightJobs },
-            { label: "Funding", value: weightFunding, setter: setWeightFunding }
-          ].map((w) => (
-            <div key={w.label} className="flex items-center justify-between bg-white/2 p-3 rounded-xl border border-white/5">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{w.label}</span>
-              <input 
-                type="number" step="0.1" 
-                value={w.value} 
-                onChange={e => w.setter(parseFloat(e.target.value))}
-                className="w-12 bg-transparent text-xs text-right font-mono text-[#d4af37] focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      <WeightSection 
+        translations={brandIntelTranslations} 
+        weights={[
+          { label: brandIntelTranslations.weight_art, value: weightArticles, setter: setWeightArticles },
+          { label: brandIntelTranslations.weight_pat, value: weightPatents, setter: setWeightPatents },
+          { label: brandIntelTranslations.weight_sta, value: weightStartups, setter: setWeightStartups },
+          { label: "Jobs", value: weightJobs, setter: setWeightJobs },
+          { label: "Funding", value: weightFunding, setter: setWeightFunding }
+        ]} 
+      />
 
-      {/* Style */}
       <div>
         <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
           {brandIntelTranslations.style}
@@ -329,89 +458,17 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
         </select>
       </div>
 
-      {/* Optimization */}
-      <div className="pt-6 border-t border-white/5">
-        <div className="flex items-center justify-between mb-6">
-          <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-            {brandIntelTranslations.optimization}
-          </label>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
-              <input 
-                type="checkbox" 
-                checked={comOnly} 
-                onChange={e => setComOnly(e.target.checked)}
-                className="w-4 h-4 accent-[#d4af37]"
-              />
-            </div>
-            <input 
-              type="checkbox" 
-              checked={enableLoop} 
-              onChange={e => setEnableLoop(e.target.checked)}
-              className="w-4 h-4 accent-[#d4af37]"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.iterations}</span>
-            <input 
-              type="number" 
-              value={maxIterations} 
-              onChange={e => setMaxIterations(parseInt(e.target.value))}
-              disabled={!enableLoop}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.target_score}</span>
-            <input 
-              type="number" step="0.05" 
-              value={targetScore} 
-              onChange={e => setTargetScore(parseFloat(e.target.value))}
-              disabled={!enableLoop}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Recency (Days)</span>
-            <input 
-              type="number" 
-              value={recencyDays} 
-              onChange={e => setRecencyDays(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Signals</span>
-            <input 
-              type="number" 
-              value={minValidationSignals} 
-              onChange={e => setMinValidationSignals(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Score</span>
-            <input 
-              type="number" 
-              value={minAlignmentScore} 
-              onChange={e => setMinAlignmentScore(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-            />
-          </div>
-          <div className="space-y-2">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Max/Sector</span>
-            <input 
-              type="number" 
-              value={maxPerSector} 
-              onChange={e => setMaxPerSector(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-            />
-          </div>
-        </div>
-      </div>
+      <OptimizationSection 
+        translations={brandIntelTranslations}
+        comOnly={comOnly} setComOnly={setComOnly}
+        enableLoop={enableLoop} setEnableLoop={setEnableLoop}
+        maxIterations={maxIterations} setMaxIterations={setMaxIterations}
+        targetScore={targetScore} setTargetScore={setTargetScore}
+        recencyDays={recencyDays} setRecencyDays={setRecencyDays}
+        minValidationSignals={minValidationSignals} setMinValidationSignals={setMinValidationSignals}
+        minAlignmentScore={minAlignmentScore} setMinAlignmentScore={setMinAlignmentScore}
+        maxPerSector={maxPerSector} setMaxPerSector={setMaxPerSector}
+      />
 
       <button
         onClick={toggleFetch}
@@ -438,6 +495,98 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
     </div>
   </aside>
 );
+
+const TrendsSection: React.FC<{
+  translations: BrandIntelTranslations;
+  trends: Trend[];
+}> = ({ translations, trends }) => (
+  <section>
+    <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center gap-4">
+        <TrendingUp className="w-5 h-5 text-[#0ea5e9]" />
+        <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{translations.trends}</h2>
+      </div>
+      <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
+        {trends.length} DETECTED
+      </span>
+    </div>
+
+    <div className="space-y-6">
+      <AnimatePresence mode="popLayout">
+        {trends.length > 0 ? (
+          trends.map((trend, idx) => (
+            <TrendCard key={trend.id || idx} trend={trend} idx={idx} />
+          ))
+        ) : (
+          <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
+            <Search className="w-16 h-16 text-slate-800 mx-auto mb-6" />
+            <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{translations.no_data}</p>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  </section>
+);
+
+const OpportunitiesSection: React.FC<{
+  translations: BrandIntelTranslations;
+  opportunities: Opportunity[];
+}> = ({ translations, opportunities }) => (
+  <section>
+    <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center gap-4">
+        <Lightbulb className="w-5 h-5 text-[#d4af37]" />
+        <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{translations.opportunities}</h2>
+      </div>
+      <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
+        {opportunities.length} SYNTHESIZED
+      </span>
+    </div>
+
+    <div className="space-y-6">
+      <AnimatePresence mode="popLayout">
+        {opportunities.length > 0 ? (
+          opportunities.map((opp, idx) => (
+            <OpportunityCard key={opp.id || idx} opp={opp} idx={idx} />
+          ))
+        ) : (
+          <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
+            <Activity className="w-16 h-16 text-slate-800 mx-auto mb-6" />
+            <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{translations.no_data}</p>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  </section>
+);
+
+const MainContent: React.FC<{
+  translations: BrandIntelTranslations;
+  trends: Trend[];
+  opportunities: Opportunity[];
+}> = ({ translations, trends, opportunities }) => (
+  <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
+    <div className="max-w-6xl mx-auto">
+      <header className="mb-16 border-b border-white/5 pb-10">
+        <div className="flex items-center gap-6 mb-4">
+          <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
+            <Brain className="w-10 h-10 text-[#d4af37]" />
+          </div>
+          <div>
+            <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">{translations.title}</h1>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{translations.subtitle}</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <TrendsSection translations={translations} trends={trends} />
+        <OpportunitiesSection translations={translations} opportunities={opportunities} />
+      </div>
+    </div>
+  </div>
+);
+
 
 export const BrandIntelligenceHub: React.FC = () => {
   const { user } = useAuth();
@@ -650,80 +799,11 @@ export const BrandIntelligenceHub: React.FC = () => {
         toggleFetch={toggleFetch}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
-        <div className="max-w-6xl mx-auto">
-          <header className="mb-16 border-b border-white/5 pb-10">
-            <div className="flex items-center gap-6 mb-4">
-              <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
-                <Brain className="w-10 h-10 text-[#d4af37]" />
-              </div>
-              <div>
-                <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">{brandIntelTranslations.title}</h1>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{brandIntelTranslations.subtitle}</p>
-              </div>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Trends Section */}
-            <section>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <TrendingUp className="w-5 h-5 text-[#0ea5e9]" />
-                  <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{brandIntelTranslations.trends}</h2>
-                </div>
-                <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
-                  {trends.length} DETECTED
-                </span>
-              </div>
-
-              <div className="space-y-6">
-                <AnimatePresence mode="popLayout">
-                  {trends.length > 0 ? (
-                    trends.map((trend, idx) => (
-                      <TrendCard key={trend.id || idx} trend={trend} idx={idx} />
-                    ))
-                  ) : (
-                    <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
-                      <Search className="w-16 h-16 text-slate-800 mx-auto mb-6" />
-                      <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{brandIntelTranslations.no_data}</p>
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </section>
-
-            {/* Opportunities Section */}
-            <section>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <Lightbulb className="w-5 h-5 text-[#d4af37]" />
-                  <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{brandIntelTranslations.opportunities}</h2>
-                </div>
-                <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
-                  {opportunities.length} SYNTHESIZED
-                </span>
-              </div>
-
-              <div className="space-y-6">
-                <AnimatePresence mode="popLayout">
-                  {opportunities.length > 0 ? (
-                    opportunities.map((opp, idx) => (
-                      <OpportunityCard key={opp.id || idx} opp={opp} idx={idx} />
-                    ))
-                  ) : (
-                    <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
-                      <Activity className="w-16 h-16 text-slate-800 mx-auto mb-6" />
-                      <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{brandIntelTranslations.no_data}</p>
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
+      <MainContent 
+        translations={brandIntelTranslations}
+        trends={trends}
+        opportunities={opportunities}
+      />
     </div>
   );
 };
