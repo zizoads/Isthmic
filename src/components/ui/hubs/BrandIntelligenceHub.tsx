@@ -719,10 +719,14 @@ export const BrandIntelligenceHub: React.FC = () => {
         console.log("Fetch aborted");
         return;
       }
-      console.error("Fetch error:", err);
+      
       let errorMsg = err instanceof Error ? err.message : 'Unknown error';
       if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
         errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+        // Do not console.error rate limits to avoid triggering the AI Studio error overlay
+        console.warn("Fetch warning:", errorMsg);
+      } else {
+        console.error("Fetch error:", err);
       }
       
       setStatus('error');

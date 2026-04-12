@@ -85,17 +85,16 @@ class BrandForgeService {
         `Generate 5 high-prestige brand names for the niche: "${niche}". 
         The user provided these seed keywords to indicate the THEME: ${keywords.join(", ")}.
         
-        CRITICAL INSTRUCTION: DO NOT just reuse the exact seed keywords. You MUST use the following BACKGROUND LEXICON to source the actual words for the brand names.
-        
-        BACKGROUND LEXICON:
+        BACKGROUND LEXICON (Your foundational vocabulary):
         ${BRAND_LEXICON}
         
-        INSTRUCTIONS:
-        1. Use the seed keywords ONLY to understand the desired vibe/theme.
-        2. Select words PRIMARILY from the BACKGROUND LEXICON (Starts, Virals, Modifiers, Ends) to construct the brand names.
-        3. Combine them intelligently (e.g., Start + Viral, Viral + End, Modifier + End) to create high-prestige, valuable, and natural-sounding brand names.
-        4. Do not accept any randomness. Ensure semantic alignment, phonetic resonance, and market prestige.
-        5. For each name, provide a 1-sentence investment thesis explaining why this name is valuable.`,
+        ADAPTIVE SYNTHESIS INSTRUCTIONS:
+        1. THEME ALIGNMENT: Analyze the user's Niche and Seed Keywords deeply. Understand the exact industry, vibe, and target audience.
+        2. LEXICON UTILIZATION: Use the BACKGROUND LEXICON as your primary building blocks (combining Starts, Virals, Modifiers, Ends).
+        3. DYNAMIC ADAPTATION: If the user's inputs (Niche/Keywords) introduce concepts not perfectly covered by the Lexicon, you MUST adapt! Introduce new, highly relevant, premium words that fit the user's specific request, blending them seamlessly with the Lexicon's structural style.
+        4. NO PARROT MODE: Do NOT just repeat the user's seed keywords. Evolve them into premium brandable assets.
+        5. QUALITY CONTROL: Ensure semantic alignment, phonetic resonance, and market prestige. No randomness.
+        6. THESIS: For each name, provide a 1-sentence investment thesis explaining why this name is valuable for the requested niche.`,
         {
           type: "array",
           items: {
@@ -131,8 +130,13 @@ class BrandForgeService {
           thesis: item.thesis
         };
       });
-    } catch (error) {
-      console.error("Forge Error:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || '';
+      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+        console.warn("Forge Warning (Rate Limit):", errorMsg);
+      } else {
+        console.error("Forge Error:", error);
+      }
       throw error;
     }
   }

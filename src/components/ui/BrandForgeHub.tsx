@@ -72,10 +72,12 @@ export const BrandForgeHub: React.FC = () => {
         addLog('Acquisition', 'Forge failed. No identities synthesized.', 'warning');
       }
     } catch (err: any) {
-      console.error("Forge Error:", err);
       let errorMsg = err.message || 'Unknown error occurred';
       if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
         errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+        console.warn("Forge warning:", errorMsg);
+      } else {
+        console.error("Forge Error:", err);
       }
       setErrorMsg(`Error: ${errorMsg}`);
       addLog('Acquisition', 'Forge encountered a critical error.', 'critical');

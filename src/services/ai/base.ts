@@ -156,7 +156,12 @@ export async function safeAICall<T>(arg: any, userApiKey?: string): Promise<T> {
     
     return response as unknown as T;
   } catch (error: any) {
-    console.error("AI_SAFE_CALL_ERROR:", error);
+    const errorMsg = error?.message || '';
+    if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+      console.warn("AI_SAFE_CALL_WARNING (Rate Limit):", errorMsg);
+    } else {
+      console.error("AI_SAFE_CALL_ERROR:", error);
+    }
     throw error;
   }
 }
