@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Brain, 
@@ -728,24 +728,6 @@ export const BrandIntelligenceHub: React.FC = () => {
       fetchData();
     }
   };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const initFetch = async () => {
-      if (!isMounted) return;
-      // Only fetch on mount if we don't have data yet
-      if (trends.length === 0 && opportunities.length === 0) {
-        await fetchData();
-      }
-    };
-
-    initFetch().catch(e => console.error("initFetch error:", e));
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const togglePlatform = (p: string) => {
     setSelectedPlatforms(prev => 
