@@ -17,11 +17,29 @@ interface BrandIntelligenceHubProps {
 
 import { useAuth } from '../../../context/AuthContext';
 
-const PLATFORMS = [
-  "TechCrunch", "The Verge", "Engadget", "TechRadar", "GeekWire", 
-  "CNET", "Mashable", "Gizmodo", "Lifewire", "PatentsView", 
-  "Crunchbase", "BetaList", "Product Hunt", "AngelList"
-];
+const ALL_PLATFORMS = [
+  { id: 'HackerNews',      tier: 1 },
+  { id: 'ArXiv',           tier: 1 },
+  { id: 'GitHub Trending', tier: 1 },
+  { id: 'ProductHunt',     tier: 1 },
+  { id: 'Crunchbase',      tier: 2 },
+  { id: 'AngelList',       tier: 2 },
+  { id: 'YCombinator',     tier: 2 },
+  { id: 'SEC EDGAR',       tier: 2 },
+  { id: 'LinkedIn',        tier: 3 },
+  { id: 'Wellfound',       tier: 3 },
+  { id: 'Indeed',          tier: 3 },
+  { id: 'USPTO',           tier: 4 },
+  { id: 'Google Patents',  tier: 4 },
+  { id: 'WIPO',            tier: 4 },
+  { id: 'TechCrunch',      tier: 5 },
+  { id: 'TheVerge',        tier: 5 },
+  { id: 'Wired',           tier: 5 },
+  { id: 'MIT Tech Review', tier: 5 },
+  { id: 'VentureBeat',     tier: 5 },
+  { id: 'TechRadar',       tier: 5 },
+  { id: 'Betalist',        tier: 5 },
+]
 
 export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
   const { user } = useAuth();
@@ -38,12 +56,25 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   
   // Filters State
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(PLATFORMS);
-  const [minKeywordLength, setMinKeywordLength] = useState(5);
-  const [minKeywordFrequency, setMinKeywordFrequency] = useState(3);
-  const [weightArticles, setWeightArticles] = useState(1.0);
-  const [weightPatents, setWeightPatents] = useState(2.0);
-  const [weightStartups, setWeightStartups] = useState(3.0);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([
+    'HackerNews', 'ArXiv', 'ProductHunt',
+    'Crunchbase', 'AngelList',
+    'LinkedIn',
+    'USPTO',
+    'TechCrunch', 'TheVerge'
+  ])
+  const [minLength, setMinLength] = useState(4)
+  const [minFrequency, setMinFrequency] = useState(2)
+  const [weightArticles, setWeightArticles] = useState(1)
+  const [weightPatents, setWeightPatents] = useState(4)
+  const [weightStartups, setWeightStartups] = useState(3)
+  const [weightJobs, setWeightJobs] = useState(3)
+  const [weightFunding, setWeightFunding] = useState(5)
+  const [maxPerSector, setMaxPerSector] = useState(2)
+  const [recencyDays, setRecencyDays] = useState(60)
+  const [minValidationSignals, setMinValidationSignals] = useState(2)
+  const [minAlignmentScore, setMinAlignmentScore] = useState(55)
+  const [comOnly, setComOnly] = useState(true)
   const [brandStyle, setBrandStyle] = useState('merged');
   const [enableLoop, setEnableLoop] = useState(true);
   const [maxIterations, setMaxIterations] = useState(3);
@@ -80,7 +111,9 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       const trendsRes = await generateStructuredAI<any[]>(
         "gemini-3-flash-preview",
         "You are an expert market analyst. Generate 3 cutting-edge technology trends based on current market signals.",
-        `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}.`,
+        `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}. 
+         Constraints: Recency(${recencyDays} days), Min Signals(${minValidationSignals}), Min Score(${minAlignmentScore}), Max/Sector(${maxPerSector}), .com Only(${comOnly}). 
+         Weights: Jobs(${weightJobs}), Funding(${weightFunding}), Articles(${weightArticles}), Patents(${weightPatents}), Startups(${weightStartups}).`,
         {
           type: "array",
           items: {
@@ -191,19 +224,32 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
             <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
               {t.platforms}
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {PLATFORMS.map(p => (
-                <button
-                  key={p}
-                  onClick={() => togglePlatform(p)}
-                  className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
-                    selectedPlatforms.includes(p)
-                      ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
-                      : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {p}
-                </button>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map(tier => (
+                <div key={tier}>
+                  <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
+                    {tier === 1 && "TIER 1 — EARLY SIGNALS"}
+                    {tier === 2 && "TIER 2 — MONEY SIGNALS"}
+                    {tier === 3 && "TIER 3 — JOB MARKET"}
+                    {tier === 4 && "TIER 4 — PATENTS"}
+                    {tier === 5 && "TIER 5 — MEDIA"}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePlatform(p.id)}
+                        className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
+                          selectedPlatforms.includes(p.id)
+                            ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
+                            : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {p.id}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -218,8 +264,8 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{t.min_len}</span>
                 <input 
                   type="number" 
-                  value={minKeywordLength} 
-                  onChange={e => setMinKeywordLength(parseInt(e.target.value))}
+                  value={minLength} 
+                  onChange={e => setMinLength(parseInt(e.target.value))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
                 />
               </div>
@@ -227,8 +273,8 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{t.min_freq}</span>
                 <input 
                   type="number" 
-                  value={minKeywordFrequency} 
-                  onChange={e => setMinKeywordFrequency(parseInt(e.target.value))}
+                  value={minFrequency} 
+                  onChange={e => setMinFrequency(parseInt(e.target.value))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
                 />
               </div>
@@ -244,7 +290,9 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
               {[
                 { label: t.weight_art, value: weightArticles, setter: setWeightArticles },
                 { label: t.weight_pat, value: weightPatents, setter: setWeightPatents },
-                { label: t.weight_sta, value: weightStartups, setter: setWeightStartups }
+                { label: t.weight_sta, value: weightStartups, setter: setWeightStartups },
+                { label: "Jobs", value: weightJobs, setter: setWeightJobs },
+                { label: "Funding", value: weightFunding, setter: setWeightFunding }
               ].map((w, i) => (
                 <div key={i} className="flex items-center justify-between bg-white/2 p-3 rounded-xl border border-white/5">
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{w.label}</span>
@@ -281,12 +329,23 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                 {t.optimization}
               </label>
-              <input 
-                type="checkbox" 
-                checked={enableLoop} 
-                onChange={e => setEnableLoop(e.target.checked)}
-                className="w-4 h-4 accent-[#d4af37]"
-              />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
+                  <input 
+                    type="checkbox" 
+                    checked={comOnly} 
+                    onChange={e => setComOnly(e.target.checked)}
+                    className="w-4 h-4 accent-[#d4af37]"
+                  />
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={enableLoop} 
+                  onChange={e => setEnableLoop(e.target.checked)}
+                  className="w-4 h-4 accent-[#d4af37]"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -307,6 +366,42 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
                   onChange={e => setTargetScore(parseFloat(e.target.value))}
                   disabled={!enableLoop}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Recency (Days)</span>
+                <input 
+                  type="number" 
+                  value={recencyDays} 
+                  onChange={e => setRecencyDays(parseInt(e.target.value))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Signals</span>
+                <input 
+                  type="number" 
+                  value={minValidationSignals} 
+                  onChange={e => setMinValidationSignals(parseInt(e.target.value))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Score</span>
+                <input 
+                  type="number" 
+                  value={minAlignmentScore} 
+                  onChange={e => setMinAlignmentScore(parseInt(e.target.value))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Max/Sector</span>
+                <input 
+                  type="number" 
+                  value={maxPerSector} 
+                  onChange={e => setMaxPerSector(parseInt(e.target.value))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
                 />
               </div>
             </div>
