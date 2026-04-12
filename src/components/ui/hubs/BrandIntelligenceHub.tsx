@@ -638,65 +638,79 @@ export const BrandIntelligenceHub: React.FC = () => {
       const { generateStructuredAI } = await import('../../../services/ai/base');
       const userApiKey = userApiKeyRef.current;
       
-      // Generate Trends
-      const trendsRes = await generateStructuredAI<Trend[]>(
-        "gemini-3-flash-preview",
-        "You are an expert market analyst. Generate 3 cutting-edge technology trends based on current market signals.",
-        `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}. 
-         Constraints: Recency(${recencyDays} days), Min Signals(${minValidationSignals}), Min Score(${minAlignmentScore}), Max/Sector(${maxPerSector}), .com Only(${comOnly}). 
-         Weights: Jobs(${weightJobs}), Funding(${weightFunding}), Articles(${weightArticles}), Patents(${weightPatents}), Startups(${weightStartups}).`,
-        {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              id: { type: "string" },
-              keyword: { type: "string" },
-              opportunity_score: { type: "number" },
-              platforms: { type: "array", items: { type: "string" } },
-              velocity: { type: "number" }
+      let combinedRes;
+      let retries = 0;
+      const maxRetries = 2;
+
+      while (retries <= maxRetries) {
+        try {
+          combinedRes = await generateStructuredAI<{ trends: Trend[], opportunities: Opportunity[] }>(
+            "gemini-3-flash-preview",
+            "You are an expert market analyst, domain name investor, and brand strategist. First, generate 3 cutting-edge technology trends based on current market signals. Then, generate 2 highly valuable brand/domain opportunities based on those trends.",
+            `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}. 
+             Constraints: Recency(${recencyDays} days), Min Signals(${minValidationSignals}), Min Score(${minAlignmentScore}), Max/Sector(${maxPerSector}), .com Only(${comOnly}). 
+             Weights: Jobs(${weightJobs}), Funding(${weightFunding}), Articles(${weightArticles}), Patents(${weightPatents}), Startups(${weightStartups}).
+             
+             Then, generate 2 brand opportunities based on these trends.`,
+            {
+              type: "object",
+              properties: {
+                trends: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      keyword: { type: "string" },
+                      opportunity_score: { type: "number" },
+                      platforms: { type: "array", items: { type: "string" } },
+                      velocity: { type: "number" }
+                    },
+                    required: ["id", "keyword", "opportunity_score", "platforms", "velocity"]
+                  }
+                },
+                opportunities: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      name: { type: "string" },
+                      opportunity_score: { type: "number" },
+                      positioning: { type: "string" },
+                      gap: { type: "string" },
+                      supporting_evidence: { type: "array", items: { type: "string" } }
+                    },
+                    required: ["id", "name", "opportunity_score", "positioning", "gap", "supporting_evidence"]
+                  }
+                }
+              },
+              required: ["trends", "opportunities"]
             },
-            required: ["id", "keyword", "opportunity_score", "platforms", "velocity"]
+            undefined,
+            undefined,
+            signal,
+            userApiKey
+          );
+          break; // Success, exit loop
+        } catch (err: any) {
+          if (signal.aborted) return;
+          
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          if ((errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) && retries < maxRetries) {
+            retries++;
+            setStatusMsg(`⏳ Rate limit hit. Retrying in ${retries * 5} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, retries * 5000));
+          } else {
+            throw err; // Re-throw if it's not a rate limit or we're out of retries
           }
-        },
-        undefined,
-        undefined,
-        signal,
-        userApiKey
-      );
+        }
+      }
 
       if (signal.aborted) return;
 
-      // Generate Opportunities
-      const oppsRes = await generateStructuredAI<Opportunity[]>(
-        "gemini-3-flash-preview",
-        "You are an expert domain name investor and brand strategist. Generate 2 highly valuable brand/domain opportunities based on the trends.",
-        "Generate 2 brand opportunities based on recent tech trends.",
-        {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              id: { type: "string" },
-              name: { type: "string" },
-              opportunity_score: { type: "number" },
-              positioning: { type: "string" },
-              gap: { type: "string" },
-              supporting_evidence: { type: "array", items: { type: "string" } }
-            },
-            required: ["id", "name", "opportunity_score", "positioning", "gap", "supporting_evidence"]
-          }
-        },
-        undefined,
-        undefined,
-        signal,
-        userApiKey
-      );
-
-      if (signal.aborted) return;
-
-      setTrends(trendsRes.data || []);
-      setOpportunities(oppsRes.data || []);
+      setTrends(combinedRes?.data?.trends || []);
+      setOpportunities(combinedRes?.data?.opportunities || []);
       
       setStatusMsg('');
       setStatus(prev => prev === 'error' ? 'idle' : prev);
