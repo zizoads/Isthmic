@@ -185,3 +185,27 @@ export const registrarInquiryAI = async (domainName: string) => {
   );
   return res.data;
 };
+
+export const findLocalBuyersAI = async (domainName: string, sector: string) => {
+  const res = await generateStructuredAI<any[]>(
+    'gemini-2.5-pro-preview-03-25',
+    "Expert lead generation agent. Identify potential buyers for a domain based on local market data, LinkedIn job postings, and Crunchbase funding.",
+    `Find 5 potential buyers for ${domainName} in the ${sector} sector. Focus on companies with recent funding or high job demand.`,
+    {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          companyName: { type: Type.STRING },
+          reason: { type: Type.STRING },
+          contactRole: { type: Type.STRING },
+          estimatedBudget: { type: Type.STRING },
+          linkedinSignal: { type: Type.STRING },
+          fundingSignal: { type: Type.STRING }
+        }
+      }
+    },
+    [{ googleSearch: {} }]
+  );
+  return res.data;
+};
