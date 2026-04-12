@@ -22,7 +22,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (context.activeProfile && context.domains.length <= 1) {
       // @ts-ignore
-      context.performStrategicMining("High-Alpha AI Assets").catch(e => console.error("Mining error:", e));
+      context.performStrategicMining("High-Alpha AI Assets").catch(e => console.warn("Mining warning:", e));
     }
   }, [context.activeProfile]);
 

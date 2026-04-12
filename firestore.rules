@@ -105,7 +105,8 @@ service cloud.firestore {
 
     match /brand_opportunities/{oppId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin() && isValidOpportunity(request.resource.data);
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid && isValidOpportunity(request.resource.data);
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
     }
 
     match /instincts/{instinctId} {

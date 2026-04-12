@@ -221,10 +221,17 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addThought('Alpha Mine', `Prioritizing ${opportunities[0].name}: High strategic alignment detected.`, 'high');
       }
     } catch (e: any) {
-      console.error("Mining Error:", e);
-      let errorMsg = e.message || 'Unknown error occurred';
-      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
+      const errorString = typeof e === 'string' ? e : JSON.stringify(e);
+      let errorMsg = e.message || (errorString.includes('error') ? errorString : 'Unknown error occurred');
+      
+      if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded') || errorString.includes('429')) {
         errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
+        console.warn("Mining Warning (Rate Limit):", errorMsg);
+      } else if (errorMsg.includes('403') || errorMsg.includes('PERMISSION_DENIED') || errorMsg.includes('Missing or insufficient permissions') || errorString.includes('403') || errorString.includes('PERMISSION_DENIED')) {
+        errorMsg = 'Database permission denied. Please ensure your Firebase security rules are deployed.';
+        console.warn("Mining Warning (Permission):", errorMsg);
+      } else {
+        console.error("Mining Error:", e);
       }
       addLog('System', `Strategic mining failed: ${errorMsg}`, 'critical');
     } finally {
