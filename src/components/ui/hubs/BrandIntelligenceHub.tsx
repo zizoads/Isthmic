@@ -65,35 +65,33 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-all">
       <TrendingUp className="w-24 h-24" />
     </div>
-    <div className="relative z-10">
-      <div className="flex items-start justify-between mb-4">
-        <h4 className="text-2xl font-black text-[#0ea5e9] group-hover:text-white transition-colors tracking-tighter">
-          #{trend.keyword}
-        </h4>
-        <div className="flex flex-col items-end">
-          <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Opportunity</span>
-          <span className="text-xl font-mono font-black text-[#d4af37]">
-            {(trend.opportunity_score * 100).toFixed(1)}%
-          </span>
-        </div>
+    <div className="relative z-10 flex items-start justify-between mb-4">
+      <h4 className="text-2xl font-black text-[#0ea5e9] group-hover:text-white transition-colors tracking-tighter">
+        #{trend.keyword}
+      </h4>
+      <div className="flex flex-col items-end">
+        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Opportunity</span>
+        <span className="text-xl font-mono font-black text-[#d4af37]">
+          {(trend.opportunity_score * 100).toFixed(1)}%
+        </span>
       </div>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {trend.platforms.map((p: string) => (
-          <span key={p} className="text-[8px] font-black bg-white/5 text-slate-500 px-2 py-1 rounded-lg border border-white/5 uppercase tracking-widest">
-            {p}
-          </span>
-        ))}
+    </div>
+    <div className="relative z-10 flex flex-wrap gap-2 mb-6">
+      {trend.platforms.map((p: string) => (
+        <span key={p} className="text-[8px] font-black bg-white/5 text-slate-500 px-2 py-1 rounded-lg border border-white/5 uppercase tracking-widest">
+          {p}
+        </span>
+      ))}
+    </div>
+    <div className="relative z-10 flex items-center gap-6">
+      <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${trend.velocity * 100}%` }}
+          className="h-full bg-[#0ea5e9] shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+        />
       </div>
-      <div className="flex items-center gap-6">
-        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${trend.velocity * 100}%` }}
-            className="h-full bg-[#0ea5e9] shadow-[0_0_10px_rgba(14,165,233,0.5)]"
-          />
-        </div>
-        <span className="text-[9px] font-black text-slate-600 font-mono uppercase tracking-widest whitespace-nowrap">VELOCITY: {(trend.velocity * 100).toFixed(0)}%</span>
-      </div>
+      <span className="text-[9px] font-black text-slate-600 font-mono uppercase tracking-widest whitespace-nowrap">VELOCITY: {(trend.velocity * 100).toFixed(0)}%</span>
     </div>
   </motion.div>
 );
@@ -116,29 +114,329 @@ const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx
       </div>
     </div>
 
-    <div className="space-y-6 relative z-10">
-      <div>
-        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
-        <p className="text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
-      </div>
-      <div>
-        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
-        <p className="text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
-      </div>
-      <div className="flex flex-wrap gap-2 pt-2">
-        {opp.supporting_evidence.map((word: string) => (
-          <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
-            {word}
-          </span>
-        ))}
-      </div>
+    <div className="relative z-10 mb-6">
+      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
+      <p className="text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
+    </div>
+    <div className="relative z-10 mb-6">
+      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
+      <p className="text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
+    </div>
+    <div className="relative z-10 flex flex-wrap gap-2 pt-2 mb-10">
+      {opp.supporting_evidence.map((word: string) => (
+        <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
+          {word}
+        </span>
+      ))}
     </div>
 
-    <button className="mt-10 w-full py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-3 border border-white/5 hover:border-[#d4af37]">
+    <button className="relative z-10 w-full py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-3 border border-white/5 hover:border-[#d4af37]">
       <Download className="w-4 h-4" />
       Export Opportunity
     </button>
   </motion.div>
+);
+
+interface SidebarFiltersProps {
+  brandIntelTranslations: any;
+  selectedPlatforms: string[];
+  togglePlatform: (p: string) => void;
+  minLength: number;
+  setMinLength: (v: number) => void;
+  minFrequency: number;
+  setMinFrequency: (v: number) => void;
+  weightArticles: number;
+  setWeightArticles: (v: number) => void;
+  weightPatents: number;
+  setWeightPatents: (v: number) => void;
+  weightStartups: number;
+  setWeightStartups: (v: number) => void;
+  weightJobs: number;
+  setWeightJobs: (v: number) => void;
+  weightFunding: number;
+  setWeightFunding: (v: number) => void;
+  brandStyle: string;
+  setBrandStyle: (v: string) => void;
+  comOnly: boolean;
+  setComOnly: (v: boolean) => void;
+  enableLoop: boolean;
+  setEnableLoop: (v: boolean) => void;
+  maxIterations: number;
+  setMaxIterations: (v: number) => void;
+  targetScore: number;
+  setTargetScore: (v: number) => void;
+  recencyDays: number;
+  setRecencyDays: (v: number) => void;
+  minValidationSignals: number;
+  setMinValidationSignals: (v: number) => void;
+  minAlignmentScore: number;
+  setMinAlignmentScore: (v: number) => void;
+  maxPerSector: number;
+  setMaxPerSector: (v: number) => void;
+  status: string;
+  statusMsg: string;
+  toggleFetch: () => void;
+}
+
+const SidebarFilters: React.FC<SidebarFiltersProps> = ({
+  brandIntelTranslations,
+  selectedPlatforms,
+  togglePlatform,
+  minLength,
+  setMinLength,
+  minFrequency,
+  setMinFrequency,
+  weightArticles,
+  setWeightArticles,
+  weightPatents,
+  setWeightPatents,
+  weightStartups,
+  setWeightStartups,
+  weightJobs,
+  setWeightJobs,
+  weightFunding,
+  setWeightFunding,
+  brandStyle,
+  setBrandStyle,
+  comOnly,
+  setComOnly,
+  enableLoop,
+  setEnableLoop,
+  maxIterations,
+  setMaxIterations,
+  targetScore,
+  setTargetScore,
+  recencyDays,
+  setRecencyDays,
+  minValidationSignals,
+  setMinValidationSignals,
+  minAlignmentScore,
+  setMinAlignmentScore,
+  maxPerSector,
+  setMaxPerSector,
+  status,
+  statusMsg,
+  toggleFetch
+}) => (
+  <aside className="w-80 bg-[#08080a] border-r border-white/5 p-8 overflow-y-auto custom-scrollbar">
+    <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
+      <Settings className="w-5 h-5" />
+      <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{brandIntelTranslations.settings}</h3>
+    </div>
+
+    <div className="space-y-8">
+      {/* Platforms */}
+      <div>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+          {brandIntelTranslations.platforms}
+        </label>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map(tier => (
+            <div key={tier}>
+              <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
+                {tier === 1 && "TIER 1 — EARLY SIGNALS"}
+                {tier === 2 && "TIER 2 — MONEY SIGNALS"}
+                {tier === 3 && "TIER 3 — JOB MARKET"}
+                {tier === 4 && "TIER 4 — PATENTS"}
+                {tier === 5 && "TIER 5 — MEDIA"}
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => togglePlatform(p.id)}
+                    className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
+                      selectedPlatforms.includes(p.id)
+                        ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
+                        : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {p.id}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Keywords */}
+      <div>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+          {brandIntelTranslations.keywords}
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_len}</span>
+            <input 
+              type="number" 
+              value={minLength} 
+              onChange={e => setMinLength(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_freq}</span>
+            <input 
+              type="number" 
+              value={minFrequency} 
+              onChange={e => setMinFrequency(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Weights */}
+      <div>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
+          {brandIntelTranslations.weights}
+        </label>
+        <div className="space-y-3">
+          {[
+            { label: brandIntelTranslations.weight_art, value: weightArticles, setter: setWeightArticles },
+            { label: brandIntelTranslations.weight_pat, value: weightPatents, setter: setWeightPatents },
+            { label: brandIntelTranslations.weight_sta, value: weightStartups, setter: setWeightStartups },
+            { label: "Jobs", value: weightJobs, setter: setWeightJobs },
+            { label: "Funding", value: weightFunding, setter: setWeightFunding }
+          ].map((w) => (
+            <div key={w.label} className="flex items-center justify-between bg-white/2 p-3 rounded-xl border border-white/5">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{w.label}</span>
+              <input 
+                type="number" step="0.1" 
+                value={w.value} 
+                onChange={e => w.setter(parseFloat(e.target.value))}
+                className="w-12 bg-transparent text-xs text-right font-mono text-[#d4af37] focus:outline-none"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Style */}
+      <div>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
+          {brandIntelTranslations.style}
+        </label>
+        <select 
+          value={brandStyle}
+          onChange={e => setBrandStyle(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#d4af37] text-white appearance-none"
+        >
+          <option value="merged">Merged (TechCrunch)</option>
+          <option value="acronym">Acronym (TC TechCrunch)</option>
+          <option value="compound">Compound (Tech Crunch)</option>
+        </select>
+      </div>
+
+      {/* Optimization */}
+      <div className="pt-6 border-t border-white/5">
+        <div className="flex items-center justify-between mb-6">
+          <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            {brandIntelTranslations.optimization}
+          </label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
+              <input 
+                type="checkbox" 
+                checked={comOnly} 
+                onChange={e => setComOnly(e.target.checked)}
+                className="w-4 h-4 accent-[#d4af37]"
+              />
+            </div>
+            <input 
+              type="checkbox" 
+              checked={enableLoop} 
+              onChange={e => setEnableLoop(e.target.checked)}
+              className="w-4 h-4 accent-[#d4af37]"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.iterations}</span>
+            <input 
+              type="number" 
+              value={maxIterations} 
+              onChange={e => setMaxIterations(parseInt(e.target.value))}
+              disabled={!enableLoop}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.target_score}</span>
+            <input 
+              type="number" step="0.05" 
+              value={targetScore} 
+              onChange={e => setTargetScore(parseFloat(e.target.value))}
+              disabled={!enableLoop}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Recency (Days)</span>
+            <input 
+              type="number" 
+              value={recencyDays} 
+              onChange={e => setRecencyDays(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Signals</span>
+            <input 
+              type="number" 
+              value={minValidationSignals} 
+              onChange={e => setMinValidationSignals(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Score</span>
+            <input 
+              type="number" 
+              value={minAlignmentScore} 
+              onChange={e => setMinAlignmentScore(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Max/Sector</span>
+            <input 
+              type="number" 
+              value={maxPerSector} 
+              onChange={e => setMaxPerSector(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={toggleFetch}
+        className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
+      >
+        {status === 'running' ? (
+          <RefreshCw className="w-4 h-4 animate-spin" />
+        ) : (
+          <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
+        )}
+        {status === 'running' ? 'Stop Mission' : brandIntelTranslations.start}
+      </button>
+
+      <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
+        status === 'running' ? 'bg-[#d4af37]/20 text-[#d4af37] animate-pulse' : 
+        status === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-white/2 text-slate-600'
+      }`}>
+        {status === 'running' ? brandIntelTranslations.status_running : status === 'error' ? 'Protocol Interruption' : brandIntelTranslations.status_idle}
+      </div>
+
+      {statusMsg && (
+        <p className="text-[9px] text-center mt-4 text-[#0ea5e9] italic opacity-60">{statusMsg}</p>
+      )}
+    </div>
+  </aside>
 );
 
 export const BrandIntelligenceHub: React.FC = () => {
@@ -227,7 +525,7 @@ export const BrandIntelligenceHub: React.FC = () => {
       const oppsRes = await generateStructuredAI<Opportunity[]>(
         "gemini-3-flash-preview",
         "You are an expert domain name investor and brand strategist. Generate 2 highly valuable brand/domain opportunities based on the trends.",
-        `Generate 2 brand opportunities based on recent tech trends.`,
+        "Generate 2 brand opportunities based on recent tech trends.",
         {
           type: "array",
           items: {
@@ -311,226 +609,46 @@ export const BrandIntelligenceHub: React.FC = () => {
 
   return (
     <div className="flex h-full bg-[#050507] text-slate-200 overflow-hidden" dir="ltr">
-      {/* Sidebar Filters */}
-      <aside className="w-80 bg-[#08080a] border-r border-white/5 p-8 overflow-y-auto custom-scrollbar">
-        <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
-          <Settings className="w-5 h-5" />
-          <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{brandIntelTranslations.settings}</h3>
-        </div>
-
-        <div className="space-y-8">
-          {/* Platforms */}
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-              {brandIntelTranslations.platforms}
-            </label>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map(tier => (
-                <div key={tier}>
-                  <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
-                    {tier === 1 && "TIER 1 — EARLY SIGNALS"}
-                    {tier === 2 && "TIER 2 — MONEY SIGNALS"}
-                    {tier === 3 && "TIER 3 — JOB MARKET"}
-                    {tier === 4 && "TIER 4 — PATENTS"}
-                    {tier === 5 && "TIER 5 — MEDIA"}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => togglePlatform(p.id)}
-                        className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
-                          selectedPlatforms.includes(p.id)
-                            ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
-                            : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        {p.id}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Keywords */}
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-              {brandIntelTranslations.keywords}
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_len}</span>
-                <input 
-                  type="number" 
-                  value={minLength} 
-                  onChange={e => setMinLength(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.min_freq}</span>
-                <input 
-                  type="number" 
-                  value={minFrequency} 
-                  onChange={e => setMinFrequency(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#d4af37] text-white"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Weights */}
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
-              {brandIntelTranslations.weights}
-            </label>
-            <div className="space-y-3">
-              {[
-                { label: brandIntelTranslations.weight_art, value: weightArticles, setter: setWeightArticles },
-                { label: brandIntelTranslations.weight_pat, value: weightPatents, setter: setWeightPatents },
-                { label: brandIntelTranslations.weight_sta, value: weightStartups, setter: setWeightStartups },
-                { label: "Jobs", value: weightJobs, setter: setWeightJobs },
-                { label: "Funding", value: weightFunding, setter: setWeightFunding }
-              ].map((w) => (
-                <div key={w.label} className="flex items-center justify-between bg-white/2 p-3 rounded-xl border border-white/5">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{w.label}</span>
-                  <input 
-                    type="number" step="0.1" 
-                    value={w.value} 
-                    onChange={e => w.setter(parseFloat(e.target.value))}
-                    className="w-12 bg-transparent text-xs text-right font-mono text-[#d4af37] focus:outline-none"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Style */}
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
-              {brandIntelTranslations.style}
-            </label>
-            <select 
-              value={brandStyle}
-              onChange={e => setBrandStyle(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#d4af37] text-white appearance-none"
-            >
-              <option value="merged">Merged (TechCrunch)</option>
-              <option value="acronym">Acronym (TC TechCrunch)</option>
-              <option value="compound">Compound (Tech Crunch)</option>
-            </select>
-          </div>
-
-          {/* Optimization */}
-          <div className="pt-6 border-t border-white/5">
-            <div className="flex items-center justify-between mb-6">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                {brandIntelTranslations.optimization}
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
-                  <input 
-                    type="checkbox" 
-                    checked={comOnly} 
-                    onChange={e => setComOnly(e.target.checked)}
-                    className="w-4 h-4 accent-[#d4af37]"
-                  />
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={enableLoop} 
-                  onChange={e => setEnableLoop(e.target.checked)}
-                  className="w-4 h-4 accent-[#d4af37]"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.iterations}</span>
-                <input 
-                  type="number" 
-                  value={maxIterations} 
-                  onChange={e => setMaxIterations(parseInt(e.target.value))}
-                  disabled={!enableLoop}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{brandIntelTranslations.target_score}</span>
-                <input 
-                  type="number" step="0.05" 
-                  value={targetScore} 
-                  onChange={e => setTargetScore(parseFloat(e.target.value))}
-                  disabled={!enableLoop}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Recency (Days)</span>
-                <input 
-                  type="number" 
-                  value={recencyDays} 
-                  onChange={e => setRecencyDays(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Signals</span>
-                <input 
-                  type="number" 
-                  value={minValidationSignals} 
-                  onChange={e => setMinValidationSignals(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Min Score</span>
-                <input 
-                  type="number" 
-                  value={minAlignmentScore} 
-                  onChange={e => setMinAlignmentScore(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Max/Sector</span>
-                <input 
-                  type="number" 
-                  value={maxPerSector} 
-                  onChange={e => setMaxPerSector(parseInt(e.target.value))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={toggleFetch}
-            className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
-          >
-            {status === 'running' ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
-            )}
-            {status === 'running' ? 'Stop Mission' : brandIntelTranslations.start}
-          </button>
-
-          <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
-            status === 'running' ? 'bg-[#d4af37]/20 text-[#d4af37] animate-pulse' : 
-            status === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-white/2 text-slate-600'
-          }`}>
-            {status === 'running' ? brandIntelTranslations.status_running : status === 'error' ? 'Protocol Interruption' : brandIntelTranslations.status_idle}
-          </div>
-          
-          {statusMsg && (
-            <p className="text-[9px] text-center mt-4 text-[#0ea5e9] italic opacity-60">{statusMsg}</p>
-          )}
-        </div>
-      </aside>
+      <SidebarFilters 
+        brandIntelTranslations={brandIntelTranslations}
+        selectedPlatforms={selectedPlatforms}
+        togglePlatform={togglePlatform}
+        minLength={minLength}
+        setMinLength={setMinLength}
+        minFrequency={minFrequency}
+        setMinFrequency={setMinFrequency}
+        weightArticles={weightArticles}
+        setWeightArticles={setWeightArticles}
+        weightPatents={weightPatents}
+        setWeightPatents={setWeightPatents}
+        weightStartups={weightStartups}
+        setWeightStartups={setWeightStartups}
+        weightJobs={weightJobs}
+        setWeightJobs={setWeightJobs}
+        weightFunding={weightFunding}
+        setWeightFunding={setWeightFunding}
+        brandStyle={brandStyle}
+        setBrandStyle={setBrandStyle}
+        comOnly={comOnly}
+        setComOnly={setComOnly}
+        enableLoop={enableLoop}
+        setEnableLoop={setEnableLoop}
+        maxIterations={maxIterations}
+        setMaxIterations={setMaxIterations}
+        targetScore={targetScore}
+        setTargetScore={setTargetScore}
+        recencyDays={recencyDays}
+        setRecencyDays={setRecencyDays}
+        minValidationSignals={minValidationSignals}
+        setMinValidationSignals={setMinValidationSignals}
+        minAlignmentScore={minAlignmentScore}
+        setMinAlignmentScore={setMinAlignmentScore}
+        maxPerSector={maxPerSector}
+        setMaxPerSector={setMaxPerSector}
+        status={status}
+        statusMsg={statusMsg}
+        toggleFetch={toggleFetch}
+      />
 
       {/* Main Content */}
       <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">

@@ -13,6 +13,34 @@ const SOVEREIGN_PLATFORMS = {
 
 const TEMPORAL_CUTOFF = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+interface DiscoveryResult {
+  name: string;
+  estimatedPrice: number;
+  sector: string;
+  justification: string;
+  probability: number;
+  strategicAlignmentScore: number;
+  firstSignalDate: string;
+  recencyScore: number;
+  trafficSignal: 'none' | 'low' | 'medium' | 'high';
+  trafficSource: string;
+  validationMatrix: {
+    mediaSignal: boolean;
+    patentSignal: boolean;
+    jobSignal: boolean;
+    fundingSignal: boolean;
+    earlySignal: boolean;
+    confirmedValid: boolean;
+  };
+  velocityScore: {
+    weeklyGrowthRate: number;
+    searchVolumeTrajectory: 'exploding' | 'rising' | 'stable' | 'declining';
+    peakPrediction: string;
+    competitorDomainRegistrations: number;
+  };
+  platformSources: string[];
+}
+
 export const rigorousDiscoveryAI = (
   prompt: string,
   lang: 'en' = 'en',
@@ -25,7 +53,7 @@ export const rigorousDiscoveryAI = (
     ? `\nCAUSAL INTELLIGENCE (LEARNED FROM PREVIOUS REJECTIONS):\n${causalModels.map(m => `- Logic: ${m.causalLogicChain} (Impact: ${m.severityIndex})`).join('\n')}`
     : "";
 
-  return generateStructuredAI<any[]>(
+  return generateStructuredAI<DiscoveryResult[]>(
     'gemini-2.5-pro-preview-03-25',
     `Strategic Market Miner (Sovereign Core).
      Your task: Find high-potential domains based on market gaps.
@@ -115,12 +143,23 @@ export const rigorousDiscoveryAI = (
   );
 };
 
+interface DropSniperResult {
+  domain: string;
+  estimatedValue: number;
+  dropDate: string;
+  backorderPlatform: string;
+  reasonToSnipe: string;
+  strategicAlignmentScore: number;
+  jobMarketValidation: number;
+  fundingValidation: boolean;
+}
+
 export const getDropSniperListAI = async (
   sector: string,
   objectives: StrategicObjective[] = []
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
-  const res = await generateStructuredAI<any[]>(
+  const res = await generateStructuredAI<DropSniperResult[]>(
     'gemini-2.5-pro-preview-03-25',
     `Domain drop scouting agent. Neural Link Active: ${strategicContext}
      TEMPORAL RULE: Only domains dropping within the next 30 days.
@@ -186,8 +225,17 @@ export const registrarInquiryAI = async (domainName: string) => {
   return res.data;
 };
 
+interface LocalBuyerResult {
+  companyName: string;
+  reason: string;
+  contactRole: string;
+  estimatedBudget: string;
+  linkedinSignal: string;
+  fundingSignal: string;
+}
+
 export const findLocalBuyersAI = async (domainName: string, sector: string) => {
-  const res = await generateStructuredAI<any[]>(
+  const res = await generateStructuredAI<LocalBuyerResult[]>(
     'gemini-2.5-pro-preview-03-25',
     "Expert lead generation agent. Identify potential buyers for a domain based on local market data, LinkedIn job postings, and Crunchbase funding.",
     `Find 5 potential buyers for ${domainName} in the ${sector} sector. Focus on companies with recent funding or high job demand.`,
