@@ -300,6 +300,41 @@ const WeightSection: React.FC<{
   </div>
 );
 
+const HubHeader: React.FC<{ translations: BrandIntelTranslations }> = ({ translations }) => (
+  <header className="mb-16 border-b border-white/5 pb-10">
+    <div className="flex items-center gap-6 mb-4">
+      <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
+        <Brain className="w-10 h-10 text-[#d4af37]" />
+      </div>
+      <div>
+        <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">{translations.title}</h1>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{translations.subtitle}</p>
+      </div>
+    </div>
+  </header>
+);
+
+const OptimizationGrid: React.FC<{
+  translations: BrandIntelTranslations;
+  enableLoop: boolean;
+  options: { label: string; value: number; setter: (v: number) => void; step: number; disabled?: boolean }[];
+}> = ({ options }) => (
+  <div className="grid grid-cols-2 gap-4">
+    {options.map(opt => (
+      <div key={opt.label} className="space-y-2">
+        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{opt.label}</span>
+        <input 
+          type="number" step={opt.step}
+          value={opt.value} 
+          onChange={e => opt.setter(parseFloat(e.target.value))}
+          disabled={opt.disabled}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
+        />
+      </div>
+    ))}
+  </div>
+);
+
 const OptimizationSection: React.FC<{
   translations: BrandIntelTranslations;
   comOnly: boolean;
@@ -332,42 +367,49 @@ const OptimizationSection: React.FC<{
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
-          <input 
-            type="checkbox" 
-            checked={comOnly} 
-            onChange={e => setComOnly(e.target.checked)}
-            className="w-4 h-4 accent-[#d4af37]"
-          />
+          <input type="checkbox" checked={comOnly} onChange={e => setComOnly(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
         </div>
-        <input 
-          type="checkbox" 
-          checked={enableLoop} 
-          onChange={e => setEnableLoop(e.target.checked)}
-          className="w-4 h-4 accent-[#d4af37]"
-        />
+        <input type="checkbox" checked={enableLoop} onChange={e => setEnableLoop(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
       </div>
     </div>
-    <div className="grid grid-cols-2 gap-4">
-      {[
+    <OptimizationGrid 
+      translations={translations}
+      enableLoop={enableLoop}
+      options={[
         { label: translations.iterations, value: maxIterations, setter: setMaxIterations, step: 1, disabled: !enableLoop },
         { label: translations.target_score, value: targetScore, setter: setTargetScore, step: 0.05, disabled: !enableLoop },
         { label: "Recency (Days)", value: recencyDays, setter: setRecencyDays, step: 1 },
         { label: "Min Signals", value: minValidationSignals, setter: setMinValidationSignals, step: 1 },
         { label: "Min Score", value: minAlignmentScore, setter: setMinAlignmentScore, step: 1 },
         { label: "Max/Sector", value: maxPerSector, setter: setMaxPerSector, step: 1 }
-      ].map(opt => (
-        <div key={opt.label} className="space-y-2">
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{opt.label}</span>
-          <input 
-            type="number" step={opt.step}
-            value={opt.value} 
-            onChange={e => opt.setter(parseFloat(e.target.value))}
-            disabled={opt.disabled}
-            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs disabled:opacity-30 text-white"
-          />
-        </div>
-      ))}
+      ]}
+    />
+  </div>
+);
+
+const SidebarFooter: React.FC<{
+  status: string;
+  statusMsg: string;
+  translations: BrandIntelTranslations;
+  toggleFetch: () => void;
+}> = ({ status, statusMsg, translations, toggleFetch }) => (
+  <div className="mt-8 space-y-4">
+    <button
+      onClick={toggleFetch}
+      className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
+    >
+      {status === 'running' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />}
+      {status === 'running' ? 'Stop Mission' : translations.start}
+    </button>
+
+    <div className={`text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
+      status === 'running' ? 'bg-[#d4af37]/20 text-[#d4af37] animate-pulse' : 
+      status === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-white/2 text-slate-600'
+    }`}>
+      {status === 'running' ? translations.status_running : status === 'error' ? 'Protocol Interruption' : translations.status_idle}
     </div>
+
+    {statusMsg && <p className="text-[9px] text-center text-[#0ea5e9] italic opacity-60">{statusMsg}</p>}
   </div>
 );
 
@@ -418,20 +460,8 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
     </div>
 
     <div className="space-y-8">
-      <PlatformSection 
-        translations={brandIntelTranslations} 
-        selectedPlatforms={selectedPlatforms} 
-        togglePlatform={togglePlatform} 
-      />
-
-      <KeywordSection 
-        translations={brandIntelTranslations} 
-        minLength={minLength} 
-        setMinLength={setMinLength} 
-        minFrequency={minFrequency} 
-        setMinFrequency={setMinFrequency} 
-      />
-
+      <PlatformSection translations={brandIntelTranslations} selectedPlatforms={selectedPlatforms} togglePlatform={togglePlatform} />
+      <KeywordSection translations={brandIntelTranslations} minLength={minLength} setMinLength={setMinLength} minFrequency={minFrequency} setMinFrequency={setMinFrequency} />
       <WeightSection 
         translations={brandIntelTranslations} 
         weights={[
@@ -444,9 +474,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
       />
 
       <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
-          {brandIntelTranslations.style}
-        </label>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">{brandIntelTranslations.style}</label>
         <select 
           value={brandStyle}
           onChange={e => setBrandStyle(e.target.value)}
@@ -470,31 +498,11 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
         maxPerSector={maxPerSector} setMaxPerSector={setMaxPerSector}
       />
 
-      <button
-        onClick={toggleFetch}
-        className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
-      >
-        {status === 'running' ? (
-          <RefreshCw className="w-4 h-4 animate-spin" />
-        ) : (
-          <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
-        )}
-        {status === 'running' ? 'Stop Mission' : brandIntelTranslations.start}
-      </button>
-
-      <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${
-        status === 'running' ? 'bg-[#d4af37]/20 text-[#d4af37] animate-pulse' : 
-        status === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-white/2 text-slate-600'
-      }`}>
-        {status === 'running' ? brandIntelTranslations.status_running : status === 'error' ? 'Protocol Interruption' : brandIntelTranslations.status_idle}
-      </div>
-
-      {statusMsg && (
-        <p className="text-[9px] text-center mt-4 text-[#0ea5e9] italic opacity-60">{statusMsg}</p>
-      )}
+      <SidebarFooter status={status} statusMsg={statusMsg} translations={brandIntelTranslations} toggleFetch={toggleFetch} />
     </div>
   </aside>
 );
+
 
 const TrendsSection: React.FC<{
   translations: BrandIntelTranslations;
@@ -567,18 +575,7 @@ const MainContent: React.FC<{
 }> = ({ translations, trends, opportunities }) => (
   <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
     <div className="max-w-6xl mx-auto">
-      <header className="mb-16 border-b border-white/5 pb-10">
-        <div className="flex items-center gap-6 mb-4">
-          <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
-            <Brain className="w-10 h-10 text-[#d4af37]" />
-          </div>
-          <div>
-            <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">{translations.title}</h1>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{translations.subtitle}</p>
-          </div>
-        </div>
-      </header>
-
+      <HubHeader translations={translations} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <TrendsSection translations={translations} trends={trends} />
         <OpportunitiesSection translations={translations} opportunities={opportunities} />
