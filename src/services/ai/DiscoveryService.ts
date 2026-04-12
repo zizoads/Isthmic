@@ -13,7 +13,7 @@ const SOVEREIGN_PLATFORMS = {
 
 const TEMPORAL_CUTOFF = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-export const rigorousDiscoveryAI = async (
+export const rigorousDiscoveryAI = (
   prompt: string,
   lang: 'en' = 'en',
   signal?: AbortSignal,
@@ -148,9 +148,9 @@ export const getDropSniperListAI = async (
 };
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
-  const res = await generateStructuredAI<any>(
+  const res = await generateStructuredAI<Record<string, unknown>>(
     'gemini-2.5-pro-preview-03-25',
-    `Expert drop analyzer. Cross-validate against patent filings, job market, and funding data.`,
+    'Expert drop analyzer. Cross-validate against patent filings, job market, and funding data.',
     `Analyze value for ${domainName}. Check USPTO for related patents. Check LinkedIn for job demand. Check Crunchbase for sector funding.`,
     {
       type: Type.OBJECT,
@@ -170,7 +170,7 @@ export const analyzeSnipeOpportunityAI = async (domainName: string) => {
 };
 
 export const registrarInquiryAI = async (domainName: string) => {
-  const res = await generateStructuredAI<any>(
+  const res = await generateStructuredAI<Record<string, unknown>>(
     'gemini-2.5-pro-preview-03-25',
     "Real-time registrar status scout.",
     `Check availability and price for ${domainName}.`,
