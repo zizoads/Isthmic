@@ -686,4 +686,3 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
     </div>
   );
 };
-```
