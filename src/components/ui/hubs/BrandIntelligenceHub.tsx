@@ -48,18 +48,29 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
   const [enableLoop, setEnableLoop] = useState(true);
   const [maxIterations, setMaxIterations] = useState(3);
   const [targetScore, setTargetScore] = useState(0.85);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
+  const toggleFetch = () => {
+    if (status === 'running') {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      setStatus('idle');
+      setStatusMsg('Mission aborted by user.');
+    } else {
+      fetchData();
+    }
+  };
 
   const fetchData = async () => {
     try {
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
       setStatus('running');
       setStatusMsg('📡 Connecting to Sovereign Core...');
       
-      // Check server health first
-      const healthRes = await fetch('/api/health').catch(() => null);
-      if (!healthRes || !healthRes.ok) {
-        throw new Error("Sovereign Core is offline or unreachable. Please check your connection.");
-      }
-
       console.log("📡 [HUB] Fetching trends and opportunities via Gemini...");
       
       const { generateStructuredAI } = await import('../../../services/ai/base');
@@ -86,9 +97,11 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         },
         undefined,
         undefined,
-        undefined,
+        signal,
         userApiKey
       );
+
+      if (signal.aborted) return;
 
       // Generate Opportunities
       const oppsRes = await generateStructuredAI<any[]>(
@@ -112,9 +125,11 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
         },
         undefined,
         undefined,
-        undefined,
+        signal,
         userApiKey
       );
+
+      if (signal.aborted) return;
 
       setTrends(trendsRes.data || []);
       setOpportunities(oppsRes.data || []);
@@ -122,19 +137,18 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       setStatusMsg('');
       setStatus(prev => prev === 'error' ? 'idle' : prev);
     } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log("Fetch aborted");
+        return;
+      }
       console.error("Fetch error:", err);
       let errorMsg = err.message || 'Unknown error';
       if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded')) {
         errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';
       }
       
-      setTrends(prev => {
-        if (prev.length === 0) {
-          setStatus('error');
-          setStatusMsg(`❌ Fetch error: ${errorMsg}`);
-        }
-        return prev;
-      });
+      setStatus('error');
+      setStatusMsg(`❌ Fetch error: ${errorMsg}`);
     }
   };
 
@@ -149,7 +163,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
       }
     };
 
-    initFetch();
+    initFetch().catch(e => console.error("initFetch error:", e));
     
     return () => {
       isMounted = false;
@@ -299,8 +313,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
           </div>
 
           <button
-            onClick={fetchData}
-            disabled={status === 'running'}
+            onClick={toggleFetch}
             className="w-full bg-white text-black hover:bg-white/90 disabled:bg-slate-800 disabled:text-slate-500 font-black py-5 px-4 rounded-2xl transition-all flex items-center justify-center gap-3 group uppercase text-[10px] tracking-widest shadow-2xl"
           >
             {status === 'running' ? (
@@ -308,7 +321,7 @@ export const BrandIntelligenceHub: React.FC<BrandIntelligenceHubProps> = () => {
             ) : (
               <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
             )}
-            {t.start}
+            {status === 'running' ? 'Stop Mission' : t.start}
           </button>
 
           <div className={`mt-4 text-center py-3 px-4 rounded-xl text-[8px] font-black uppercase tracking-[0.3em] ${

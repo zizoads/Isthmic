@@ -139,6 +139,7 @@ async function startServer() {
 }
 
 const appPromise = startServer();
+appPromise.catch(e => console.error("Server start failed:", e));
 
 export default async (req: any, res: any) => {
   const app = await appPromise;

@@ -1,6 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, setLogLevel } from 'firebase/firestore';
+
+// Suppress Firestore idle stream warnings
+setLogLevel('error');
 
 // Import the Firebase configuration as the source of truth
 import firebaseConfigData from './firebase-applet-config.json';

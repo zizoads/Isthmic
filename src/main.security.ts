@@ -10,7 +10,7 @@ import { HighSpeedDatabaseEngine } from './services/HighSpeedDatabaseEngine';
 class UltimateSecurityActivation {
   constructor() {
     console.log('🎖️ [SYSTEM] Initiating High-Velocity Defensive Matrix...');
-    this.activateAllSystems();
+    this.activateAllSystems().catch(e => console.error('Error activating systems:', e));
   }
 
   private async activateAllSystems(): Promise<void> {

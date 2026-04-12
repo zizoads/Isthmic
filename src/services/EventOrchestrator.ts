@@ -66,28 +66,31 @@ export class EventOrchestrator {
     
     // Simulate Background Audit Work
     setTimeout(async () => {
-      const mockMetrics = {
-        da: Math.floor(Math.random() * 40) + 10,
-        pa: Math.floor(Math.random() * 30) + 5,
-        liquidityScore: Math.floor(Math.random() * 100),
-        trademarkRisk: Math.random() > 0.8 ? 'High' : 'Low'
-      };
-
       try {
-        await updateDoc(doc(db, 'domains', domain.id), {
-          status: 'available',
-          technicalMetrics: mockMetrics,
-          integrityScore: Math.floor(Math.random() * 100),
-          lastChecked: new Date().toISOString()
-        });
-      } catch (error) {
+        const mockMetrics = {
+          da: Math.floor(Math.random() * 40) + 10,
+          pa: Math.floor(Math.random() * 30) + 5,
+          liquidityScore: Math.floor(Math.random() * 100),
+          trademarkRisk: Math.random() > 0.8 ? 'High' : 'Low'
+        };
+
         try {
-          handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
-        } catch (e) {
-          // Error is already logged by handleFirestoreError, prevent unhandled rejection
+          await updateDoc(doc(db, 'domains', domain.id), {
+            status: 'available',
+            technicalMetrics: mockMetrics,
+            integrityScore: Math.floor(Math.random() * 100),
+            lastChecked: new Date().toISOString()
+          });
+        } catch (error) {
+          try {
+            handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+          } catch (e) {
+            // Error is already logged by handleFirestoreError, prevent unhandled rejection
+          }
         }
+      } catch (e) {
+        console.error('Error in handleNewDomain setTimeout:', e);
       }
-      
     }, 3000);
   }
 
@@ -100,25 +103,28 @@ export class EventOrchestrator {
         const names = await this.brandGenerator.generate_for_niche('ai', 'general_ai', 1);
         
         setTimeout(async () => {
-          const brandAssets = {
-            tagline: names[0] || "The Future of Digital Sovereignty",
-            logoUrl: `https://picsum.photos/seed/${domain.name}/200/200`,
-            colors: ['#F27D26', '#050505', '#FFFFFF']
-          };
-
           try {
-            await updateDoc(doc(db, 'domains', domain.id), {
-              brandAssets,
-              lastChecked: new Date().toISOString()
-            });
-          } catch (error) {
+            const brandAssets = {
+              tagline: names[0] || "The Future of Digital Sovereignty",
+              logoUrl: `https://picsum.photos/seed/${domain.name}/200/200`,
+              colors: ['#F27D26', '#050505', '#FFFFFF']
+            };
+
             try {
-              handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
-            } catch (e) {
-              // Prevent unhandled rejection
+              await updateDoc(doc(db, 'domains', domain.id), {
+                brandAssets,
+                lastChecked: new Date().toISOString()
+              });
+            } catch (error) {
+              try {
+                handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+              } catch (e) {
+                // Prevent unhandled rejection
+              }
             }
+          } catch (e) {
+            console.error('Error in handleStatusChange setTimeout:', e);
           }
-          
         }, 5000);
       } catch (error) {
       }
