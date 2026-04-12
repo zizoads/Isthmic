@@ -54,7 +54,7 @@ export const rigorousDiscoveryAI = (
     : "";
 
   return generateStructuredAI<DiscoveryResult[]>(
-    'gemini-2.5-pro-preview-03-25',
+    'gemini-3.1-pro-preview',
     `Strategic Market Miner (Sovereign Core).
      Your task: Find high-potential domains based on market gaps.
      MANDATORY COMPLIANCE:
@@ -160,7 +160,7 @@ export const getDropSniperListAI = async (
 ) => {
   const strategicContext = OrchestrationService.injectStrategicContext(objectives);
   const res = await generateStructuredAI<DropSniperResult[]>(
-    'gemini-2.5-pro-preview-03-25',
+    'gemini-3.1-pro-preview',
     `Domain drop scouting agent. Neural Link Active: ${strategicContext}
      TEMPORAL RULE: Only domains dropping within the next 30 days.
      PLATFORM SCAN: Check GoDaddy Auctions, NameJet, Snapnames, DropCatch, Dynadot.`,
@@ -188,7 +188,7 @@ export const getDropSniperListAI = async (
 
 export const analyzeSnipeOpportunityAI = async (domainName: string) => {
   const res = await generateStructuredAI<Record<string, unknown>>(
-    'gemini-2.5-pro-preview-03-25',
+    'gemini-3.1-pro-preview',
     'Expert drop analyzer. Cross-validate against patent filings, job market, and funding data.',
     `Analyze value for ${domainName}. Check USPTO for related patents. Check LinkedIn for job demand. Check Crunchbase for sector funding.`,
     {
@@ -210,7 +210,7 @@ export const analyzeSnipeOpportunityAI = async (domainName: string) => {
 
 export const registrarInquiryAI = async (domainName: string) => {
   const res = await generateStructuredAI<Record<string, unknown>>(
-    'gemini-2.5-pro-preview-03-25',
+    'gemini-3.1-pro-preview',
     "Real-time registrar status scout.",
     `Check availability and price for ${domainName}.`,
     {
@@ -236,7 +236,7 @@ interface LocalBuyerResult {
 
 export const findLocalBuyersAI = async (domainName: string, sector: string) => {
   const res = await generateStructuredAI<LocalBuyerResult[]>(
-    'gemini-2.5-pro-preview-03-25',
+    'gemini-3.1-pro-preview',
     "Expert lead generation agent. Identify potential buyers for a domain based on local market data, LinkedIn job postings, and Crunchbase funding.",
     `Find 5 potential buyers for ${domainName} in the ${sector} sector. Focus on companies with recent funding or high job demand.`,
     {
