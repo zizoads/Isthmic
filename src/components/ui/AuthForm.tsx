@@ -32,17 +32,17 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a0c] relative z-10 overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] relative z-10 overflow-hidden p-4">
       {/* Background Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] md:w-[800px] md:h-[800px] bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none"></div>
       
-      <div className="max-w-md w-full p-10 bg-[#111113]/80 backdrop-blur-xl border border-white/10 rounded-[40px] shadow-2xl relative z-10">
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg">
-            <Shield className="w-8 h-8 text-[#d4af37]" />
+      <div className="max-w-md w-full p-6 md:p-10 bg-[#111113]/80 backdrop-blur-xl border border-white/10 rounded-[30px] md:rounded-[40px] shadow-2xl relative z-10">
+        <div className="text-center mb-8 md:mb-10">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-black border border-white/10 rounded-xl md:rounded-2xl mx-auto flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+            <Shield className="w-6 h-6 md:w-8 md:h-8 text-[#d4af37]" />
           </div>
-          <h1 className="text-4xl prestige-title text-white italic mb-2">Sovereign.</h1>
-          <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.5em]">Military-Grade Intelligence</p>
+          <h1 className="text-3xl md:text-4xl prestige-title text-white italic mb-2">Sovereign.</h1>
+          <p className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-[0.5em]">Military-Grade Intelligence</p>
         </div>
 
         <div className="flex bg-black/50 p-1 rounded-2xl mb-8 border border-white/5">

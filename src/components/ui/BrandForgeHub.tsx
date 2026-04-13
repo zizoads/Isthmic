@@ -87,11 +87,11 @@ export const BrandForgeHub: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-8 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 max-w-6xl mx-auto">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 border-b border-white/5 pb-6 md:pb-10">
         <div className="space-y-2">
-          <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">
+          <h1 className="text-4xl md:text-5xl prestige-title text-white italic leading-none mb-2">
             Brand Forge.
           </h1>
           <p className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.5em]">
@@ -99,7 +99,7 @@ export const BrandForgeHub: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="px-6 py-3 bg-white/2 border border-white/5 rounded-2xl flex items-center gap-3 shadow-xl">
+          <div className="px-4 md:px-6 py-2 md:py-3 bg-white/2 border border-white/5 rounded-2xl flex items-center gap-3 shadow-xl">
             <Shield className="w-4 h-4 text-emerald-500" />
             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Secure Protocol: <span className="text-emerald-500">Active</span></span>
           </div>
@@ -107,11 +107,11 @@ export const BrandForgeHub: React.FC = () => {
       </div>
 
       {/* Input Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-4 space-y-8">
-          <div className="bg-[#08080a] border border-white/5 rounded-[40px] p-10 space-y-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-all">
-               <Target className="w-32 h-32" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
+        <div className="lg:col-span-4 space-y-6 md:space-y-8">
+          <div className="bg-[#08080a] border border-white/5 rounded-[30px] md:rounded-[40px] p-6 md:p-10 space-y-6 md:space-y-8 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 md:p-10 opacity-5 group-hover:opacity-10 transition-all">
+               <Target className="w-24 h-24 md:w-32 md:h-32" />
             </div>
             
             <h3 className="text-2xl font-bold text-white uppercase tracking-tighter flex items-center gap-4 relative z-10">
@@ -183,7 +183,7 @@ export const BrandForgeHub: React.FC = () => {
             )}
           </div>
 
-          <div className="bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-[30px] p-8">
+          <div className="bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-[20px] md:rounded-[30px] p-6 md:p-8">
             <div className="flex gap-4">
               <Info className="w-5 h-5 text-[#d4af37] shrink-0" />
               <p className="text-[10px] text-[#d4af37]/60 leading-relaxed font-medium uppercase tracking-widest italic">
@@ -195,40 +195,40 @@ export const BrandForgeHub: React.FC = () => {
         </div>
 
         {/* Results Section */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6 md:space-y-8">
           {isForging ? (
-            <div className="h-full min-h-[600px] flex flex-col items-center justify-center space-y-12 bg-white/2 border border-white/5 rounded-[60px] relative overflow-hidden">
+            <div className="h-full min-h-[400px] md:min-h-[600px] flex flex-col items-center justify-center space-y-8 md:space-y-12 bg-white/2 border border-white/5 rounded-[40px] md:rounded-[60px] relative overflow-hidden p-6">
               <div className="absolute inset-0 bg-gradient-to-b from-[#d4af37]/5 to-transparent" />
               <div className="relative">
-                <div className="w-32 h-32 border-2 border-[#d4af37]/20 rounded-full animate-ping" />
+                <div className="w-24 h-24 md:w-32 md:h-32 border-2 border-[#d4af37]/20 rounded-full animate-ping" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Zap className="w-12 h-12 text-[#d4af37] animate-pulse" />
+                  <Zap className="w-8 h-8 md:w-12 md:h-12 text-[#d4af37] animate-pulse" />
                 </div>
               </div>
               
-              <div className="flex flex-col items-center gap-8 relative z-10">
-                <div className="flex gap-4">
+              <div className="flex flex-col items-center gap-6 md:gap-8 relative z-10 w-full">
+                <div className="flex gap-2 md:gap-4">
                   {steps.map((step, idx) => (
                     <div 
                       key={step.id}
-                      className={`w-2 h-2 rounded-full transition-all duration-700 ${
+                      className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-700 ${
                         idx <= currentStep ? 'bg-[#d4af37] scale-150 shadow-[0_0_15px_#d4af37]' : 'bg-white/10'
                       }`}
                     />
                   ))}
                 </div>
-                <div className="text-center space-y-2">
-                  <p className="text-4xl prestige-title text-white italic tracking-tight">
+                <div className="text-center space-y-2 px-4">
+                  <p className="text-2xl md:text-4xl prestige-title text-white italic tracking-tight">
                     {steps[currentStep].label}
                   </p>
-                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] animate-pulse">
+                  <p className="text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] animate-pulse">
                     Processing neural pathways...
                   </p>
                 </div>
               </div>
             </div>
           ) : results.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
               <AnimatePresence mode="popLayout">
                 {results.map((brand, idx) => (
                   <motion.div
@@ -236,38 +236,38 @@ export const BrandForgeHub: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="group bg-[#08080a] border border-white/5 hover:border-[#d4af37]/30 rounded-[40px] p-10 transition-all shadow-2xl relative overflow-hidden"
+                    className="group bg-[#08080a] border border-white/5 hover:border-[#d4af37]/30 rounded-[30px] md:rounded-[40px] p-6 md:p-10 transition-all shadow-2xl relative overflow-hidden"
                   >
-                    <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-all">
-                       <Award className="w-32 h-32" />
+                    <div className="absolute top-0 right-0 p-6 md:p-10 opacity-5 group-hover:opacity-10 transition-all">
+                       <Award className="w-24 h-24 md:w-32 md:h-32" />
                     </div>
-                    <div className="flex flex-col lg:flex-row justify-between gap-10 relative z-10">
-                      <div className="space-y-6 flex-1">
-                        <div className="flex items-center gap-6">
-                          <h2 className="text-4xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors italic">
+                    <div className="flex flex-col lg:flex-row justify-between gap-6 md:gap-10 relative z-10">
+                      <div className="space-y-4 md:space-y-6 flex-1">
+                        <div className="flex flex-wrap items-center gap-4 md:gap-6">
+                          <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors italic">
                             {brand.name}
                           </h2>
-                          <div className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-500 uppercase tracking-widest">
+                          <div className="px-3 md:px-4 py-1 md:py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[8px] md:text-[9px] font-black text-emerald-500 uppercase tracking-widest">
                             High Prestige
                           </div>
                         </div>
-                        <p className="text-slate-400 text-lg leading-relaxed italic border-l border-[#d4af37]/30 pl-6">
+                        <p className="text-slate-400 text-base md:text-lg leading-relaxed italic border-l border-[#d4af37]/30 pl-4 md:pl-6">
                           "{brand.thesis}"
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-10 lg:border-l lg:border-white/5 lg:pl-10">
+                      <div className="flex items-center justify-between lg:justify-start gap-4 md:gap-10 lg:border-l lg:border-white/5 lg:pl-10 mt-4 lg:mt-0">
                         <div className="text-center">
-                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Phonetic</p>
-                          <p className="text-2xl font-black text-white font-mono">{brand.score.phonetic}%</p>
+                          <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Phonetic</p>
+                          <p className="text-xl md:text-2xl font-black text-white font-mono">{brand.score.phonetic}%</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Semantic</p>
-                          <p className="text-2xl font-black text-white font-mono">{brand.score.semantic}%</p>
+                          <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Semantic</p>
+                          <p className="text-xl md:text-2xl font-black text-white font-mono">{brand.score.semantic}%</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Overall</p>
-                          <p className="text-4xl font-black text-[#d4af37] font-mono">{Math.round(brand.score.total)}</p>
+                          <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Overall</p>
+                          <p className="text-3xl md:text-4xl font-black text-[#d4af37] font-mono">{Math.round(brand.score.total)}</p>
                         </div>
                       </div>
                     </div>
@@ -276,11 +276,11 @@ export const BrandForgeHub: React.FC = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="h-full min-h-[600px] flex flex-col items-center justify-center space-y-8 bg-white/2 border border-white/5 border-dashed rounded-[60px]">
-              <Target className="w-20 h-20 text-slate-800" />
+            <div className="h-full min-h-[400px] md:min-h-[600px] flex flex-col items-center justify-center space-y-6 md:space-y-8 bg-white/2 border border-white/5 border-dashed rounded-[40px] md:rounded-[60px] p-6">
+              <Target className="w-16 h-16 md:w-20 md:h-20 text-slate-800" />
               <div className="text-center space-y-2">
-                <p className="text-2xl prestige-title text-white italic">Ready for Synthesis.</p>
-                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Enter a niche and keywords to begin the forge sequence.</p>
+                <p className="text-xl md:text-2xl prestige-title text-white italic">Ready for Synthesis.</p>
+                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest">Enter a niche and keywords to begin the forge sequence.</p>
               </div>
             </div>
           )}

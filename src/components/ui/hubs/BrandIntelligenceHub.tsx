@@ -60,18 +60,18 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay: idx * 0.05 }}
-    className="bg-white/2 border border-white/5 p-6 rounded-3xl hover:border-[#0ea5e9]/30 transition-all group relative overflow-hidden"
+    className="bg-white/2 border border-white/5 p-4 md:p-6 rounded-2xl md:rounded-3xl hover:border-[#0ea5e9]/30 transition-all group relative overflow-hidden"
   >
-    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-all">
-      <TrendingUp className="w-24 h-24" />
+    <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover:opacity-10 transition-all">
+      <TrendingUp className="w-16 h-16 md:w-24 md:h-24" />
     </div>
     <div className="relative z-10 flex items-start justify-between mb-4">
-      <h4 className="text-2xl font-black text-[#0ea5e9] group-hover:text-white transition-colors tracking-tighter">
+      <h4 className="text-xl md:text-2xl font-black text-[#0ea5e9] group-hover:text-white transition-colors tracking-tighter">
         #{trend.keyword}
       </h4>
       <div className="flex flex-col items-end">
         <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Opportunity</span>
-        <span className="text-xl font-mono font-black text-[#d4af37]">
+        <span className="text-lg md:text-xl font-mono font-black text-[#d4af37]">
           {(trend.opportunity_score * 100).toFixed(1)}%
         </span>
       </div>
@@ -83,7 +83,7 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
         </span>
       ))}
     </div>
-    <div className="relative z-10 flex items-center gap-6">
+    <div className="relative z-10 flex items-center gap-4 md:gap-6">
       <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
         <motion.div 
           initial={{ width: 0 }}
@@ -91,7 +91,7 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
           className="h-full bg-[#0ea5e9] shadow-[0_0_10px_rgba(14,165,233,0.5)]"
         />
       </div>
-      <span className="text-[9px] font-black text-slate-600 font-mono uppercase tracking-widest whitespace-nowrap">VELOCITY: {(trend.velocity * 100).toFixed(0)}%</span>
+      <span className="text-[8px] md:text-[9px] font-black text-slate-600 font-mono uppercase tracking-widest whitespace-nowrap">VELOCITY: {(trend.velocity * 100).toFixed(0)}%</span>
     </div>
   </motion.div>
 );
@@ -101,36 +101,36 @@ const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: idx * 0.1 }}
-    className="bg-[#08080a] border border-white/5 p-8 rounded-[40px] relative overflow-hidden group hover:border-[#d4af37]/30 transition-all shadow-2xl"
+    className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] relative overflow-hidden group hover:border-[#d4af37]/30 transition-all shadow-2xl"
   >
-    <div className="absolute top-0 right-0 w-48 h-48 bg-[#d4af37]/5 blur-3xl -mr-24 -mt-24 group-hover:bg-[#d4af37]/10 transition-all" />
+    <div className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 bg-[#d4af37]/5 blur-3xl -mr-16 -mt-16 md:-mr-24 md:-mt-24 group-hover:bg-[#d4af37]/10 transition-all" />
     
     <div className="flex items-center justify-between mb-6 relative z-10">
-      <h3 className="text-3xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors">
+      <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors">
         {opp.name}
       </h3>
-      <div className="bg-[#d4af37]/10 text-[#d4af37] text-[9px] font-black px-3 py-1.5 rounded-full border border-[#d4af37]/20 uppercase tracking-widest">
+      <div className="bg-[#d4af37]/10 text-[#d4af37] text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-[#d4af37]/20 uppercase tracking-widest">
         SCORE: {(opp.opportunity_score * 100).toFixed(1)}
       </div>
     </div>
 
-    <div className="relative z-10 mb-6">
-      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
-      <p className="text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
+    <div className="relative z-10 mb-4 md:mb-6">
+      <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
+      <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
     </div>
-    <div className="relative z-10 mb-6">
-      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
-      <p className="text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
+    <div className="relative z-10 mb-4 md:mb-6">
+      <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
+      <p className="text-[10px] md:text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
     </div>
-    <div className="relative z-10 flex flex-wrap gap-2 pt-2 mb-10">
+    <div className="relative z-10 flex flex-wrap gap-2 pt-2 mb-8 md:mb-10">
       {opp.supporting_evidence.map((word: string) => (
-        <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
+        <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-2 md:px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
           {word}
         </span>
       ))}
     </div>
 
-    <button className="relative z-10 w-full py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-3 border border-white/5 hover:border-[#d4af37]">
+    <button className="relative z-10 w-full py-3 md:py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-2 md:gap-3 border border-white/5 hover:border-[#d4af37]">
       <Download className="w-4 h-4" />
       Export Opportunity
     </button>
@@ -301,14 +301,14 @@ const WeightSection: React.FC<{
 );
 
 const HubHeader: React.FC<{ translations: BrandIntelTranslations }> = ({ translations }) => (
-  <header className="mb-16 border-b border-white/5 pb-10">
-    <div className="flex items-center gap-6 mb-4">
-      <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
-        <Brain className="w-10 h-10 text-[#d4af37]" />
+  <header className="mb-8 md:mb-16 border-b border-white/5 pb-6 md:pb-10">
+    <div className="flex items-center gap-4 md:gap-6 mb-4">
+      <div className="p-3 md:p-4 bg-white/2 border border-white/5 rounded-2xl md:rounded-3xl">
+        <Brain className="w-8 h-8 md:w-10 md:h-10 text-[#d4af37]" />
       </div>
       <div>
-        <h1 className="text-5xl prestige-title text-white italic leading-none mb-2">{translations.title}</h1>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{translations.subtitle}</p>
+        <h1 className="text-3xl md:text-5xl prestige-title text-white italic leading-none mb-2">{translations.title}</h1>
+        <p className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{translations.subtitle}</p>
       </div>
     </div>
   </header>
@@ -453,7 +453,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
   statusMsg,
   toggleFetch
 }) => (
-  <aside className="w-80 bg-[#08080a] border-r border-white/5 p-8 overflow-y-auto custom-scrollbar">
+  <aside className="w-full bg-[#08080a] p-6 lg:p-8">
     <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
       <Settings className="w-5 h-5" />
       <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{brandIntelTranslations.settings}</h3>
@@ -509,26 +509,26 @@ const TrendsSection: React.FC<{
   trends: Trend[];
 }> = ({ translations, trends }) => (
   <section>
-    <div className="flex items-center justify-between mb-8">
-      <div className="flex items-center gap-4">
-        <TrendingUp className="w-5 h-5 text-[#0ea5e9]" />
-        <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{translations.trends}</h2>
+    <div className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="flex items-center gap-3 md:gap-4">
+        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-[#0ea5e9]" />
+        <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">{translations.trends}</h2>
       </div>
-      <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
+      <span className="text-[8px] md:text-[9px] bg-white/2 border border-white/5 px-2 md:px-3 py-1 md:py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
         {trends.length} DETECTED
       </span>
     </div>
 
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <AnimatePresence mode="popLayout">
         {trends.length > 0 ? (
           trends.map((trend, idx) => (
             <TrendCard key={trend.id || idx} trend={trend} idx={idx} />
           ))
         ) : (
-          <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
-            <Search className="w-16 h-16 text-slate-800 mx-auto mb-6" />
-            <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{translations.no_data}</p>
+          <div className="text-center py-16 md:py-24 bg-white/2 rounded-[30px] md:rounded-[40px] border border-dashed border-white/5">
+            <Search className="w-12 h-12 md:w-16 md:h-16 text-slate-800 mx-auto mb-4 md:mb-6" />
+            <p className="text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-widest px-6 md:px-10">{translations.no_data}</p>
           </div>
         )}
       </AnimatePresence>
@@ -541,26 +541,26 @@ const OpportunitiesSection: React.FC<{
   opportunities: Opportunity[];
 }> = ({ translations, opportunities }) => (
   <section>
-    <div className="flex items-center justify-between mb-8">
-      <div className="flex items-center gap-4">
-        <Lightbulb className="w-5 h-5 text-[#d4af37]" />
-        <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">{translations.opportunities}</h2>
+    <div className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="flex items-center gap-3 md:gap-4">
+        <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-[#d4af37]" />
+        <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">{translations.opportunities}</h2>
       </div>
-      <span className="text-[9px] bg-white/2 border border-white/5 px-3 py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
+      <span className="text-[8px] md:text-[9px] bg-white/2 border border-white/5 px-2 md:px-3 py-1 md:py-1.5 rounded-full text-slate-500 font-black uppercase tracking-widest">
         {opportunities.length} SYNTHESIZED
       </span>
     </div>
 
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <AnimatePresence mode="popLayout">
         {opportunities.length > 0 ? (
           opportunities.map((opp, idx) => (
             <OpportunityCard key={opp.id || idx} opp={opp} idx={idx} />
           ))
         ) : (
-          <div className="text-center py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5">
-            <Activity className="w-16 h-16 text-slate-800 mx-auto mb-6" />
-            <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-10">{translations.no_data}</p>
+          <div className="text-center py-16 md:py-24 bg-white/2 rounded-[30px] md:rounded-[40px] border border-dashed border-white/5">
+            <Activity className="w-12 h-12 md:w-16 md:h-16 text-slate-800 mx-auto mb-4 md:mb-6" />
+            <p className="text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-widest px-6 md:px-10">{translations.no_data}</p>
           </div>
         )}
       </AnimatePresence>
@@ -573,10 +573,10 @@ const MainContent: React.FC<{
   trends: Trend[];
   opportunities: Opportunity[];
 }> = ({ translations, trends, opportunities }) => (
-  <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
+  <div className="flex-1 p-4 md:p-8 lg:p-12">
     <div className="max-w-6xl mx-auto">
       <HubHeader translations={translations} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
         <TrendsSection translations={translations} trends={trends} />
         <OpportunitiesSection translations={translations} opportunities={opportunities} />
       </div>
@@ -754,53 +754,57 @@ export const BrandIntelligenceHub: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full bg-[#050507] text-slate-200 overflow-hidden" dir="ltr">
-      <SidebarFilters 
-        brandIntelTranslations={brandIntelTranslations}
-        selectedPlatforms={selectedPlatforms}
-        togglePlatform={togglePlatform}
-        minLength={minLength}
-        setMinLength={setMinLength}
-        minFrequency={minFrequency}
-        setMinFrequency={setMinFrequency}
-        weightArticles={weightArticles}
-        setWeightArticles={setWeightArticles}
-        weightPatents={weightPatents}
-        setWeightPatents={setWeightPatents}
-        weightStartups={weightStartups}
-        setWeightStartups={setWeightStartups}
-        weightJobs={weightJobs}
-        setWeightJobs={setWeightJobs}
-        weightFunding={weightFunding}
-        setWeightFunding={setWeightFunding}
-        brandStyle={brandStyle}
-        setBrandStyle={setBrandStyle}
-        comOnly={comOnly}
-        setComOnly={setComOnly}
-        enableLoop={enableLoop}
-        setEnableLoop={setEnableLoop}
-        maxIterations={maxIterations}
-        setMaxIterations={setMaxIterations}
-        targetScore={targetScore}
-        setTargetScore={setTargetScore}
-        recencyDays={recencyDays}
-        setRecencyDays={setRecencyDays}
-        minValidationSignals={minValidationSignals}
-        setMinValidationSignals={setMinValidationSignals}
-        minAlignmentScore={minAlignmentScore}
-        setMinAlignmentScore={setMinAlignmentScore}
-        maxPerSector={maxPerSector}
-        setMaxPerSector={setMaxPerSector}
-        status={status}
-        statusMsg={statusMsg}
-        toggleFetch={toggleFetch}
-      />
+    <div className="flex flex-col lg:flex-row h-full bg-[#050507] text-slate-200 overflow-hidden" dir="ltr">
+      <div className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 overflow-y-auto custom-scrollbar">
+        <SidebarFilters 
+          brandIntelTranslations={brandIntelTranslations}
+          selectedPlatforms={selectedPlatforms}
+          togglePlatform={togglePlatform}
+          minLength={minLength}
+          setMinLength={setMinLength}
+          minFrequency={minFrequency}
+          setMinFrequency={setMinFrequency}
+          weightArticles={weightArticles}
+          setWeightArticles={setWeightArticles}
+          weightPatents={weightPatents}
+          setWeightPatents={setWeightPatents}
+          weightStartups={weightStartups}
+          setWeightStartups={setWeightStartups}
+          weightJobs={weightJobs}
+          setWeightJobs={setWeightJobs}
+          weightFunding={weightFunding}
+          setWeightFunding={setWeightFunding}
+          brandStyle={brandStyle}
+          setBrandStyle={setBrandStyle}
+          comOnly={comOnly}
+          setComOnly={setComOnly}
+          enableLoop={enableLoop}
+          setEnableLoop={setEnableLoop}
+          maxIterations={maxIterations}
+          setMaxIterations={setMaxIterations}
+          targetScore={targetScore}
+          setTargetScore={setTargetScore}
+          recencyDays={recencyDays}
+          setRecencyDays={setRecencyDays}
+          minValidationSignals={minValidationSignals}
+          setMinValidationSignals={setMinValidationSignals}
+          minAlignmentScore={minAlignmentScore}
+          setMinAlignmentScore={setMinAlignmentScore}
+          maxPerSector={maxPerSector}
+          setMaxPerSector={setMaxPerSector}
+          status={status}
+          statusMsg={statusMsg}
+          toggleFetch={toggleFetch}
+        />
+      </div>
 
-      <MainContent 
-        translations={brandIntelTranslations}
-        trends={trends}
-        opportunities={opportunities}
-      />
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <MainContent 
+          translations={brandIntelTranslations}
+          trends={trends}
+          opportunities={opportunities}
+        />
+      </div>
     </div>
   );
 };

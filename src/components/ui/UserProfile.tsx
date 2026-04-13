@@ -77,11 +77,11 @@ export const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#08080a] border border-white/5 p-10 rounded-[40px] shadow-2xl space-y-8">
-      <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Sovereign Profile</h2>
+    <div className="bg-[#08080a] border border-white/5 p-6 md:p-10 rounded-[30px] md:rounded-[40px] shadow-2xl space-y-6 md:space-y-8">
+      <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter">Sovereign Profile</h2>
       
       {status && (
-        <div className={`p-6 rounded-3xl text-[11px] font-black uppercase tracking-widest text-center border ${
+        <div className={`p-4 md:p-6 rounded-2xl md:rounded-3xl text-[9px] md:text-[11px] font-black uppercase tracking-widest text-center border ${
           status.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
         }`}>
           {status.msg}
@@ -90,18 +90,18 @@ export const UserProfile: React.FC = () => {
 
       <div className="space-y-4">
         <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block">Gemini API Key (BYOK)</label>
-        <p className="text-xs text-slate-400 mb-2">Enter your personal Gemini API key to power the AI features. This key is stored securely in your profile.</p>
+        <p className="text-[10px] md:text-xs text-slate-400 mb-2">Enter your personal Gemini API key to power the AI features. This key is stored securely in your profile.</p>
         <input 
           type="password" 
           value={apiKeys.gemini || ''} 
           onChange={e => setApiKeys({ ...apiKeys, gemini: e.target.value })} 
-          className="w-full bg-[#111113] border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-slate-500 focus:border-[#d4af37]/50 outline-none transition-all text-sm" 
+          className="w-full bg-[#111113] border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 text-white placeholder-slate-500 focus:border-[#d4af37]/50 outline-none transition-all text-xs md:text-sm" 
           placeholder="AIzaSy..." 
         />
       </div>
       
-      <div className="pt-8 border-t border-white/5 space-y-4">
-        <div className="flex justify-between items-center">
+      <div className="pt-6 md:pt-8 border-t border-white/5 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block">Custom Tools</label>
           <div className="flex gap-2">
             <button onClick={() => addCustomTool()} className="text-[#d4af37] hover:text-white transition-colors flex items-center gap-2 text-[9px] font-black uppercase">
@@ -119,13 +119,15 @@ export const UserProfile: React.FC = () => {
         </div>
 
         {apiKeys.customTools?.map((tool, index) => (
-          <div key={tool.id} className="flex gap-2 items-center bg-white/5 p-3 rounded-2xl border border-white/5">
-            <input type="text" value={tool.name} onChange={e => updateCustomTool(index, 'name', e.target.value)} className="flex-1 bg-transparent text-white text-xs outline-none" placeholder="Tool Name" />
-            <input type="password" value={tool.apiKey} onChange={e => updateCustomTool(index, 'apiKey', e.target.value)} className="flex-1 bg-transparent text-white text-xs outline-none" placeholder="API Key" />
-            <div className={`w-2 h-2 rounded-full ${tool.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'}`} />
-            <button onClick={() => removeCustomTool(index)} className="text-red-500 hover:text-red-400 transition-colors">
-              <Trash2 className="w-4 h-4" />
-            </button>
+          <div key={tool.id} className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-start sm:items-center bg-white/5 p-4 sm:p-3 rounded-2xl border border-white/5">
+            <input type="text" value={tool.name} onChange={e => updateCustomTool(index, 'name', e.target.value)} className="w-full sm:flex-1 bg-transparent text-white text-xs outline-none border-b sm:border-none border-white/10 pb-2 sm:pb-0" placeholder="Tool Name" />
+            <div className="flex items-center gap-2 w-full sm:flex-1">
+              <input type="password" value={tool.apiKey} onChange={e => updateCustomTool(index, 'apiKey', e.target.value)} className="flex-1 bg-transparent text-white text-xs outline-none" placeholder="API Key" />
+              <div className={`w-2 h-2 rounded-full shrink-0 ${tool.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+              <button onClick={() => removeCustomTool(index)} className="text-red-500 hover:text-red-400 transition-colors shrink-0">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -133,7 +135,7 @@ export const UserProfile: React.FC = () => {
       <button 
         onClick={handleSave} 
         disabled={isLoading}
-        className="w-full bg-[#d4af37] text-black hover:bg-[#c5a059] font-black py-5 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all shadow-2xl"
+        className="w-full bg-[#d4af37] text-black hover:bg-[#c5a059] font-black py-4 md:py-5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] uppercase tracking-[0.2em] transition-all shadow-2xl"
       >
         {isLoading ? 'SAVING...' : 'SAVE CONFIGURATION'}
       </button>
