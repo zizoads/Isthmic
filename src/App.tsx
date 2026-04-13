@@ -46,7 +46,7 @@ const App: React.FC = () => {
           <div className="relative z-10 h-screen overflow-hidden">
             <MainLayout 
               activityLogs={context.activityLogs} 
-              onSearchDomain={(name) => {}}
+              onSearchDomain={(_name) => {}}
             >
               <HubRenderer 
                 domains={context.domains}

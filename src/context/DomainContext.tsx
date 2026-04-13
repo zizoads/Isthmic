@@ -87,7 +87,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, (error) => {
       try {
         handleFirestoreError(error, OperationType.LIST, 'brand_opportunities');
-      } catch (e) {
+      } catch (_e) {
         // Error is logged by handleFirestoreError
       }
       setIsInitialLoading(false);
@@ -123,7 +123,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.UPDATE, `brand_opportunities/${d.id}`);
-      } catch (e) {
+      } catch (_e) {
         // Error is logged by handleFirestoreError
       }
     }
@@ -140,7 +140,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.CREATE, 'brand_opportunities');
-      } catch (e) {
+      } catch (_e) {
         // Error is logged by handleFirestoreError
       }
     }
