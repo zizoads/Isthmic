@@ -88,7 +88,7 @@ export class ProfessionalBrandGenerator {
             }
           }
         }
-      } catch (_e) {}
+      } catch (e) {}
     }
     const result = Array.from(expanded);
     return shuffle(result);

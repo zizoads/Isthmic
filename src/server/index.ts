@@ -1,6 +1,8 @@
 import express from "express";
+import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
+import { GoogleGenAI } from "@google/genai";
 import { ProfessionalBrandGenerator } from "./services/ProfessionalBrandGenerator";
 import { EventOrchestrator } from "../services/EventOrchestrator";
 
@@ -16,7 +18,7 @@ async function startServer() {
   try {
     await brandGen.init();
     await orchestrator.start();
-  } catch (_e) {
+  } catch (e) {
     // Initialization failed
   }
 
@@ -37,7 +39,7 @@ async function startServer() {
         metadata,
         packageJson
       });
-    } catch (_e) {
+    } catch (e) {
       res.status(500).json({ error: "Failed to fetch project context" });
     }
   });
@@ -51,7 +53,7 @@ async function startServer() {
         parseInt(count as string)
       );
       res.json({ names });
-    } catch (_e) {
+    } catch (e) {
       res.status(500).json({ error: "Failed to generate brands" });
     }
   });
