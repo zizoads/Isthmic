@@ -1,4 +1,5 @@
 {
+  "_comment": "Note: Cloudflare Pages (wrangler.toml) is the active deployment config. This file is kept for reference only.",
   "version": 2,
   "rewrites": [
     {

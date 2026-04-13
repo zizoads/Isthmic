@@ -8,85 +8,80 @@ app_port: 7860
 pinned: false
 ---
 
-# 🎖️ Isthmic Pro: Sovereign Core v3.0.0
+# Isthmic Pro — Sovereign Core Engine v2.3
 
-Isthmic Pro is a high-prestige, multi-agent strategic engine designed for elite domain acquisition and brand intelligence. It operates on a "Sovereign" architecture, combining real-time market signals with deep AI synthesis to identify and forge digital assets.
+**Status:** FULLY_HARDENED | **Deployment:** Cloudflare Pages + Hugging Face Spaces
 
----
+Isthmic Pro is a sovereign intelligence and brand synthesis engine. Designed for precision, speed, and absolute control, it consolidates multi-tier data mining, AI-driven brand generation, and system integrity management into a unified, military-grade interface.
 
-## 🏗️ System Architecture (The Sovereign Mesh)
-
-Isthmic Pro is built on a distributed service mesh where specialized agents collaborate autonomously.
-
-### 1. 🕵️ Sovereign Event Orchestrator (The Ghost Engine)
-The core of the system is the **EventOrchestrator** (`src/services/EventOrchestrator.ts`). This is a server-side background service that monitors the state of the digital frontier (Firestore) and triggers autonomous workflows:
-*   **Autonomous Auditing**: When a new domain is identified, the Orchestrator automatically triggers a background audit to calculate DA/PA, Liquidity Scores, and Trademark Risks.
-*   **Identity Synthesis**: Upon domain acquisition, it triggers the **ProfessionalBrandGenerator** to synthesize a unique brand DNA (Taglines, Visual Seeds, and Color Palettes).
-*   **Signal Boosting**: It listens to the **IRONSIGHT Protocol** (Market Signals) and dynamically adjusts asset probabilities based on global trends.
-
-### 2. 🧠 Master Brain Engine
-Located in `src/services/masterBrainEngine.ts`, this engine handles high-level strategic decomposition. It takes an investment thesis and breaks it down into executable nodes (Discovery, Forensic, Liquidation).
-
-### 3. 🛡️ Sovereign Shield & Military Vault
-*   **Sovereign Shield**: Handles local data sovereignty, ensuring that sensitive session data remains encrypted and local-first.
-*   **Military Vault**: A secure abstraction for API key management, supporting "Bring Your Own Key" (BYOK) protocols for Gemini and other strategic tools.
-
-### 4. ⚡ High-Speed Database Engine
-A low-latency abstraction layer (`src/services/HighSpeedDatabaseEngine.ts`) that manages real-time telemetry and structural stability checks, ensuring the system remains responsive under heavy analytical loads.
+[Live System Access](https://isthmic.com)
 
 ---
 
-## 🚀 Key Features
+## 🛡️ Core Architecture (4 Sections)
 
-### 💎 Alpha Mine (Discovery & Audit)
-A high-velocity interface for scanning the digital frontier.
-*   **Real-time Trend Analysis**: Powered by Gemini 3 Flash Preview to identify emerging tech vectors.
-*   **Strategic Opportunity Synthesis**: Automatically generates brand opportunities based on detected market gaps.
+The Sovereign Core Engine operates through four primary hubs, each dedicated to a specific operational directive:
 
-### ⚒️ Brand Forge (Identity Synthesis)
-A hybrid Markov-AI engine for forging high-prestige brand identities.
-*   **Phonetic Resonance Audit**: Calculates the "sound" quality of a brand name using alliteration and consonance algorithms.
-*   **Semantic Alignment**: Uses LLMs to ensure the brand name aligns perfectly with the target market niche.
+### 1. Alpha Mine (Discovery & Audit)
+A multi-tier source analysis engine designed to extract high-value signals from the noise.
+- **5-Tier Source System:**
+  - *Early Signals:* HackerNews, ArXiv, GitHub Trending, ProductHunt
+  - *Money Signals:* CrunchBase, AngelList, YCombinator, SEC Edgar
+  - *Job Market:* LinkedIn, WellFound, Indeed
+  - *Patents:* USPTO, GooglePatents, WIPO
+  - *Media:* TechCrunch, TheVerge, Wired, MITTechReview, VentureBeat, TechRadar, BetaList
+- **Optimization Loop:** Configurable iterations, target score (0.85), recency days (60), minimum signals (2), minimum score (55), and max per sector (2).
+- **Filters:** .COM Only active, Naming Style: Merged(TechCrunch).
+- **Source Weights:** Articles=1, Patents=4, Startups=3, Jobs=3, Funding=5.
 
-### 📊 Admin Control (System Oversight)
-A command-and-control center for monitoring system health, agent performance, and database integrity.
+### 2. Brand Intel (Smart Intelligence)
+The Brand Forge utilizes a Hybrid Markov-AI Synthesis Protocol to generate high-prestige, phonetically resonant brand identities.
+- **Quick Templates:** AI & Neural Tech, Fintech Elite, Cyber Security, Autonomous Agents, Data Intelligence, Cloud Infrastructure, Generative AI, Smart Robotics.
+- **Input Parameters:** Market Niche + Seed Keywords.
+- **Security:** Secure Protocol indicator active.
 
----
+### 3. Profile (Identity)
+Sovereign identity configuration and API key management.
+- **BYOK (Bring Your Own Key):** Secure integration for the Gemini API.
+- **Custom Tools Integration:** User-configurable access to Estibot, Semrush, Ahrefs, USPTO, and Hunter.io.
 
-## 🛠️ Technical Stack
-
-*   **Frontend**: React 18, Vite, Tailwind CSS, Motion (Animations).
-*   **Backend**: Node.js (Express) with Vite Middleware.
-*   **AI Engine**: Google Gemini 3.1 Pro Preview & 3 Flash Preview (via `@google/genai`).
-*   **Database**: Firebase Firestore (Real-time synchronization).
-*   **Security**: Custom AES-256 encryption (Sovereign Shield).
-
----
-
-## 🚀 Deployment & Configuration
-
-### 1. Environment Configuration
-*   **GEMINI_API_KEY**: Your Google Gemini API key (Required for AI features).
-
-### 2. Installation
-```bash
-npm install
-npm run dev
-```
-
-### 3. Production Build
-```bash
-npm run build
-npm start
-```
+### 4. Admin (System Control)
+The central command center for monitoring system health and user access.
+- **Military Brief:** High-level overview of system status and active protocols.
+- **Integrity:** System Audit function, Firewall, Quantum Encryption, and Sovereign Shield status.
+- **User Management:** Control over user roles and access permissions.
+- **Metrics:** Real-time Vault Health and Network Load display.
 
 ---
 
-## 📜 Sovereign Protocols
-*   **IRONSIGHT**: Market signal monitoring and probability boosting.
-*   **PHOENIX**: Automatic recovery and state persistence.
-*   **PHI (Cohesion Index)**: Real-time calculation of system stability and launch readiness.
+## ⚙️ Tech Stack & Infrastructure
+
+- **Frontend:** React 19, Vite 7, TypeScript 5.3, Tailwind CSS 3.4, Motion 12, Three.js 0.183, Recharts 3.7
+- **AI Integration:** `@google/genai` (^1.38.0)
+- **State & Data:** Zustand 4.5, TanStack React Query 5
+- **Backend/API:** Express 5 + tsx, Cloudflare Workers (`@cloudflare/workers-types`)
+- **Testing:** Vitest 4, Playwright 1.58
+
+### Firebase Data Model
+The system relies on Firebase 12 (Firestore + Auth) for secure, real-time data synchronization.
+- **Collections:** `articles`, `trends`, `brand_opportunities`, `users`
+- **Security:** Hardened `firestore.rules` and strict schema enforcement via `firebase-blueprint.json`.
 
 ---
 
-*Developed for the elite. Built for sovereignty.*
+## 🚀 Deployment Protocol
+
+- **PRIMARY:** Cloudflare Pages (`isthmic.com`)
+- **SECONDARY:** Hugging Face Spaces (Docker, port 7860) for the Python intelligence engine.
+
+*(Note: Vercel and Render.com deployments have been abandoned and are no longer in use.)*
+
+---
+
+## 🔐 Security & BYOK System
+
+Isthmic Pro enforces a strict **Bring Your Own Key (BYOK)** policy for AI operations. The system does not store or proxy Gemini API keys centrally; users must provide their own keys via the Profile section. This ensures absolute sovereignty over AI usage and costs.
+
+---
+
+*Sovereign Engine Mounted Successfully. Security Operations Center monitoring active.*
