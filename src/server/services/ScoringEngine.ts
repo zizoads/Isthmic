@@ -20,7 +20,7 @@ export class ScoringEngine {
       const sim = synsets1[0] === synsets2[0] ? 1.0 : 0.1;
       cache.set(key, sim);
       return sim;
-    } catch (e) { return 0; }
+    } catch (_e) { return 0; }
   }
 
   public static async nameQualityScore(

@@ -43,7 +43,7 @@ export class SignalMonitorService {
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.WRITE, 'intelligence_signals');
-      } catch (e) {
+      } catch (_e) {
         // Error is logged by handleFirestoreError
       }
     }
@@ -65,7 +65,7 @@ export class SignalMonitorService {
     }, (error) => {
       try {
         handleFirestoreError(error, OperationType.GET, 'intelligence_signals');
-      } catch (e) {
+      } catch (_e) {
         // Error is logged by handleFirestoreError
       }
     });
