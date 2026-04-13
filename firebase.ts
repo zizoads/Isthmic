@@ -31,7 +31,7 @@ const firebaseConfig = {
 };
 
 // Validate required config
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId || firebaseConfig.apiKey.includes('TODO')) {
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
   console.error("FIREBASE_CRITICAL_ERROR: Missing or invalid Firebase configuration. Check firebase-applet-config.json and environment variables.");
 }
 

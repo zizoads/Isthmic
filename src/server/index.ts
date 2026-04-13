@@ -63,7 +63,7 @@ async function startServer() {
     const userApiKey = req.headers['x-user-api-key'] as string;
     
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey.includes('TODO')) {
+    if (!apiKey) {
       return res.status(401).json({ 
         error: "GEMINI_API_KEY not configured or invalid. Please provide a valid key in Settings or via header." 
       });
