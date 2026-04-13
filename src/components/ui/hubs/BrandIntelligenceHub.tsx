@@ -754,8 +754,8 @@ export const BrandIntelligenceHub: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-[#050507] text-slate-200 overflow-hidden" dir="ltr">
-      <div className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col lg:flex-row min-h-full lg:h-full bg-[#050507] text-slate-200 lg:overflow-hidden" dir="ltr">
+      <div className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 lg:overflow-y-auto custom-scrollbar">
         <SidebarFilters 
           brandIntelTranslations={brandIntelTranslations}
           selectedPlatforms={selectedPlatforms}
@@ -798,7 +798,7 @@ export const BrandIntelligenceHub: React.FC = () => {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 lg:overflow-y-auto custom-scrollbar">
         <MainContent 
           translations={brandIntelTranslations}
           trends={trends}

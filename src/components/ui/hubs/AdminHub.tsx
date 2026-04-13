@@ -286,7 +286,7 @@ const AdminHub: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white p-4 sm:p-6 lg:p-10 xl:p-20">
+    <div className="min-h-full bg-[#020202] text-white p-4 sm:p-6 lg:p-10 xl:p-20">
       <div className="max-w-[1600px] mx-auto space-y-8 lg:space-y-16">
         {/* Navigation Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-10">
