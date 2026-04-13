@@ -25,7 +25,7 @@ export class EnvironmentService {
       if (user?.email === 'zizoadszn@gmail.com') {
         rls = 'BYPASS_ADMIN';
       }
-    } catch (_e) {
+    } catch (e) {
       rls = 'UNKNOWN';
     }
 
@@ -59,7 +59,7 @@ export class EnvironmentService {
         allowed: isOwner, 
         reason: isOwner ? undefined : "UNAUTHORIZED_IDENTITY_REJECTED" 
       };
-    } catch {
+    } catch (e) {
       return { allowed: false, reason: "SECURITY_SERVICE_OFFLINE" };
     }
   }

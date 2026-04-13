@@ -20,7 +20,7 @@ export class NotificationService {
     try {
       const logs = await SovereignShield.recover<any[]>('email_logs') || [];
       await SovereignShield.protect('email_logs', [logEntry, ...logs].slice(0, 50));
-    } catch {
+    } catch (e) {
       console.warn("Mail Log deferred.");
     }
 
@@ -31,7 +31,7 @@ export class NotificationService {
     try {
       await SovereignShield.protect(`user_prefs_${userId}`, prefs);
       return true;
-    } catch (_e) {
+    } catch (e) {
       console.warn("Preference sync deferred due to shield error.");
       return false;
     }

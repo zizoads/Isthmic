@@ -56,7 +56,7 @@ export class EventOrchestrator {
     }, (error) => {
       try {
         handleFirestoreError(error, OperationType.GET, 'domains');
-      } catch (_e) {
+      } catch (e) {
         // Error is logged by handleFirestoreError
       }
     });
@@ -84,7 +84,7 @@ export class EventOrchestrator {
         } catch (error) {
           try {
             handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
-          } catch (_e) {
+          } catch (e) {
             // Error is already logged by handleFirestoreError, prevent unhandled rejection
           }
         }
@@ -118,7 +118,7 @@ export class EventOrchestrator {
             } catch (error) {
               try {
                 handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
-              } catch (_e) {
+              } catch (e) {
                 // Prevent unhandled rejection
               }
             }
@@ -126,7 +126,7 @@ export class EventOrchestrator {
             console.error('Error in handleStatusChange setTimeout:', e);
           }
         }, 5000);
-      } catch (_error) {
+      } catch (error) {
       }
     }
   }
@@ -152,7 +152,7 @@ export class EventOrchestrator {
               } catch (error) {
                 try {
                   handleFirestoreError(error, OperationType.UPDATE, `domains/${domainDoc.id}`);
-                } catch (_e) {
+                } catch (e) {
                   // Prevent unhandled rejection
                 }
               }
@@ -161,7 +161,7 @@ export class EventOrchestrator {
         } catch (error) {
           try {
             handleFirestoreError(error, OperationType.LIST, 'domains');
-          } catch (_e) {
+          } catch (e) {
             // Prevent unhandled rejection
           }
         }
