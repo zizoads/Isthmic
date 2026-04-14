@@ -8,7 +8,8 @@ import {
   Settings, 
   RefreshCw, 
   Download, 
-  Activity
+  Activity,
+  Heart
 } from 'lucide-react';
 import { translations } from '../../../translations';
 
@@ -96,7 +97,7 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
   </motion.div>
 );
 
-const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx }) => {
+const OpportunityCard: React.FC<{ opp: Opportunity; idx: number; isFavorite: boolean; toggleFavorite: () => void }> = ({ opp, idx, isFavorite, toggleFavorite }) => {
   const [domainStatus, setDomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
   const checkDomain = async () => {
@@ -134,6 +135,9 @@ const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx
             }`}
           >
             {domainStatus === 'idle' ? 'Check .com' : domainStatus === 'checking' ? '...' : domainStatus === 'available' ? 'Available' : 'Taken'}
+          </button>
+          <button onClick={toggleFavorite} className="text-slate-500 hover:text-[#d4af37] transition-colors">
+            {isFavorite ? <Heart className="w-5 h-5 fill-current" /> : <Heart className="w-5 h-5" />}
           </button>
         </div>
         <div className="bg-[#d4af37]/10 text-[#d4af37] text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-[#d4af37]/20 uppercase tracking-widest">
@@ -543,7 +547,9 @@ const TrendsSection: React.FC<{
 const OpportunitiesSection: React.FC<{
   translations: BrandIntelTranslations;
   opportunities: Opportunity[];
-}> = ({ translations, opportunities }) => (
+  favorites: string[];
+  toggleFavorite: (id: string) => void;
+}> = ({ translations, opportunities, favorites, toggleFavorite }) => (
   <section>
     <div className="flex items-center justify-between mb-6 md:mb-8">
       <div className="flex items-center gap-3 md:gap-4">
@@ -559,7 +565,13 @@ const OpportunitiesSection: React.FC<{
       <AnimatePresence mode="popLayout">
         {opportunities.length > 0 ? (
           opportunities.map((opp, idx) => (
-            <OpportunityCard key={opp.id || idx} opp={opp} idx={idx} />
+            <OpportunityCard 
+              key={opp.id || idx} 
+              opp={opp} 
+              idx={idx} 
+              isFavorite={favorites.includes(opp.id)}
+              toggleFavorite={() => toggleFavorite(opp.id)}
+            />
           ))
         ) : (
           <div className="text-center py-16 md:py-24 bg-white/2 rounded-[30px] md:rounded-[40px] border border-dashed border-white/5">
@@ -576,16 +588,65 @@ const MainContent: React.FC<{
   translations: BrandIntelTranslations;
   trends: Trend[];
   opportunities: Opportunity[];
-}> = ({ translations, trends, opportunities }) => (
+  favorites: string[];
+  toggleFavorite: (id: string) => void;
+}> = ({ translations, trends, opportunities, favorites, toggleFavorite }) => (
   <div className="flex-1 p-4 md:p-8 lg:p-12">
     <div className="max-w-6xl mx-auto">
       <HubHeader translations={translations} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-12">
         <TrendsSection translations={translations} trends={trends} />
-        <OpportunitiesSection translations={translations} opportunities={opportunities} />
+        <OpportunitiesSection 
+          translations={translations} 
+          opportunities={opportunities} 
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+        />
       </div>
+      <FavoritesSection 
+        translations={translations} 
+        opportunities={opportunities.filter(opp => favorites.includes(opp.id))}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+      />
     </div>
   </div>
+);
+
+const FavoritesSection: React.FC<{
+  translations: BrandIntelTranslations;
+  opportunities: Opportunity[];
+  favorites: string[];
+  toggleFavorite: (id: string) => void;
+}> = ({ translations, opportunities, favorites, toggleFavorite }) => (
+  <section className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px]">
+    <div className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="flex items-center gap-3 md:gap-4">
+        <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#d4af37]" />
+        <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">Favorites</h2>
+      </div>
+    </div>
+
+    <div className="space-y-4 md:space-y-6">
+      <AnimatePresence mode="popLayout">
+        {opportunities.length > 0 ? (
+          opportunities.map((opp, idx) => (
+            <OpportunityCard 
+              key={opp.id || idx} 
+              opp={opp} 
+              idx={idx} 
+              isFavorite={true}
+              toggleFavorite={() => toggleFavorite(opp.id)}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 bg-white/2 rounded-[20px] border border-dashed border-white/5">
+            <p className="text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-widest">No favorites yet</p>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  </section>
 );
 
 
@@ -602,6 +663,15 @@ export const BrandIntelligenceHub: React.FC = () => {
   const [statusMsg, setStatusMsg] = useState<string>('');
   const [trends, setTrends] = useState<Trend[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => JSON.parse(localStorage.getItem('favorites') || '[]'));
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+  };
   
   // Filters State
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([
@@ -829,6 +899,8 @@ export const BrandIntelligenceHub: React.FC = () => {
           translations={brandIntelTranslations}
           trends={trends}
           opportunities={opportunities}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
         />
       </div>
     </div>
