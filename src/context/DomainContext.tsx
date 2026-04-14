@@ -35,7 +35,7 @@ export interface DomainContextType {
   performStrategicMining: (query: string) => Promise<void>;
 }
 
-const DomainContext = createContext<DomainContextType | undefined>(undefined);
+const DomainContext = createContext<DomainContextType | null>(null);
 
 export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -93,7 +93,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsInitialLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, [user]);
 
   const addLog = useCallback((agent: string, message: string, type: 'info' | 'success' | 'warning' | 'critical' = 'info', payload?: unknown) => {

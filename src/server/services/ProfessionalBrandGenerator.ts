@@ -1,5 +1,5 @@
 
-// @ts-ignore
+// @ts-ignore - wordnet types are missing or incomplete
 import wordnet from 'wordnet';
 import wordList from 'word-list';
 import pkg from 'lodash';

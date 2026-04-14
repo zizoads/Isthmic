@@ -99,7 +99,7 @@ export class QuantumEncryption {
       data: QuantumEncryption.arrayToBase64(new Uint8Array(encrypted)),
       signature: QuantumEncryption.arrayToBase64(new Uint8Array(signature)),
       timestamp: Date.now(),
-      checksum: await this.generateChecksum(encrypted)
+      checksum: await QuantumEncryption.generateChecksum(encrypted)
     };
   }
 
@@ -117,7 +117,7 @@ export class QuantumEncryption {
     
     if (!isValid) throw new Error('QUANTUM_SIGNATURE_INVALID');
 
-    const checksum = await this.generateChecksum(dataArray.buffer as ArrayBuffer);
+    const checksum = await QuantumEncryption.generateChecksum(dataArray.buffer as ArrayBuffer);
     if (checksum !== encryptedData.checksum) throw new Error('DATA_CORRUPTION_DETECTED');
 
     const key = await this.generateLevelKey(encryptedData.level);
@@ -173,7 +173,7 @@ export class QuantumEncryption {
     return globalThis.crypto.subtle.verify('HMAC', signKey, signature, data);
   }
 
-  private async generateChecksum(data: ArrayBuffer): Promise<string> {
+  private static async generateChecksum(data: ArrayBuffer): Promise<string> {
     const digestBuffer = await globalThis.crypto.subtle.digest('SHA-512', data);
     return QuantumEncryption.arrayToBase64(new Uint8Array(digestBuffer));
   }

@@ -34,7 +34,7 @@ export class EventOrchestrator {
     SignalMonitorService.subscribeToSignals((signals) => {
       const latestSignal = signals[0];
       if (latestSignal) {
-        this.handleIntelligenceSignal(latestSignal).catch(e => console.error('Error in handleIntelligenceSignal:', e));
+        EventOrchestrator.handleIntelligenceSignal(latestSignal).catch(e => console.error('Error in handleIntelligenceSignal:', e));
       }
     });
 
@@ -45,7 +45,7 @@ export class EventOrchestrator {
         const domain = { id: change.doc.id, ...change.doc.data() } as Domain;
 
         if (change.type === 'added' && domain.status === 'processing') {
-          this.handleNewDomain(domain).catch(e => console.error('Error in handleNewDomain:', e));
+          EventOrchestrator.handleNewDomain(domain).catch(e => console.error('Error in handleNewDomain:', e));
         } else if (change.type === 'modified') {
           this.handleStatusChange(domain).catch(e => console.error('Error in handleStatusChange:', e));
         }
@@ -59,7 +59,7 @@ export class EventOrchestrator {
     });
   }
 
-  private handleNewDomain(domain: Domain): Promise<void> {
+  private static handleNewDomain(domain: Domain): Promise<void> {
     return new Promise((resolve) => {
       // Simulate Background Audit Work
       setTimeout(async () => {
@@ -131,7 +131,7 @@ export class EventOrchestrator {
     }
   }
 
-  private async handleIntelligenceSignal(signal: IntelligenceSignal) {
+  private static async handleIntelligenceSignal(signal: IntelligenceSignal) {
     
     if (signal.priority === 'CRITICAL' || signal.priority === 'HIGH') {
       // Example: If signal is about AI sector, boost all .ai domains
