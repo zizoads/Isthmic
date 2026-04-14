@@ -36,7 +36,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const newRequest = new Request(targetUrl.toString(), {
       method: request.method,
       headers: newHeaders,
-      body: body,
+      body,
       redirect: 'follow'
     });
 
@@ -53,8 +53,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       modifiedResponse.headers.set("Access-Control-Allow-Origin", "*");
       
       return modifiedResponse;
-    } catch (e: any) {
-      console.warn(`Proxy Fallback for ${path}:`, e.message);
+    } catch (e: unknown) {
+      console.warn(`Proxy Fallback for ${path}:`, e instanceof Error ? e.message : String(e));
       
       // Local Fallback Logic for Trends/Opportunities using Gemini
       if (path === "/api/trends" || path === "/api/opportunities") {
@@ -75,7 +75,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           });
 
           if (fallbackRes.ok) {
-            const data = await fallbackRes.json() as any;
+            const data = await fallbackRes.json() as { candidates?: { content?: { parts?: { text?: string }[] }[] }[] };
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
             return new Response(text, { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
           }
@@ -84,7 +84,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       return new Response(JSON.stringify({ 
         error: "Intelligence engine unreachable", 
-        details: e.message,
+        details: e instanceof Error ? e.message : String(e),
         fallback: "Attempted local AI synthesis"
       }), {
         status: 502,
@@ -103,8 +103,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       refactorPlan: "1. Core Infrastructure Hardening\n2. Python Engine Integration\n3. Real-time Dashboard Implementation\n4. Multi-agent Coordination",
       platform: "Cloudflare Pages",
       env_status: {
-        gemini: !!env.GEMINI_API_KEY,
-        python: !!env.PYTHON_ENGINE_URL
+        gemini: Boolean(env.GEMINI_API_KEY),
+        python: Boolean(env.PYTHON_ENGINE_URL)
       }
     }), {
       headers: { "Content-Type": "application/json" }
@@ -162,7 +162,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (path === "/api/ai-proxy") {
     if (request.method !== 'POST') return new Response("Method not allowed", { status: 405 });
     
-    const body = await request.json() as any;
+    const body = await request.json() as { model?: string, systemInstruction?: string, prompt?: string, schema?: any, tools?: any[], configOverrides?: any };
     const { model, systemInstruction, prompt, schema, tools, configOverrides } = body;
 
     const userApiKey = request.headers.get('x-user-api-key');
@@ -190,7 +190,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             responseSchema: schema,
             ...configOverrides
           },
-          tools: tools
+          tools
         })
       });
     };
@@ -214,9 +214,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         });
       }
 
-      const data = await response.json() as any;
+      const data = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] }[] }, groundingMetadata?: { groundingChunks?: any[] } };
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      const grounding = data.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      const grounding = data.groundingMetadata?.groundingChunks;
 
       if (!text) {
         return new Response(JSON.stringify({ error: "Empty response from Gemini", raw: data }), { 
@@ -231,8 +231,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }), {
         headers: { "Content-Type": "application/json" }
       });
-    } catch (e: any) {
-      return new Response(JSON.stringify({ error: "AI Proxy failed", details: e.message }), { 
+    } catch (e: unknown) {
+      return new Response(JSON.stringify({ error: "AI Proxy failed", details: e instanceof Error ? e.message : String(e) }), { 
         status: 500,
         headers: { "Content-Type": "application/json" }
       });

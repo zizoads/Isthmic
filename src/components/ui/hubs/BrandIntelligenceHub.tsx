@@ -207,39 +207,37 @@ const PlatformSection: React.FC<{
   selectedPlatforms: string[];
   togglePlatform: (p: string) => void;
 }> = ({ translations, selectedPlatforms, togglePlatform }) => (
-  <div>
+  <>
     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-4 block">
       {translations.platforms}
     </label>
-    <div className="space-y-4">
-      {[1, 2, 3, 4, 5].map(tier => (
-        <div key={tier}>
-          <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
-            {tier === 1 && "TIER 1 — EARLY SIGNALS"}
-            {tier === 2 && "TIER 2 — MONEY SIGNALS"}
-            {tier === 3 && "TIER 3 — JOB MARKET"}
-            {tier === 4 && "TIER 4 — PATENTS"}
-            {tier === 5 && "TIER 5 — MEDIA"}
-          </h4>
-          <div className="grid grid-cols-2 gap-2">
-            {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
-              <button
-                key={p.id}
-                onClick={() => togglePlatform(p.id)}
-                className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
-                  selectedPlatforms.includes(p.id)
-                    ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
-                    : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {p.id}
-              </button>
-            ))}
-          </div>
+    {[1, 2, 3, 4, 5].map(tier => (
+      <React.Fragment key={tier}>
+        <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-600 mb-2 mt-4">
+          {tier === 1 && "TIER 1 — EARLY SIGNALS"}
+          {tier === 2 && "TIER 2 — MONEY SIGNALS"}
+          {tier === 3 && "TIER 3 — JOB MARKET"}
+          {tier === 4 && "TIER 4 — PATENTS"}
+          {tier === 5 && "TIER 5 — MEDIA"}
+        </h4>
+        <div className="grid grid-cols-2 gap-2">
+          {ALL_PLATFORMS.filter(p => p.tier === tier).map(p => (
+            <button
+              key={p.id}
+              onClick={() => togglePlatform(p.id)}
+              className={`text-[9px] px-3 py-2 rounded-xl border transition-all font-bold uppercase tracking-tighter ${
+                selectedPlatforms.includes(p.id)
+                  ? 'bg-[#d4af37] border-[#d4af37] text-black shadow-lg scale-105'
+                  : 'bg-white/2 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {p.id}
+            </button>
+          ))}
         </div>
-      ))}
-    </div>
-  </div>
+      </React.Fragment>
+    ))}
+  </>
 );
 
 const KeywordSection: React.FC<{
@@ -715,7 +713,7 @@ export const BrandIntelligenceHub: React.FC = () => {
             userApiKey
           );
           break; // Success, exit loop
-        } catch (err: any) {
+        } catch (err: unknown) {
           if (signal.aborted) return;
           
           const errorMsg = err instanceof Error ? err.message : 'Unknown error';

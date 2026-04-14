@@ -77,9 +77,9 @@ async function startServer() {
         config: { responseMimeType: "application/json" }
       });
 
-      res.json(JSON.parse(response.text || '{}'));
-    } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      return res.json(JSON.parse(response.text || '{}'));
+    } catch (e: unknown) {
+      return res.status(500).json({ error: e instanceof Error ? e.message : String(e) });
     }
   });
 
@@ -101,9 +101,9 @@ async function startServer() {
         config: { responseMimeType: "application/json" }
       });
 
-      res.json(JSON.parse(response.text || '{}'));
-    } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      return res.json(JSON.parse(response.text || '{}'));
+    } catch (e: unknown) {
+      return res.status(500).json({ error: e instanceof Error ? e.message : String(e) });
     }
   });
 
