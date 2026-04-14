@@ -351,35 +351,30 @@ const OptimizationSection: React.FC<{
   setMinAlignmentScore: (v: number) => void;
   maxPerSector: number;
   setMaxPerSector: (v: number) => void;
-}> = ({ 
-  translations, comOnly, setComOnly, enableLoop, setEnableLoop, 
-  maxIterations, setMaxIterations, targetScore, setTargetScore,
-  recencyDays, setRecencyDays, minValidationSignals, setMinValidationSignals,
-  minAlignmentScore, setMinAlignmentScore, maxPerSector, setMaxPerSector
-}) => (
+}> = (props) => (
   <div className="pt-6 border-t border-white/5">
     <div className="flex items-center justify-between mb-6">
       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-        {translations.optimization}
+        {props.translations.optimization}
       </label>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
-          <input type="checkbox" checked={comOnly} onChange={e => setComOnly(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
+          <input type="checkbox" checked={props.comOnly} onChange={e => props.setComOnly(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
         </div>
-        <input type="checkbox" checked={enableLoop} onChange={e => setEnableLoop(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
+        <input type="checkbox" checked={props.enableLoop} onChange={e => props.setEnableLoop(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
       </div>
     </div>
     <OptimizationGrid 
-      translations={translations}
-      enableLoop={enableLoop}
+      translations={props.translations}
+      enableLoop={props.enableLoop}
       options={[
-        { label: translations.iterations, value: maxIterations, setter: setMaxIterations, step: 1, disabled: !enableLoop },
-        { label: translations.target_score, value: targetScore, setter: setTargetScore, step: 0.05, disabled: !enableLoop },
-        { label: "Recency (Days)", value: recencyDays, setter: setRecencyDays, step: 1 },
-        { label: "Min Signals", value: minValidationSignals, setter: setMinValidationSignals, step: 1 },
-        { label: "Min Score", value: minAlignmentScore, setter: setMinAlignmentScore, step: 1 },
-        { label: "Max/Sector", value: maxPerSector, setter: setMaxPerSector, step: 1 }
+        { label: props.translations.iterations, value: props.maxIterations, setter: props.setMaxIterations, step: 1, disabled: !props.enableLoop },
+        { label: props.translations.target_score, value: props.targetScore, setter: props.setTargetScore, step: 0.05, disabled: !props.enableLoop },
+        { label: "Recency (Days)", value: props.recencyDays, setter: props.setRecencyDays, step: 1 },
+        { label: "Min Signals", value: props.minValidationSignals, setter: props.setMinValidationSignals, step: 1 },
+        { label: "Min Score", value: props.minAlignmentScore, setter: props.setMinAlignmentScore, step: 1 },
+        { label: "Max/Sector", value: props.maxPerSector, setter: props.setMaxPerSector, step: 1 }
       ]}
     />
   </div>
@@ -411,71 +406,32 @@ const SidebarFooter: React.FC<{
   </div>
 );
 
-const SidebarFilters: React.FC<SidebarFiltersProps> = ({
-  brandIntelTranslations,
-  selectedPlatforms,
-  togglePlatform,
-  minLength,
-  setMinLength,
-  minFrequency,
-  setMinFrequency,
-  weightArticles,
-  setWeightArticles,
-  weightPatents,
-  setWeightPatents,
-  weightStartups,
-  setWeightStartups,
-  weightJobs,
-  setWeightJobs,
-  weightFunding,
-  setWeightFunding,
-  brandStyle,
-  setBrandStyle,
-  comOnly,
-  setComOnly,
-  enableLoop,
-  setEnableLoop,
-  maxIterations,
-  setMaxIterations,
-  targetScore,
-  setTargetScore,
-  recencyDays,
-  setRecencyDays,
-  minValidationSignals,
-  setMinValidationSignals,
-  minAlignmentScore,
-  setMinAlignmentScore,
-  maxPerSector,
-  setMaxPerSector,
-  status,
-  statusMsg,
-  toggleFetch
-}) => (
+const SidebarFilters: React.FC<SidebarFiltersProps> = (props) => (
   <aside className="w-full bg-[#08080a] p-6 lg:p-8">
     <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
       <Settings className="w-5 h-5" />
-      <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{brandIntelTranslations.settings}</h3>
+      <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{props.brandIntelTranslations.settings}</h3>
     </div>
 
     <div className="space-y-8">
-      <PlatformSection translations={brandIntelTranslations} selectedPlatforms={selectedPlatforms} togglePlatform={togglePlatform} />
-      <KeywordSection translations={brandIntelTranslations} minLength={minLength} setMinLength={setMinLength} minFrequency={minFrequency} setMinFrequency={setMinFrequency} />
+      <PlatformSection translations={props.brandIntelTranslations} selectedPlatforms={props.selectedPlatforms} togglePlatform={props.togglePlatform} />
+      <KeywordSection translations={props.brandIntelTranslations} minLength={props.minLength} setMinLength={props.setMinLength} minFrequency={props.minFrequency} setMinFrequency={props.setMinFrequency} />
       <WeightSection 
-        translations={brandIntelTranslations} 
+        translations={props.brandIntelTranslations} 
         weights={[
-          { label: brandIntelTranslations.weight_art, value: weightArticles, setter: setWeightArticles },
-          { label: brandIntelTranslations.weight_pat, value: weightPatents, setter: setWeightPatents },
-          { label: brandIntelTranslations.weight_sta, value: weightStartups, setter: setWeightStartups },
-          { label: "Jobs", value: weightJobs, setter: setWeightJobs },
-          { label: "Funding", value: weightFunding, setter: setWeightFunding }
+          { label: props.brandIntelTranslations.weight_art, value: props.weightArticles, setter: props.setWeightArticles },
+          { label: props.brandIntelTranslations.weight_pat, value: props.weightPatents, setter: props.setWeightPatents },
+          { label: props.brandIntelTranslations.weight_sta, value: props.weightStartups, setter: props.setWeightStartups },
+          { label: "Jobs", value: props.weightJobs, setter: props.setWeightJobs },
+          { label: "Funding", value: props.weightFunding, setter: props.setWeightFunding }
         ]} 
       />
 
       <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">{brandIntelTranslations.style}</label>
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">{props.brandIntelTranslations.style}</label>
         <select 
-          value={brandStyle}
-          onChange={e => setBrandStyle(e.target.value)}
+          value={props.brandStyle}
+          onChange={e => props.setBrandStyle(e.target.value)}
           className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#d4af37] text-white appearance-none"
         >
           <option value="merged">Merged (TechCrunch)</option>
@@ -485,18 +441,18 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
       </div>
 
       <OptimizationSection 
-        translations={brandIntelTranslations}
-        comOnly={comOnly} setComOnly={setComOnly}
-        enableLoop={enableLoop} setEnableLoop={setEnableLoop}
-        maxIterations={maxIterations} setMaxIterations={setMaxIterations}
-        targetScore={targetScore} setTargetScore={setTargetScore}
-        recencyDays={recencyDays} setRecencyDays={setRecencyDays}
-        minValidationSignals={minValidationSignals} setMinValidationSignals={setMinValidationSignals}
-        minAlignmentScore={minAlignmentScore} setMinAlignmentScore={setMinAlignmentScore}
-        maxPerSector={maxPerSector} setMaxPerSector={setMaxPerSector}
+        translations={props.brandIntelTranslations}
+        comOnly={props.comOnly} setComOnly={props.setComOnly}
+        enableLoop={props.enableLoop} setEnableLoop={props.setEnableLoop}
+        maxIterations={props.maxIterations} setMaxIterations={props.setMaxIterations}
+        targetScore={props.targetScore} setTargetScore={props.setTargetScore}
+        recencyDays={props.recencyDays} setRecencyDays={props.setRecencyDays}
+        minValidationSignals={props.minValidationSignals} setMinValidationSignals={props.setMinValidationSignals}
+        minAlignmentScore={props.minAlignmentScore} setMinAlignmentScore={props.setMinAlignmentScore}
+        maxPerSector={props.maxPerSector} setMaxPerSector={props.setMaxPerSector}
       />
 
-      <SidebarFooter status={status} statusMsg={statusMsg} translations={brandIntelTranslations} toggleFetch={toggleFetch} />
+      <SidebarFooter status={props.status} statusMsg={props.statusMsg} translations={props.brandIntelTranslations} toggleFetch={props.toggleFetch} />
     </div>
   </aside>
 );

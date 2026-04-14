@@ -141,9 +141,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         throw new Error(`Gemini API Error: ${err}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] }[] } };
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      const result = JSON.parse(text);
+      if (!text) throw new Error("No text returned from Gemini");
+      const result = JSON.parse(text) as { names?: string[] };
 
       return new Response(JSON.stringify({ 
         names: result.names || [],
@@ -151,8 +152,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }), {
         headers: { "Content-Type": "application/json" }
       });
-    } catch (e: any) {
-      return new Response(JSON.stringify({ error: "Failed to generate brands via Gemini", details: e.message }), {
+    } catch (e: unknown) {
+      return new Response(JSON.stringify({ error: "Failed to generate brands via Gemini", details: e instanceof Error ? e.message : String(e) }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
