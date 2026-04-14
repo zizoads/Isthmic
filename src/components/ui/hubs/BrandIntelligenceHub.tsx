@@ -333,6 +333,27 @@ const OptimizationGrid: React.FC<{
   </div>
 );
 
+const OptimizationHeader: React.FC<{
+  translations: BrandIntelTranslations;
+  comOnly: boolean;
+  setComOnly: (v: boolean) => void;
+  enableLoop: boolean;
+  setEnableLoop: (v: boolean) => void;
+}> = (props) => (
+  <div className="flex items-center justify-between mb-6">
+    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+      {props.translations.optimization}
+    </label>
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
+        <input type="checkbox" checked={props.comOnly} onChange={e => props.setComOnly(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
+      </div>
+      <input type="checkbox" checked={props.enableLoop} onChange={e => props.setEnableLoop(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
+    </div>
+  </div>
+);
+
 const OptimizationSection: React.FC<{
   translations: BrandIntelTranslations;
   comOnly: boolean;
@@ -353,18 +374,7 @@ const OptimizationSection: React.FC<{
   setMaxPerSector: (v: number) => void;
 }> = (props) => (
   <div className="pt-6 border-t border-white/5">
-    <div className="flex items-center justify-between mb-6">
-      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-        {props.translations.optimization}
-      </label>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-[8px] font-black text-slate-500 uppercase">.com Only</span>
-          <input type="checkbox" checked={props.comOnly} onChange={e => props.setComOnly(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
-        </div>
-        <input type="checkbox" checked={props.enableLoop} onChange={e => props.setEnableLoop(e.target.checked)} className="w-4 h-4 accent-[#d4af37]" />
-      </div>
-    </div>
+    <OptimizationHeader {...props} />
     <OptimizationGrid 
       translations={props.translations}
       enableLoop={props.enableLoop}
@@ -406,13 +416,16 @@ const SidebarFooter: React.FC<{
   </div>
 );
 
+const SidebarHeader: React.FC<{ translations: BrandIntelTranslations }> = (props) => (
+  <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
+    <Settings className="w-5 h-5" />
+    <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{props.translations.settings}</h3>
+  </div>
+);
+
 const SidebarFilters: React.FC<SidebarFiltersProps> = (props) => (
   <aside className="w-full bg-[#08080a] p-6 lg:p-8">
-    <div className="flex items-center gap-3 mb-10 text-[#d4af37]">
-      <Settings className="w-5 h-5" />
-      <h3 className="font-black text-[10px] uppercase tracking-[0.3em]">{props.brandIntelTranslations.settings}</h3>
-    </div>
-
+    <SidebarHeader translations={props.brandIntelTranslations} />
     <div className="space-y-8">
       <PlatformSection translations={props.brandIntelTranslations} selectedPlatforms={props.selectedPlatforms} togglePlatform={props.togglePlatform} />
       <KeywordSection translations={props.brandIntelTranslations} minLength={props.minLength} setMinLength={props.setMinLength} minFrequency={props.minFrequency} setMinFrequency={props.setMinFrequency} />
