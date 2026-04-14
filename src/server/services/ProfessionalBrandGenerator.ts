@@ -42,8 +42,12 @@ export class ProfessionalBrandGenerator {
     if (this.initialized) {
       return;
     }
-    await Promise.all([wordnet.init(), getCommonWords()]);
-    this.initialized = true;
+    try {
+      await Promise.all([wordnet.init(), getCommonWords()]);
+      this.initialized = true;
+    } catch {
+      // Initialization failed
+    }
   }
 
   private async _expand_niche(domain: string, niche: string) {
@@ -88,7 +92,7 @@ export class ProfessionalBrandGenerator {
             }
           }
         }
-      } catch (_e) {}
+      } catch {}
     }
     const result = Array.from(expanded);
     return shuffle(result);

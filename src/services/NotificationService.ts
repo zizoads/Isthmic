@@ -31,7 +31,7 @@ export class NotificationService {
     try {
       await SovereignShield.protect(`user_prefs_${userId}`, prefs);
       return true;
-    } catch (_e) {
+    } catch {
       console.warn("Preference sync deferred due to shield error.");
       return false;
     }

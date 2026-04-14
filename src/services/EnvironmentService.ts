@@ -25,7 +25,7 @@ export class EnvironmentService {
       if (user?.email === 'zizoadszn@gmail.com') {
         rls = 'BYPASS_ADMIN';
       }
-    } catch (_e) {
+    } catch {
       rls = 'UNKNOWN';
     }
 

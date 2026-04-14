@@ -101,7 +101,7 @@ export class AuthService {
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
-      } catch (_e) {
+      } catch {
         // Error is logged by handleFirestoreError
       }
       throw error;
@@ -118,7 +118,7 @@ export class AuthService {
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
-      } catch (_e) {
+      } catch {
         // Error is logged by handleFirestoreError
       }
       throw error;

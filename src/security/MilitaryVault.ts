@@ -35,11 +35,11 @@ export class MilitaryVault {
           for (const [key, value] of Object.entries(parsed)) {
             this.vault.set(key, value as QuantumEncryptedData);
           }
-        } catch (_error) {
+        } catch {
           localStorage.removeItem('military_vault_backup');
         }
       }
-    } catch (_error) {
+    } catch {
       console.warn("⚠️ [VAULT] Local storage access failed during initialization.");
     }
     
@@ -154,7 +154,7 @@ export class MilitaryVault {
         lastUpdated: new Date().toISOString()
       };
       localStorage.setItem('vault_performance_index', JSON.stringify(stats));
-    } catch (_error) {
+    } catch {
       // Silent fail for stats
     }
   }

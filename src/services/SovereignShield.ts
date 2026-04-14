@@ -35,7 +35,7 @@ export class SovereignShield {
       
       // Decrypt via quantum engine
       return await QuantumCrypto.decrypt(encryptedData) as T;
-    } catch (_e) {
+    } catch {
       console.warn(`[SHIELD] Recovery failed for ${key}. Data may be corrupted or key rotated.`);
       return null;
     }

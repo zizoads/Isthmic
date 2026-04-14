@@ -40,7 +40,7 @@ export class QuantumEncryption {
       if (storedSeed) {
         try {
           return this.base64ToArray(storedSeed);
-        } catch (_e) {
+        } catch {
           console.error("🚨 [SECURITY] Anchor corrupted. Generating new recovery path.");
         }
       }
@@ -48,7 +48,7 @@ export class QuantumEncryption {
       const newSeed = this.generateQuantumSeed();
       localStorage.setItem(this.SEED_STORAGE_KEY, this.arrayToBase64(newSeed));
       return newSeed;
-    } catch (_error) {
+    } catch {
       console.warn("⚠️ [SECURITY] Local storage access failed. Using ephemeral quantum seed.");
       return this.generateQuantumSeed();
     }
