@@ -618,6 +618,7 @@ const FavoritesSection: React.FC<{
   </section>
 );
 
+
 const MainContent: React.FC<{
   translations: BrandIntelTranslations;
   trends: Trend[];

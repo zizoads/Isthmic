@@ -6,6 +6,7 @@ import { UserProfileHub } from '../hubs/UserProfileHub';
 import AdminHub from '../hubs/AdminHub';
 
 import { BrandIntelligenceHub } from '../hubs/BrandIntelligenceHub';
+import { ConceptLabHub } from '../hubs/ConceptLabHub';
 
 interface HubRendererProps {
   domains: Domain[];
@@ -25,6 +26,8 @@ const HubRenderer: React.FC<HubRendererProps> = () => {
       return <AdminHub />;
     case AgentType.ALPHA_MINE:
       return <BrandIntelligenceHub />;
+    case AgentType.CONCEPT_LAB:
+      return <ConceptLabHub trends={[]} />;
     default:
       return (
         <div className="p-8 flex items-center justify-center h-full">

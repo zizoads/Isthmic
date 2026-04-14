@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
+import dns from "dns/promises";
 import { GoogleGenAI } from "@google/genai";
 import { ProfessionalBrandGenerator } from "./services/ProfessionalBrandGenerator";
 import { EventOrchestrator } from "../services/EventOrchestrator";
@@ -55,6 +56,38 @@ async function startServer() {
       res.json({ names });
     } catch {
       res.status(500).json({ error: "Failed to generate brands" });
+    }
+  });
+
+  // DNS-First Gateway for Domain Availability
+  app.get("/api/check-domain", async (req, res) => {
+    const { domain } = req.query;
+    if (!domain || typeof domain !== 'string') {
+      return res.status(400).json({ error: "Domain is required" });
+    }
+
+    try {
+      let isRegistered = false;
+      try {
+        const records = await dns.resolveAny(domain);
+        if (records && records.length > 0) {
+          isRegistered = true;
+        }
+      } catch (error: any) {
+        if (error.code === 'ENOTFOUND' || error.code === 'ENODATA') {
+          isRegistered = false;
+        } else {
+          isRegistered = true; // Err on the side of caution for SERVFAIL, etc.
+        }
+      }
+
+      res.json({ 
+        domain, 
+        available: !isRegistered, 
+        reason: isRegistered ? 'DNS records found' : 'No DNS records (Likely available)' 
+      });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to check domain" });
     }
   });
 

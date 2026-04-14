@@ -18,6 +18,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navItems = [
     { id: AgentType.ALPHA_MINE, label: 'Alpha Mine', sub: 'Discovery & Audit' },
     { id: AgentType.BRAND_INTELLIGENCE, label: 'Brand Intel', sub: 'Smart Intelligence' },
+    { id: AgentType.CONCEPT_LAB, label: 'Concept Lab', sub: 'Brand Synthesis' },
     { id: AgentType.USER_PROFILE, label: 'Profile', sub: 'Identity' }
   ];
 
