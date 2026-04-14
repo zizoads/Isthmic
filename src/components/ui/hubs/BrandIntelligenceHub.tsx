@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Brain, 
@@ -106,7 +106,7 @@ const OpportunityCard: React.FC<{ opp: Opportunity; idx: number; isFavorite: boo
       const response = await fetch(`/api/check-domain?domain=${opp.name.replace(/\s+/g, '').toLowerCase()}.com`);
       const data = await response.json() as { available: boolean };
       setDomainStatus(data.available ? 'available' : 'taken');
-    } catch (e) {
+    } catch (_e) {
       setDomainStatus('idle');
     }
   };
@@ -584,6 +584,40 @@ const OpportunitiesSection: React.FC<{
   </section>
 );
 
+const FavoritesSection: React.FC<{
+  opportunities: Opportunity[];
+  toggleFavorite: (id: string) => void;
+}> = ({ opportunities, toggleFavorite }) => (
+  <section className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px]">
+    <div className="flex items-center justify-between mb-6 md:mb-8">
+      <div className="flex items-center gap-3 md:gap-4">
+        <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#d4af37]" />
+        <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">Favorites</h2>
+      </div>
+    </div>
+
+    <div className="space-y-4 md:space-y-6">
+      <AnimatePresence mode="popLayout">
+        {opportunities.length > 0 ? (
+          opportunities.map((opp, idx) => (
+            <OpportunityCard 
+              key={opp.id || idx} 
+              opp={opp} 
+              idx={idx} 
+              isFavorite
+              toggleFavorite={() => toggleFavorite(opp.id)}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 bg-white/2 rounded-[20px] border border-dashed border-white/5">
+            <p className="text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-widest">No favorites yet</p>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  </section>
+);
+
 const MainContent: React.FC<{
   translations: BrandIntelTranslations;
   trends: Trend[];
@@ -604,49 +638,11 @@ const MainContent: React.FC<{
         />
       </div>
       <FavoritesSection 
-        translations={translations} 
         opportunities={opportunities.filter(opp => favorites.includes(opp.id))}
-        favorites={favorites}
         toggleFavorite={toggleFavorite}
       />
     </div>
   </div>
-);
-
-const FavoritesSection: React.FC<{
-  translations: BrandIntelTranslations;
-  opportunities: Opportunity[];
-  favorites: string[];
-  toggleFavorite: (id: string) => void;
-}> = ({ translations, opportunities, favorites, toggleFavorite }) => (
-  <section className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px]">
-    <div className="flex items-center justify-between mb-6 md:mb-8">
-      <div className="flex items-center gap-3 md:gap-4">
-        <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#d4af37]" />
-        <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">Favorites</h2>
-      </div>
-    </div>
-
-    <div className="space-y-4 md:space-y-6">
-      <AnimatePresence mode="popLayout">
-        {opportunities.length > 0 ? (
-          opportunities.map((opp, idx) => (
-            <OpportunityCard 
-              key={opp.id || idx} 
-              opp={opp} 
-              idx={idx} 
-              isFavorite={true}
-              toggleFavorite={() => toggleFavorite(opp.id)}
-            />
-          ))
-        ) : (
-          <div className="text-center py-8 bg-white/2 rounded-[20px] border border-dashed border-white/5">
-            <p className="text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-widest">No favorites yet</p>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  </section>
 );
 
 
