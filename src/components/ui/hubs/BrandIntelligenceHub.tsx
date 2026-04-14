@@ -423,50 +423,59 @@ const SidebarHeader: React.FC<{ translations: BrandIntelTranslations }> = (props
   </div>
 );
 
+const StyleSection: React.FC<{
+  translations: BrandIntelTranslations;
+  brandStyle: string;
+  setBrandStyle: (v: string) => void;
+}> = (props) => (
+  <div>
+    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">{props.translations.style}</label>
+    <select 
+      value={props.brandStyle}
+      onChange={e => props.setBrandStyle(e.target.value)}
+      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#d4af37] text-white appearance-none"
+    >
+      <option value="merged">Merged (TechCrunch)</option>
+      <option value="acronym">Acronym (TC TechCrunch)</option>
+      <option value="compound">Compound (Tech Crunch)</option>
+    </select>
+  </div>
+);
+
+const SidebarContent: React.FC<SidebarFiltersProps> = (props) => (
+  <div className="space-y-8">
+    <PlatformSection translations={props.brandIntelTranslations} selectedPlatforms={props.selectedPlatforms} togglePlatform={props.togglePlatform} />
+    <KeywordSection translations={props.brandIntelTranslations} minLength={props.minLength} setMinLength={props.setMinLength} minFrequency={props.minFrequency} setMinFrequency={props.setMinFrequency} />
+    <WeightSection 
+      translations={props.brandIntelTranslations} 
+      weights={[
+        { label: props.brandIntelTranslations.weight_art, value: props.weightArticles, setter: props.setWeightArticles },
+        { label: props.brandIntelTranslations.weight_pat, value: props.weightPatents, setter: props.setWeightPatents },
+        { label: props.brandIntelTranslations.weight_sta, value: props.weightStartups, setter: props.setWeightStartups },
+        { label: "Jobs", value: props.weightJobs, setter: props.setWeightJobs },
+        { label: "Funding", value: props.weightFunding, setter: props.setWeightFunding }
+      ]} 
+    />
+    <StyleSection translations={props.brandIntelTranslations} brandStyle={props.brandStyle} setBrandStyle={props.setBrandStyle} />
+    <OptimizationSection 
+      translations={props.brandIntelTranslations}
+      comOnly={props.comOnly} setComOnly={props.setComOnly}
+      enableLoop={props.enableLoop} setEnableLoop={props.setEnableLoop}
+      maxIterations={props.maxIterations} setMaxIterations={props.setMaxIterations}
+      targetScore={props.targetScore} setTargetScore={props.setTargetScore}
+      recencyDays={props.recencyDays} setRecencyDays={props.setRecencyDays}
+      minValidationSignals={props.minValidationSignals} setMinValidationSignals={props.setMinValidationSignals}
+      minAlignmentScore={props.minAlignmentScore} setMinAlignmentScore={props.setMinAlignmentScore}
+      maxPerSector={props.maxPerSector} setMaxPerSector={props.setMaxPerSector}
+    />
+    <SidebarFooter status={props.status} statusMsg={props.statusMsg} translations={props.brandIntelTranslations} toggleFetch={props.toggleFetch} />
+  </div>
+);
+
 const SidebarFilters: React.FC<SidebarFiltersProps> = (props) => (
   <aside className="w-full bg-[#08080a] p-6 lg:p-8">
     <SidebarHeader translations={props.brandIntelTranslations} />
-    <div className="space-y-8">
-      <PlatformSection translations={props.brandIntelTranslations} selectedPlatforms={props.selectedPlatforms} togglePlatform={props.togglePlatform} />
-      <KeywordSection translations={props.brandIntelTranslations} minLength={props.minLength} setMinLength={props.setMinLength} minFrequency={props.minFrequency} setMinFrequency={props.setMinFrequency} />
-      <WeightSection 
-        translations={props.brandIntelTranslations} 
-        weights={[
-          { label: props.brandIntelTranslations.weight_art, value: props.weightArticles, setter: props.setWeightArticles },
-          { label: props.brandIntelTranslations.weight_pat, value: props.weightPatents, setter: props.setWeightPatents },
-          { label: props.brandIntelTranslations.weight_sta, value: props.weightStartups, setter: props.setWeightStartups },
-          { label: "Jobs", value: props.weightJobs, setter: props.setWeightJobs },
-          { label: "Funding", value: props.weightFunding, setter: props.setWeightFunding }
-        ]} 
-      />
-
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 block">{props.brandIntelTranslations.style}</label>
-        <select 
-          value={props.brandStyle}
-          onChange={e => props.setBrandStyle(e.target.value)}
-          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#d4af37] text-white appearance-none"
-        >
-          <option value="merged">Merged (TechCrunch)</option>
-          <option value="acronym">Acronym (TC TechCrunch)</option>
-          <option value="compound">Compound (Tech Crunch)</option>
-        </select>
-      </div>
-
-      <OptimizationSection 
-        translations={props.brandIntelTranslations}
-        comOnly={props.comOnly} setComOnly={props.setComOnly}
-        enableLoop={props.enableLoop} setEnableLoop={props.setEnableLoop}
-        maxIterations={props.maxIterations} setMaxIterations={props.setMaxIterations}
-        targetScore={props.targetScore} setTargetScore={props.setTargetScore}
-        recencyDays={props.recencyDays} setRecencyDays={props.setRecencyDays}
-        minValidationSignals={props.minValidationSignals} setMinValidationSignals={props.setMinValidationSignals}
-        minAlignmentScore={props.minAlignmentScore} setMinAlignmentScore={props.setMinAlignmentScore}
-        maxPerSector={props.maxPerSector} setMaxPerSector={props.setMaxPerSector}
-      />
-
-      <SidebarFooter status={props.status} statusMsg={props.statusMsg} translations={props.brandIntelTranslations} toggleFetch={props.toggleFetch} />
-    </div>
+    <SidebarContent {...props} />
   </aside>
 );
 

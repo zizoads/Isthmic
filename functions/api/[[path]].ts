@@ -17,8 +17,9 @@ interface GeminiResponse {
   groundingMetadata?: { groundingChunks?: unknown[] };
 }
 
+const PYTHON_ROUTES = ["/api/crawl", "/api/trends", "/api/opportunities", "/api/health_proxy"];
+
 async function handleProxy(request: Request, env: Env, path: string, url: URL): Promise<Response> {
-  const pythonRoutes = ["/api/crawl", "/api/trends", "/api/opportunities", "/api/health_proxy"];
   let PYTHON_ENGINE_URL = env.PYTHON_ENGINE_URL || "https://azeddinebeldjilali9-isthmic.hf.space";
   if (!PYTHON_ENGINE_URL.endsWith('/')) PYTHON_ENGINE_URL += '/';
 
@@ -138,7 +139,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  if (["/api/crawl", "/api/trends", "/api/opportunities", "/api/health_proxy"].some(route => path.startsWith(route))) {
+  if (PYTHON_ROUTES.some(route => path.startsWith(route))) {
     return await handleProxy(request, env, path, url);
   }
 
