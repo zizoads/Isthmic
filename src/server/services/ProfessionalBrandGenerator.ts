@@ -29,7 +29,9 @@ export class ProfessionalBrandGenerator {
   private expanded_niches: Record<string, Record<string, string[]>> = {};
   private initialized = false;
 
-  private constructor() {}
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
 
   public static getInstance(): ProfessionalBrandGenerator {
     if (!ProfessionalBrandGenerator.instance) {
@@ -83,16 +85,18 @@ export class ProfessionalBrandGenerator {
       try {
         const synsets = await wordnet.lookup(word);
         for (const syn of synsets.slice(0, 3)) {
-          if (syn.meta && syn.meta.words) {
+          if (syn.meta?.words) {
             for (const wordObj of syn.meta.words) {
-              const w = wordObj.word.replace(/_/g, ' ').split(' ')[0].toLowerCase();
-              if (/^[a-z]+$/.test(w) && w.length >= 3 && w.length <= 8 && common_words.has(w) && !this._is_negative(w)) {
-                expanded.add(w);
+              const wordCandidate = wordObj.word.replace(/_/g, ' ').split(' ')[0].toLowerCase();
+              if (/^[a-z]+$/.test(wordCandidate) && wordCandidate.length >= 3 && wordCandidate.length <= 8 && common_words.has(wordCandidate) && !this._is_negative(wordCandidate)) {
+                expanded.add(wordCandidate);
               }
             }
           }
         }
-      } catch {}
+      } catch {
+        // Ignore wordnet lookup errors
+      }
     }
     const result = Array.from(expanded);
     return shuffle(result);
@@ -136,7 +140,7 @@ export class ProfessionalBrandGenerator {
     return candidates;
   }
 
-  private _filter_unique_candidates(candidates: { name: string; score: number }[]): { name: string; score: number }[] {
+  private static _filter_unique_candidates(candidates: { name: string; score: number }[]): { name: string; score: number }[] {
     const seen = new Set<string>();
     return candidates.filter(({ name }) => {
       if (seen.has(name)) return false;
@@ -157,7 +161,7 @@ export class ProfessionalBrandGenerator {
     if (words_list.length < 2) return [];
 
     const candidates = await this._generate_candidates(words_list);
-    const unique = this._filter_unique_candidates(candidates);
+    const unique = ProfessionalBrandGenerator._filter_unique_candidates(candidates);
     
     unique.sort((a, b) => b.score - a.score);
     const best = unique.slice(0, count * 2).map(c => c.name);

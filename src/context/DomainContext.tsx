@@ -19,7 +19,7 @@ export interface DomainContextType {
   domains: Domain[];
   setDomains: React.Dispatch<React.SetStateAction<Domain[]>>;
   stats: PlatformStats;
-  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: unknown) => void;
   dismissLog: (id: string) => void;
   activityLogs: ActivityLog[];
   activeProfile: UserProfile | null;
@@ -74,9 +74,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const q = query(collection(db, 'brand_opportunities'), orderBy('createdAt', 'desc'));
+    const domainsQuery = query(collection(db, 'brand_opportunities'), orderBy('createdAt', 'desc'));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(domainsQuery, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -93,10 +93,10 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsInitialLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, [user]);
 
-  const addLog = useCallback((agent: string, message: string, type: any = 'info', payload?: any) => {
+  const addLog = useCallback((agent: string, message: string, type: 'info' | 'success' | 'warning' | 'critical' = 'info', payload?: unknown) => {
     const id = Math.random().toString(36).substr(2, 9);
     setActivityLogs(prev => [{
       id,
@@ -189,7 +189,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const prompt = `Generate 5 brand opportunities for the niche: ${queryStr}`;
       const userApiKey = user?.apiKeys?.gemini;
 
-      const { data } = await generateStructuredAI<{ opportunities: any[] }>(
+      const { data } = await generateStructuredAI<{ opportunities: Record<string, unknown>[] }>(
         'gemini-3-flash-preview',
         systemInstruction,
         prompt,
@@ -220,9 +220,9 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (opportunities.length > 0) {
         addThought('Alpha Mine', `Prioritizing ${opportunities[0].name}: High strategic alignment detected.`, 'high');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       const errorString = typeof e === 'string' ? e : JSON.stringify(e);
-      let errorMsg = e.message || (errorString.includes('error') ? errorString : 'Unknown error occurred');
+      let errorMsg = (e as Error).message || (errorString.includes('error') ? errorString : 'Unknown error occurred');
       
       if (errorMsg.includes('429') || errorMsg.includes('Quota exceeded') || errorString.includes('429')) {
         errorMsg = 'Rate limit exceeded. Please wait a minute before trying again (Free Tier limit is 5 requests/min).';

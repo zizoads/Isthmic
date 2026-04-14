@@ -11,11 +11,8 @@ import { SignalMonitorService, IntelligenceSignal } from './SignalMonitorService
 export class EventOrchestrator {
   private static instance: EventOrchestrator;
   private brandGenerator: ProfessionalBrandGenerator;
-  private signalService: SignalMonitorService;
-
   private constructor() {
     this.brandGenerator = ProfessionalBrandGenerator.getInstance();
-    this.signalService = SignalMonitorService.getInstance();
   }
 
   public static getInstance(): EventOrchestrator {
@@ -34,7 +31,7 @@ export class EventOrchestrator {
     const domainsRef = collection(db, 'domains');
     
     // Monitor Intelligence Signals (IRONSIGHT Protocol)
-    this.signalService.subscribeToSignals((signals) => {
+    SignalMonitorService.subscribeToSignals((signals) => {
       const latestSignal = signals[0];
       if (latestSignal) {
         this.handleIntelligenceSignal(latestSignal).catch(e => console.error('Error in handleIntelligenceSignal:', e));
@@ -44,7 +41,7 @@ export class EventOrchestrator {
     // Note: In a real server environment, we'd use firebase-admin for better performance
     // but for this applet, the standard SDK works fine.
     onSnapshot(domainsRef, (snapshot) => {
-      snapshot.docChanges().forEach(async (change) => {
+      snapshot.docChanges().forEach((change) => {
         const domain = { id: change.doc.id, ...change.doc.data() } as Domain;
 
         if (change.type === 'added' && domain.status === 'processing') {
@@ -62,36 +59,38 @@ export class EventOrchestrator {
     });
   }
 
-  private async handleNewDomain(domain: Domain) {
-    
-    // Simulate Background Audit Work
-    setTimeout(async () => {
-      try {
-        const mockMetrics = {
-          da: Math.floor(Math.random() * 40) + 10,
-          pa: Math.floor(Math.random() * 30) + 5,
-          liquidityScore: Math.floor(Math.random() * 100),
-          trademarkRisk: Math.random() > 0.8 ? 'High' : 'Low'
-        };
-
+  private handleNewDomain(domain: Domain): Promise<void> {
+    return new Promise((resolve) => {
+      // Simulate Background Audit Work
+      setTimeout(async () => {
         try {
-          await updateDoc(doc(db, 'domains', domain.id), {
-            status: 'available',
-            technicalMetrics: mockMetrics,
-            integrityScore: Math.floor(Math.random() * 100),
-            lastChecked: new Date().toISOString()
-          });
-        } catch (error) {
+          const mockMetrics = {
+            da: Math.floor(Math.random() * 40) + 10,
+            pa: Math.floor(Math.random() * 30) + 5,
+            liquidityScore: Math.floor(Math.random() * 100),
+            trademarkRisk: Math.random() > 0.8 ? 'High' : 'Low'
+          };
+
           try {
-            handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
-          } catch {
-            // Error is already logged by handleFirestoreError, prevent unhandled rejection
+            await updateDoc(doc(db, 'domains', domain.id), {
+              status: 'available',
+              technicalMetrics: mockMetrics,
+              integrityScore: Math.floor(Math.random() * 100),
+              lastChecked: new Date().toISOString()
+            });
+          } catch (error) {
+            try {
+              handleFirestoreError(error, OperationType.UPDATE, `domains/${domain.id}`);
+            } catch {
+              // Error is already logged by handleFirestoreError, prevent unhandled rejection
+            }
           }
+        } catch (e) {
+          console.error('Error in handleNewDomain setTimeout:', e);
         }
-      } catch (e) {
-        console.error('Error in handleNewDomain setTimeout:', e);
-      }
-    }, 3000);
+        resolve();
+      }, 3000);
+    });
   }
 
   private async handleStatusChange(domain: Domain) {
@@ -127,6 +126,7 @@ export class EventOrchestrator {
           }
         }, 5000);
       } catch {
+        // Ignore error
       }
     }
   }
@@ -137,9 +137,9 @@ export class EventOrchestrator {
       // Example: If signal is about AI sector, boost all .ai domains
       if (signal.metadata?.sector === 'AI') {
         const domainsRef = collection(db, 'domains');
-        const q = query(domainsRef, where('name', '>=', ''), where('name', '<=', '\uffff')); // Simple scan
+        const domainsQuery = query(domainsRef, where('name', '>=', ''), where('name', '<=', '\uffff')); // Simple scan
         try {
-          const snapshot = await getDocs(q);
+          const snapshot = await getDocs(domainsQuery);
           
           snapshot.docs.forEach(async (domainDoc) => {
             const domain = domainDoc.data() as Domain;

@@ -11,7 +11,7 @@ export class MilitaryVault {
   private accessLog: Array<{timestamp: number; action: string; key: string; user?: string}> = [];
   private intrusionAttempts = 0;
   private readonly MAX_INTRUSIONS = 3;
-  private backupInterval: any = null;
+  private backupInterval: ReturnType<typeof setInterval> | null = null;
   
   private constructor() {
     this.initializeVault();
@@ -26,7 +26,7 @@ export class MilitaryVault {
   }
 
   // 🏁 Vault Initialization
-  private async initializeVault(): Promise<void> {
+  private initializeVault(): void {
     try {
       const stored = localStorage.getItem('military_vault_backup');
       if (stored) {
@@ -47,8 +47,8 @@ export class MilitaryVault {
   }
 
   // 💾 Data Deposit
-  async deposit(key: string, data: any, securityLevel: QuantumEncryptedData['level'] = 'SECRET'): Promise<void> {
-    await this.verifyAccess('DEPOSIT', key);
+  async deposit(key: string, data: unknown, securityLevel: QuantumEncryptedData['level'] = 'SECRET'): Promise<void> {
+    this.verifyAccess('DEPOSIT', key);
     
     const encrypted = await QuantumCrypto.encrypt(data, securityLevel);
     this.logAccess('DEPOSIT', key);
@@ -57,8 +57,8 @@ export class MilitaryVault {
   }
 
   // 🏧 Data Withdrawal
-  async withdraw(key: string): Promise<any> {
-    await this.verifyAccess('WITHDRAW', key);
+  async withdraw(key: string): Promise<unknown> {
+    this.verifyAccess('WITHDRAW', key);
     
     const encrypted = this.vault.get(key);
     if (!encrypted) {
@@ -71,8 +71,8 @@ export class MilitaryVault {
   }
 
   // 🗑️ Data Destruction
-  async destroy(key: string): Promise<void> {
-    await this.verifyAccess('DESTROY', key);
+  destroy(key: string): void {
+    this.verifyAccess('DESTROY', key);
     
     if (this.vault.has(key)) {
       this.vault.delete(key);
@@ -81,7 +81,7 @@ export class MilitaryVault {
   }
 
   // 🔒 Identity Verification (Military Simulation)
-  private async verifyAccess(_action: string, _key: string): Promise<void> {
+  private verifyAccess(_action: string, _key: string): void {
     if (this.intrusionAttempts >= this.MAX_INTRUSIONS) {
       this.triggerLockdown();
       throw new Error('VAULT_LOCKDOWN_ACTIVATED');
@@ -136,7 +136,7 @@ export class MilitaryVault {
     }, 5 * 60 * 1000); // 5 minutes
   }
 
-  private async createBackup(): Promise<void> {
+  private createBackup(): void {
     try {
       const backup: Record<string, QuantumEncryptedData> = {};
       this.vault.forEach((value, key) => {
@@ -144,6 +144,7 @@ export class MilitaryVault {
       });
       localStorage.setItem('military_vault_backup', JSON.stringify(backup));
     } catch {
+      // Ignore backup error
     }
   }
 

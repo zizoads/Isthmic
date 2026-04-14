@@ -39,22 +39,22 @@ export class QuantumEncryption {
       
       if (storedSeed) {
         try {
-          return this.base64ToArray(storedSeed);
+          return QuantumEncryption.base64ToArray(storedSeed);
         } catch {
           console.error("🚨 [SECURITY] Anchor corrupted. Generating new recovery path.");
         }
       }
 
-      const newSeed = this.generateQuantumSeed();
-      localStorage.setItem(this.SEED_STORAGE_KEY, this.arrayToBase64(newSeed));
+      const newSeed = QuantumEncryption.generateQuantumSeed();
+      localStorage.setItem(this.SEED_STORAGE_KEY, QuantumEncryption.arrayToBase64(newSeed));
       return newSeed;
     } catch {
       console.warn("⚠️ [SECURITY] Local storage access failed. Using ephemeral quantum seed.");
-      return this.generateQuantumSeed();
+      return QuantumEncryption.generateQuantumSeed();
     }
   }
 
-  private generateQuantumSeed(): Uint8Array {
+  private static generateQuantumSeed(): Uint8Array {
     const seed = new Uint8Array(64);
     if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.getRandomValues) {
       globalThis.crypto.getRandomValues(seed);
@@ -72,7 +72,7 @@ export class QuantumEncryption {
     return seed;
   }
 
-  async encrypt(data: any, level: QuantumEncryptedData['level'] = 'SECRET'): Promise<QuantumEncryptedData> {
+  async encrypt(data: unknown, level: QuantumEncryptedData['level'] = 'SECRET'): Promise<QuantumEncryptedData> {
     const dataString = JSON.stringify(data);
     const encoder = new TextEncoder();
     const dataBuffer = encoder.encode(dataString);
@@ -83,35 +83,35 @@ export class QuantumEncryption {
     const encrypted = await globalThis.crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: iv as any,
-        additionalData: encoder.encode(level) as any
+        iv,
+        additionalData: encoder.encode(level)
       },
       key,
-      dataBuffer as any
+      dataBuffer
     );
 
     const signature = await this.quantumSign(encrypted, level);
 
     return {
       version: 'QUANTUM-2.0',
-      level: level,
-      iv: this.arrayToBase64(iv),
-      data: this.arrayToBase64(new Uint8Array(encrypted)),
-      signature: this.arrayToBase64(new Uint8Array(signature)),
+      level,
+      iv: QuantumEncryption.arrayToBase64(iv),
+      data: QuantumEncryption.arrayToBase64(new Uint8Array(encrypted)),
+      signature: QuantumEncryption.arrayToBase64(new Uint8Array(signature)),
       timestamp: Date.now(),
       checksum: await this.generateChecksum(encrypted)
     };
   }
 
-  async decrypt(encryptedData: QuantumEncryptedData): Promise<any> {
+  async decrypt(encryptedData: QuantumEncryptedData): Promise<unknown> {
     if (encryptedData.version !== 'QUANTUM-2.0') {
       throw new Error('ENCRYPTION_VERSION_MISMATCH');
     }
 
-    const dataArray = this.base64ToArray(encryptedData.data);
+    const dataArray = QuantumEncryption.base64ToArray(encryptedData.data);
     const isValid = await this.verifySignature(
       dataArray.buffer as ArrayBuffer,
-      this.base64ToArray(encryptedData.signature).buffer as ArrayBuffer,
+      QuantumEncryption.base64ToArray(encryptedData.signature).buffer as ArrayBuffer,
       encryptedData.level
     );
     
@@ -121,17 +121,17 @@ export class QuantumEncryption {
     if (checksum !== encryptedData.checksum) throw new Error('DATA_CORRUPTION_DETECTED');
 
     const key = await this.generateLevelKey(encryptedData.level);
-    const iv = this.base64ToArray(encryptedData.iv);
+    const iv = QuantumEncryption.base64ToArray(encryptedData.iv);
 
     try {
       const decrypted = await globalThis.crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: iv as any,
+          iv: iv.buffer as ArrayBuffer,
           additionalData: new TextEncoder().encode(encryptedData.level)
         },
         key,
-        dataArray as any
+        dataArray.buffer as ArrayBuffer
       );
 
       return JSON.parse(new TextDecoder().decode(decrypted));
@@ -142,7 +142,7 @@ export class QuantumEncryption {
 
   private async generateLevelKey(level: string): Promise<CryptoKey> {
     const baseKey = await globalThis.crypto.subtle.importKey(
-      'raw', this.QUANTUM_SEED as any, 'PBKDF2', false, ['deriveKey']
+      'raw', this.QUANTUM_SEED.buffer as ArrayBuffer, 'PBKDF2', false, ['deriveKey']
     );
 
     return globalThis.crypto.subtle.deriveKey(
@@ -161,24 +161,24 @@ export class QuantumEncryption {
 
   private async quantumSign(data: ArrayBuffer, _level: string): Promise<ArrayBuffer> {
     const signKey = await globalThis.crypto.subtle.importKey(
-      'raw', this.QUANTUM_SEED as any, { name: 'HMAC', hash: 'SHA-512' } as any, false, ['sign']
+      'raw', this.QUANTUM_SEED.buffer as ArrayBuffer, { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']
     );
     return globalThis.crypto.subtle.sign('HMAC', signKey, data);
   }
 
   private async verifySignature(data: ArrayBuffer, signature: ArrayBuffer, _level: string): Promise<boolean> {
     const signKey = await globalThis.crypto.subtle.importKey(
-      'raw', this.QUANTUM_SEED as any, { name: 'HMAC', hash: 'SHA-512' } as any, false, ['verify']
+      'raw', this.QUANTUM_SEED.buffer as ArrayBuffer, { name: 'HMAC', hash: 'SHA-512' }, false, ['verify']
     );
     return globalThis.crypto.subtle.verify('HMAC', signKey, signature, data);
   }
 
   private async generateChecksum(data: ArrayBuffer): Promise<string> {
     const digestBuffer = await globalThis.crypto.subtle.digest('SHA-512', data);
-    return this.arrayToBase64(new Uint8Array(digestBuffer));
+    return QuantumEncryption.arrayToBase64(new Uint8Array(digestBuffer));
   }
 
-  private arrayToBase64(array: Uint8Array): string {
+  private static arrayToBase64(array: Uint8Array): string {
     // 🛡️ Robust base64 conversion for large buffers
     let binary = '';
     const len = array.byteLength;
@@ -188,7 +188,7 @@ export class QuantumEncryption {
     return btoa(binary);
   }
 
-  private base64ToArray(base64: string): Uint8Array {
+  private static base64ToArray(base64: string): Uint8Array {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
@@ -201,7 +201,7 @@ export class QuantumEncryption {
     try {
       const test = { msg: 'TEST_STABILITY' };
       const enc = await this.encrypt(test);
-      const dec = await this.decrypt(enc);
+      const dec = await this.decrypt(enc) as { msg?: string };
       if (dec.msg !== 'TEST_STABILITY') throw new Error('STABILITY_FAIL');
       console.log('✅ Quantum Engine Persistent State: STABLE');
     } catch (e) {

@@ -10,30 +10,19 @@ export interface IntelligenceSignal {
   content: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   timestamp: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**
  * Sovereign Signal Monitor (SSM)
  * Inspired by IRONSIGHT for high-efficiency situational awareness.
  */
-export class SignalMonitorService {
-  private static instance: SignalMonitorService;
-
-  private constructor() {}
-
-  public static getInstance(): SignalMonitorService {
-    if (!SignalMonitorService.instance) {
-      SignalMonitorService.instance = new SignalMonitorService();
-    }
-    return SignalMonitorService.instance;
-  }
-
+export const SignalMonitorService = {
   /**
    * Simulates the ingestion of a new signal from external sources.
    * In a real production environment, this would be triggered by webhooks or cron jobs.
    */
-  public async ingestSignal(signal: Omit<IntelligenceSignal, 'id' | 'timestamp'>) {
+  async ingestSignal(signal: Omit<IntelligenceSignal, 'id' | 'timestamp'>) {
     const signalsRef = collection(db, 'intelligence_signals');
     try {
       await addDoc(signalsRef, {
@@ -47,16 +36,16 @@ export class SignalMonitorService {
         // Error is logged by handleFirestoreError
       }
     }
-  }
+  },
 
   /**
    * Returns a listener for real-time signals.
    */
-  public subscribeToSignals(callback: (signals: IntelligenceSignal[]) => void) {
+  subscribeToSignals(callback: (signals: IntelligenceSignal[]) => void) {
     const signalsRef = collection(db, 'intelligence_signals');
-    const q = query(signalsRef, orderBy('timestamp', 'desc'), limit(20));
+    const signalsQuery = query(signalsRef, orderBy('timestamp', 'desc'), limit(20));
 
-    return onSnapshot(q, (snapshot) => {
+    return onSnapshot(signalsQuery, (snapshot) => {
       const signals = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -69,12 +58,12 @@ export class SignalMonitorService {
         // Error is logged by handleFirestoreError
       }
     });
-  }
+  },
 
   /**
    * Generates mock signals to demonstrate the system's capability.
    */
-  public async seedMockSignals() {
+  async seedMockSignals() {
     const mockSignals: Omit<IntelligenceSignal, 'id' | 'timestamp'>[] = [
       {
         source: 'RSS',
@@ -114,4 +103,4 @@ export class SignalMonitorService {
       await this.ingestSignal(signal);
     }
   }
-}
+};

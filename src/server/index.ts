@@ -64,9 +64,10 @@ async function startServer() {
     
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: "GEMINI_API_KEY not configured or invalid. Please provide a valid key in Settings or via header." 
       });
+      return;
     }
 
     try {
@@ -77,10 +78,10 @@ async function startServer() {
         model: modelId,
         contents: [{ role: 'user', parts: [{ text: typeof prompt === 'string' ? prompt : JSON.stringify(prompt) }] }],
         config: {
-          systemInstruction: systemInstruction,
+          systemInstruction,
           responseMimeType: "application/json",
           responseSchema: schema,
-          tools: tools,
+          tools,
           ...configOverrides
         }
       });
@@ -93,8 +94,8 @@ async function startServer() {
         data: JSON.parse(text),
         grounding: response.candidates?.[0]?.groundingMetadata?.groundingChunks
       });
-    } catch (e: any) {
-      res.status(500).json({ error: "AI Synthesis failed", details: e.message });
+    } catch (e: unknown) {
+      res.status(500).json({ error: "AI Synthesis failed", details: (e as Error).message });
     }
   });
 
@@ -141,7 +142,7 @@ async function startServer() {
 const appPromise = startServer();
 appPromise.catch(() => console.error("Server start failed"));
 
-export default async (req: any, res: any) => {
+export default async (req: express.Request, res: express.Response) => {
   const app = await appPromise;
   app(req, res);
 };

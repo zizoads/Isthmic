@@ -6,11 +6,11 @@ import { QuantumCrypto, QuantumEncryptedData } from '../security/QuantumEncrypti
  * XOR algorithm replaced with military AES-GCM encryption.
  */
 
-export class SovereignShield {
+export const SovereignShield = {
   /**
    * Protect data using quantum encryption
    */
-  static async protect(key: string, data: any): Promise<void> {
+  async protect(key: string, data: unknown): Promise<void> {
     try {
       // Use the new encryption engine
       const encryptedEnvelope = await QuantumCrypto.encrypt(data, key === 'profile' ? 'TOP_SECRET' : 'SECRET');
@@ -21,12 +21,12 @@ export class SovereignShield {
     } catch (e) {
       console.error("SHIELD_CRITICAL_FAILURE: Failed to engage Quantum protocol.", e);
     }
-  }
+  },
 
   /**
    * Recover data with decryption and integrity verification
    */
-  static async recover<T>(key: string): Promise<T | null> {
+  async recover<T>(key: string): Promise<T | null> {
     try {
       const rawEnvelope = localStorage.getItem(`shield_v4_${key}`);
       if (!rawEnvelope) return null;
@@ -39,13 +39,13 @@ export class SovereignShield {
       console.warn(`[SHIELD] Recovery failed for ${key}. Data may be corrupted or key rotated.`);
       return null;
     }
-  }
+  },
 
-  static purge(key: string): void {
+  purge(key: string): void {
     localStorage.removeItem(`shield_v4_${key}`);
-  }
+  },
 
-  static getEntropyLevel(): number {
+  getEntropyLevel(): number {
     return 99.99; // Quantum encryption provides the highest possible entropy level
   }
-}
+};

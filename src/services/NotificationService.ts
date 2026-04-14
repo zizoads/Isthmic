@@ -1,12 +1,12 @@
 
 import { SovereignShield } from './SovereignShield';
 
-export class NotificationService {
+export const NotificationService = {
   /**
    * Log tactical email dispatch.
    * Stored in local vault for reporting and auditing.
    */
-  static async sendTransactionalEmail(email: string, type: string, payload: any) {
+  async sendTransactionalEmail(email: string, type: string, payload: unknown) {
     const logEntry = {
       id: Math.random().toString(36).substr(2, 9),
       recipient_email: email,
@@ -18,16 +18,16 @@ export class NotificationService {
     console.log(`%c[MAIL_DISPATCH] 📨 ${type} -> ${email}`, "color: #d4af37; font-weight: bold;", payload);
     
     try {
-      const logs = await SovereignShield.recover<any[]>('email_logs') || [];
+      const logs = await SovereignShield.recover<unknown[]>('email_logs') || [];
       await SovereignShield.protect('email_logs', [logEntry, ...logs].slice(0, 50));
     } catch {
       console.warn("Mail Log deferred.");
     }
 
     return true;
-  }
+  },
 
-  static async updatePreferences(userId: string, prefs: any) {
+  async updatePreferences(userId: string, prefs: unknown) {
     try {
       await SovereignShield.protect(`user_prefs_${userId}`, prefs);
       return true;
@@ -36,4 +36,4 @@ export class NotificationService {
       return false;
     }
   }
-}
+};

@@ -18,34 +18,34 @@ import {
 import { auth, db, handleFirestoreError, OperationType } from '../../firebase';
 import { UserProfile } from '../types';
 
-export class AuthService {
-  private static googleProvider = new GoogleAuthProvider();
+export const AuthService = {
+  googleProvider: new GoogleAuthProvider(),
 
   /**
    * Login with Google
    */
-  static async loginWithGoogle(): Promise<UserProfile> {
+  async loginWithGoogle(): Promise<UserProfile> {
     try {
       const result = await signInWithPopup(auth, this.googleProvider);
       return await this.syncUserProfile(result.user);
-    } catch (error: any) {
-      if (error?.code === 'auth/popup-closed-by-user') {
+    } catch (error: unknown) {
+      if ((error as { code?: string })?.code === 'auth/popup-closed-by-user') {
         console.warn("AUTH_LOGIN_CANCELLED: User closed the popup.");
       } else {
         console.error("AUTH_LOGIN_FAILURE:", error);
       }
       throw error;
     }
-  }
+  },
 
-  static getCurrentUser(): User | null {
+  getCurrentUser(): User | null {
     return auth.currentUser;
-  }
+  },
 
   /**
    * Register with Email and Password
    */
-  static async registerWithEmail(email: string, password: string, name: string): Promise<UserProfile> {
+  async registerWithEmail(email: string, password: string, name: string): Promise<UserProfile> {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(result.user, { displayName: name });
@@ -54,12 +54,12 @@ export class AuthService {
       console.error("AUTH_REGISTER_FAILURE:", error);
       throw error;
     }
-  }
+  },
 
   /**
    * Login with Email and Password
    */
-  static async loginWithEmail(email: string, password: string): Promise<UserProfile> {
+  async loginWithEmail(email: string, password: string): Promise<UserProfile> {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       return await this.syncUserProfile(result.user);
@@ -67,12 +67,12 @@ export class AuthService {
       console.error("AUTH_LOGIN_EMAIL_FAILURE:", error);
       throw error;
     }
-  }
+  },
 
   /**
    * Sync Firebase User with Firestore Profile
    */
-  static async syncUserProfile(user: User): Promise<UserProfile> {
+  async syncUserProfile(user: User): Promise<UserProfile> {
     const userRef = doc(db, 'users', user.uid);
     
     try {
@@ -106,9 +106,9 @@ export class AuthService {
       }
       throw error;
     }
-  }
+  },
 
-  static async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+  async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
       await setDoc(userRef, {
@@ -123,24 +123,24 @@ export class AuthService {
       }
       throw error;
     }
-  }
+  },
 
-  static async logout(): Promise<void> {
+  async logout(): Promise<void> {
     await signOut(auth);
-  }
+  },
 
-  static onAuthChange(callback: (user: User | null) => void) {
+  onAuthChange(callback: (user: User | null) => void) {
     if (!auth || typeof auth.onAuthStateChanged !== 'function') {
       console.warn("AuthService: Firebase Auth not fully initialized. Using mock listener.");
       callback(null);
-      return () => {};
+      return () => { /* no-op */ };
     }
     try {
       return onAuthStateChanged(auth, callback);
     } catch (e) {
       console.error("AuthService: Failed to attach auth listener", e);
       callback(null);
-      return () => {};
+      return () => { /* no-op */ };
     }
   }
-}
+};

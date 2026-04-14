@@ -11,12 +11,12 @@ export interface EnvHealth {
   environment: string;
 }
 
-export class EnvironmentService {
-  static async getHealthStatus(): Promise<EnvHealth> {
+export const EnvironmentService = {
+  getHealthStatus(): EnvHealth {
     const environment = process.env.NODE_ENV || 'development';
     
-    const firebaseOk = !!auth.app;
-    const geminiOk = !!process.env.GEMINI_API_KEY;
+    const firebaseOk = Boolean(auth.app);
+    const geminiOk = Boolean(process.env.GEMINI_API_KEY);
     
     // Check RLS status and profile email
     let rls: 'ENFORCED' | 'BYPASS_ADMIN' | 'UNKNOWN' = 'ENFORCED';
@@ -36,20 +36,20 @@ export class EnvironmentService {
       rlsStatus: rls,
       version: '2.3.5-sovereign-resilience',
       buildDate: new Date().toISOString(),
-      environment: environment
+      environment
     };
-  }
+  },
 
-  static getDeploymentLogs() {
+  getDeploymentLogs() {
     return [
       { id: 1, stage: 'PRE_COMMIT_HOOK', status: 'STABLE', time: 'Just now' },
       { id: 2, stage: 'VULNERABILITY_SCAN', status: 'PASSED', time: '5m ago' },
       { id: 3, stage: 'ASSET_PIPELINE_SYNC', status: 'SYNCED', time: '1h ago' },
       { id: 4, stage: 'SECURITY_POLICY_AUDIT', status: 'SECURE', time: '4h ago' }
     ];
-  }
+  },
 
-  static async validatePushPermissions(): Promise<{ allowed: boolean; reason?: string }> {
+  validatePushPermissions(): { allowed: boolean; reason?: string } {
     try {
       const user = auth.currentUser;
       if (!user) return { allowed: false, reason: "NO_ACTIVE_SESSION" };
@@ -63,4 +63,4 @@ export class EnvironmentService {
       return { allowed: false, reason: "SECURITY_SERVICE_OFFLINE" };
     }
   }
-}
+};
