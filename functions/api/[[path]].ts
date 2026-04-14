@@ -176,5 +176,48 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
   }
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5; // 5 requests per minute
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
+
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + RATE_LIMIT_WINDOW;
+  } else {
+    record.count += 1;
+  }
+
+  rateLimitMap.set(ip, record);
+  return record.count > MAX_REQUESTS_PER_WINDOW;
+}
+
+// ... inside handleRequest function ...
+
+  if (path === "/api/check-domain") {
+    // Basic IP-based rate limiting
+    const ip = request.headers.get("cf-connecting-ip") || "unknown";
+    if (isRateLimited(ip)) {
+      return new Response(JSON.stringify({ error: "Too many requests, please try again later." }), { status: 429, headers: { "Content-Type": "application/json" } });
+    }
+
+    const domain = url.searchParams.get('domain');
+    if (!domain) return new Response(JSON.stringify({ error: "Missing domain" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    
+    try {
+      // Placeholder API call - user may need to replace with a reliable API or add an API key
+      const response = await fetch(`https://api.whois.vu/v1/whois/${domain}`);
+      const data = await response.json() as { status?: string };
+      const isAvailable = data.status === 'available'; 
+      return new Response(JSON.stringify({ domain, available: isAvailable }), { headers: { "Content-Type": "application/json" } });
+    } catch (e: unknown) {
+      return new Response(JSON.stringify({ error: "Failed to check domain", details: e instanceof Error ? e.message : String(e) }), { status: 500, headers: { "Content-Type": "application/json" } });
+    }
+  }
+
   return new Response(JSON.stringify({ error: "Route not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
 };

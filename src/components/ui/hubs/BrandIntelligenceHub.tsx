@@ -96,46 +96,74 @@ const TrendCard: React.FC<{ trend: Trend; idx: number }> = ({ trend, idx }) => (
   </motion.div>
 );
 
-const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: idx * 0.1 }}
-    className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] relative overflow-hidden group hover:border-[#d4af37]/30 transition-all shadow-2xl"
-  >
-    <div className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 bg-[#d4af37]/5 blur-3xl -mr-16 -mt-16 md:-mr-24 md:-mt-24 group-hover:bg-[#d4af37]/10 transition-all" />
-    
-    <div className="flex items-center justify-between mb-6 relative z-10">
-      <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors">
-        {opp.name}
-      </h3>
-      <div className="bg-[#d4af37]/10 text-[#d4af37] text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-[#d4af37]/20 uppercase tracking-widest">
-        SCORE: {(opp.opportunity_score * 100).toFixed(1)}
+const OpportunityCard: React.FC<{ opp: Opportunity; idx: number }> = ({ opp, idx }) => {
+  const [domainStatus, setDomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+  const checkDomain = async () => {
+    setDomainStatus('checking');
+    try {
+      const response = await fetch(`/api/check-domain?domain=${opp.name.replace(/\s+/g, '').toLowerCase()}.com`);
+      const data = await response.json() as { available: boolean };
+      setDomainStatus(data.available ? 'available' : 'taken');
+    } catch (e) {
+      setDomainStatus('idle');
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.1 }}
+      className="bg-[#08080a] border border-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] relative overflow-hidden group hover:border-[#d4af37]/30 transition-all shadow-2xl"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 bg-[#d4af37]/5 blur-3xl -mr-16 -mt-16 md:-mr-24 md:-mt-24 group-hover:bg-[#d4af37]/10 transition-all" />
+      
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter group-hover:text-[#d4af37] transition-colors">
+            {opp.name}
+          </h3>
+          <button 
+            onClick={checkDomain}
+            className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${
+              domainStatus === 'idle' ? 'bg-white/5 text-slate-500 border-white/5' :
+              domainStatus === 'checking' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' :
+              domainStatus === 'available' ? 'bg-green-500/20 text-green-500 border-green-500/20' :
+              'bg-red-500/20 text-red-500 border-red-500/20'
+            }`}
+          >
+            {domainStatus === 'idle' ? 'Check .com' : domainStatus === 'checking' ? '...' : domainStatus === 'available' ? 'Available' : 'Taken'}
+          </button>
+        </div>
+        <div className="bg-[#d4af37]/10 text-[#d4af37] text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-[#d4af37]/20 uppercase tracking-widest">
+          SCORE: {(opp.opportunity_score * 100).toFixed(1)}
+        </div>
       </div>
-    </div>
 
-    <div className="relative z-10 mb-4 md:mb-6">
-      <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
-      <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
-    </div>
-    <div className="relative z-10 mb-4 md:mb-6">
-      <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
-      <p className="text-[10px] md:text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
-    </div>
-    <div className="relative z-10 flex flex-wrap gap-2 pt-2 mb-8 md:mb-10">
-      {opp.supporting_evidence.map((word: string) => (
-        <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-2 md:px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
-          {word}
-        </span>
-      ))}
-    </div>
+      <div className="relative z-10 mb-4 md:mb-6">
+        <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Strategic Positioning</span>
+        <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic border-l border-[#d4af37]/30 pl-4">{opp.positioning}</p>
+      </div>
+      <div className="relative z-10 mb-4 md:mb-6">
+        <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-2">Market Gap</span>
+        <p className="text-[10px] md:text-xs text-slate-500 italic font-medium">&quot;{opp.gap}&quot;</p>
+      </div>
+      <div className="relative z-10 flex flex-wrap gap-2 pt-2 mb-8 md:mb-10">
+        {opp.supporting_evidence.map((word: string) => (
+          <span key={word} className="text-[8px] font-black bg-white/5 text-[#0ea5e9] px-2 md:px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest">
+            {word}
+          </span>
+        ))}
+      </div>
 
-    <button className="relative z-10 w-full py-3 md:py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-2 md:gap-3 border border-white/5 hover:border-[#d4af37]">
-      <Download className="w-4 h-4" />
-      Export Opportunity
-    </button>
-  </motion.div>
-);
+      <button className="relative z-10 w-full py-3 md:py-4 bg-white/2 hover:bg-[#d4af37] text-slate-500 hover:text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-2 md:gap-3 border border-white/5 hover:border-[#d4af37]">
+        <Download className="w-4 h-4" />
+        Export Opportunity
+      </button>
+    </motion.div>
+  );
+};
 
 interface BrandIntelTranslations {
   settings: string;
