@@ -642,16 +642,38 @@ export const BrandIntelligenceHub: React.FC = () => {
       let retries = 0;
       const maxRetries = 2;
 
+      // Dynamic count based on maxPerSector or default to 5
+      const targetTrendCount = Math.max(3, Math.min(8, maxPerSector * 2));
+      const targetOppCount = Math.max(2, Math.min(6, maxPerSector));
+
       while (retries <= maxRetries) {
         try {
           combinedRes = await generateStructuredAI<{ trends: Trend[], opportunities: Opportunity[] }>(
             "gemini-3-flash-preview",
-            "You are an expert market analyst, domain name investor, and brand strategist. First, generate 3 cutting-edge technology trends based on current market signals. Then, generate 2 highly valuable brand/domain opportunities based on those trends.",
-            `Generate 3 emerging tech trends. Focus on these platforms: ${selectedPlatforms.join(', ')}. 
-             Constraints: Recency(${recencyDays} days), Min Signals(${minValidationSignals}), Min Score(${minAlignmentScore}), Max/Sector(${maxPerSector}), .com Only(${comOnly}). 
-             Weights: Jobs(${weightJobs}), Funding(${weightFunding}), Articles(${weightArticles}), Patents(${weightPatents}), Startups(${weightStartups}).
+            `You are an expert market analyst, domain name investor, and brand strategist. 
+            Your task is to perform a deep-tier analysis of emerging market signals.
+            Generate a diverse set of trends and brand opportunities. 
+            Do NOT repeat previous results. Be creative and specific.`,
+            `Perform a strategic sweep across these platforms: ${selectedPlatforms.join(', ')}.
              
-             Then, generate 2 brand opportunities based on these trends.`,
+             ANALYSIS PARAMETERS:
+             - Recency: Last ${recencyDays} days
+             - Min Validation Signals: ${minValidationSignals}
+             - Min Alignment Score: ${minAlignmentScore}
+             - Max Results per Sector: ${maxPerSector}
+             - TLD Constraint: ${comOnly ? '.com only' : 'Any TLD'}
+             
+             WEIGHTS:
+             - Jobs: ${weightJobs}
+             - Funding: ${weightFunding}
+             - Articles: ${weightArticles}
+             - Patents: ${weightPatents}
+             - Startups: ${weightStartups}
+             
+             OUTPUT REQUIREMENTS:
+             1. Generate ${targetTrendCount} distinct emerging tech trends.
+             2. Generate ${targetOppCount} unique brand/domain opportunities based on these trends.
+             3. Ensure high phonetic resonance and brandability.`,
             {
               type: "object",
               properties: {

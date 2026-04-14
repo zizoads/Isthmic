@@ -43,17 +43,49 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     try {
       const response = await fetch(newRequest);
       
+      // If Python engine returns 404 or 502, we might want to fallback to Gemini locally
+      if (!response.ok && (response.status === 404 || response.status === 502)) {
+        throw new Error(`Python engine returned ${response.status}`);
+      }
+
       // Copy response to a new response object to ensure headers are correct
       const modifiedResponse = new Response(response.body, response);
       modifiedResponse.headers.set("Access-Control-Allow-Origin", "*");
       
       return modifiedResponse;
     } catch (e: any) {
-      console.error(`Proxy Error for ${path}:`, e.message);
+      console.warn(`Proxy Fallback for ${path}:`, e.message);
+      
+      // Local Fallback Logic for Trends/Opportunities using Gemini
+      if (path === "/api/trends" || path === "/api/opportunities") {
+        const activeApiKey = request.headers.get('x-user-api-key') || env.GEMINI_API_KEY;
+        if (activeApiKey) {
+          const isTrends = path === "/api/trends";
+          const prompt = isTrends 
+            ? `Generate 5 emerging tech trends. Params: ${url.search}. Return JSON array of {id, keyword, opportunity_score, platforms, velocity}.`
+            : `Generate 3 brand opportunities. Params: ${url.search}. Return JSON array of {id, name, opportunity_score, positioning, gap, supporting_evidence}.`;
+
+          const fallbackRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
+
+          if (fallbackRes.ok) {
+            const data = await fallbackRes.json() as any;
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            return new Response(text, { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+          }
+        }
+      }
+
       return new Response(JSON.stringify({ 
-        error: "Python engine unreachable", 
+        error: "Intelligence engine unreachable", 
         details: e.message,
-        target: targetUrl.toString()
+        fallback: "Attempted local AI synthesis"
       }), {
         status: 502,
         headers: { 

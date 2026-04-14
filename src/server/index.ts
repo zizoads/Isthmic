@@ -58,6 +58,55 @@ async function startServer() {
     }
   });
 
+  // Alpha Mine Intelligence Routes (Local implementation using Gemini)
+  app.get("/api/trends", async (req, res) => {
+    const userApiKey = req.headers['x-user-api-key'] as string;
+    const apiKey = userApiKey || process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) return res.status(401).json({ error: "API Key required" });
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const prompt = `Generate 5 emerging technology trends based on these parameters: ${JSON.stringify(req.query)}. 
+      Return ONLY a JSON array of objects with: id, keyword, opportunity_score (0-1), platforms (array), velocity (0-1).`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+
+      res.json(JSON.parse(response.text || '{}'));
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/opportunities", async (req, res) => {
+    const userApiKey = req.headers['x-user-api-key'] as string;
+    const apiKey = userApiKey || process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) return res.status(401).json({ error: "API Key required" });
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const prompt = `Generate 3 brand opportunities based on these parameters: ${JSON.stringify(req.query)}. 
+      Return ONLY a JSON array of objects with: id, name, opportunity_score (0-100), positioning, gap, supporting_evidence (array).`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+
+      res.json(JSON.parse(response.text || '{}'));
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post("/api/ai-proxy", async (req, res) => {
     const { model, systemInstruction, prompt, schema, tools, configOverrides } = req.body;
     const userApiKey = req.headers['x-user-api-key'] as string;
