@@ -71,7 +71,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!user) {
       setDomains([]);
       setIsInitialLoading(false);
-      return;
+      return () => { /* no-op */ };
     }
 
     const domainsQuery = query(collection(db, 'brand_opportunities'), orderBy('createdAt', 'desc'));
@@ -93,7 +93,7 @@ export const DomainProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsInitialLoading(false);
     });
 
-    return () => { unsubscribe(); };
+    return unsubscribe;
   }, [user]);
 
   const addLog = useCallback((agent: string, message: string, type: 'info' | 'success' | 'warning' | 'critical' = 'info', payload?: unknown) => {
