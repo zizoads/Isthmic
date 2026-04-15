@@ -59,7 +59,7 @@ async function startServer() {
     }
   });
 
-  // DNS-First Gateway for Domain Availability
+  // DNS-First Gateway for Domain Availability with Hijack Detection
   app.get("/api/check-domain", async (req, res) => {
     const { domain } = req.query;
     if (!domain || typeof domain !== 'string') {
@@ -67,23 +67,45 @@ async function startServer() {
     }
 
     try {
-      let isRegistered = false;
+      // 1. Detect DNS Hijacking (Common in some cloud/ISP environments)
+      // We resolve a guaranteed non-existent domain to see if the environment returns a "Search Page" IP
+      let hijackIp: string | null = null;
       try {
-        await dns.lookup(domain);
-        isRegistered = true; // If lookup succeeds, it resolves to an IP
+        const randomDomain = `isthmic-check-${Math.random().toString(36).substring(7)}.com`;
+        const lookup = await dns.lookup(randomDomain);
+        hijackIp = lookup.address;
+      } catch {
+        // No hijacking detected, this is good
+      }
+
+      let isRegistered = false;
+      let resolvedIp: string | null = null;
+      
+      try {
+        const lookup = await dns.lookup(domain);
+        resolvedIp = lookup.address;
+        
+        // If it resolves to the same IP as our non-existent test, it's actually available
+        if (hijackIp && resolvedIp === hijackIp) {
+          isRegistered = false;
+        } else {
+          isRegistered = true;
+        }
       } catch (error: unknown) {
         const err = error as { code?: string };
+        // ENOTFOUND and ENODATA mean it's definitely available
         if (err.code === 'ENOTFOUND' || err.code === 'ENODATA') {
           isRegistered = false;
         } else {
-          isRegistered = true; // Err on the side of caution for SERVFAIL, etc.
+          // For other errors (timeout, etc.), we'll be optimistic to avoid false "TAKEN"
+          isRegistered = false; 
         }
       }
 
       return res.json({ 
         domain, 
         available: !isRegistered, 
-        reason: isRegistered ? 'DNS records found' : 'No DNS records (Likely available)' 
+        reason: isRegistered ? 'DNS records found' : (resolvedIp ? 'DNS Hijack Detected (Likely available)' : 'No DNS records found')
       });
     } catch (_e) {
       return res.status(500).json({ error: "Failed to check domain" });
