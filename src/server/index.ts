@@ -2,10 +2,19 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { readFile } from "fs/promises";
-import dns from "dns/promises";
+import { Resolver } from "dns/promises";
 import { GoogleGenAI } from "@google/genai";
 import { ProfessionalBrandGenerator } from "./services/ProfessionalBrandGenerator";
 import { EventOrchestrator } from "../services/EventOrchestrator";
+
+// Global error handlers to prevent unhandled rejections from crashing the SOC
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('🚨 Uncaught Exception:', error);
+});
 
 async function startServer() {
   const app = express();
@@ -13,14 +22,22 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Initialize a dedicated DNS Resolver pointing to public global DNS
+  const dnsResolver = new Resolver();
+  try {
+    dnsResolver.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch (e) {
+    console.warn("Failed to set custom DNS servers, falling back to system default", e);
+  }
+
   // Initialize Brand Generator & Event Orchestrator
   const brandGen = ProfessionalBrandGenerator.getInstance();
   const orchestrator = EventOrchestrator.getInstance();
   try {
     await brandGen.init();
     await orchestrator.start();
-  } catch {
-    // Initialization failed
+  } catch (e) {
+    console.error("Core engine initialization failed", e);
   }
 
   // API Routes
@@ -59,7 +76,7 @@ async function startServer() {
     }
   });
 
-  // DNS-First Gateway for Domain Availability with Hijack Detection
+  // DNS-First Gateway for Domain Availability with Global Resolver
   app.get("/api/check-domain", async (req, res) => {
     const { domain } = req.query;
     if (!domain || typeof domain !== 'string') {
@@ -67,48 +84,37 @@ async function startServer() {
     }
 
     try {
-      // 1. Detect DNS Hijacking (Common in some cloud/ISP environments)
-      // We resolve a guaranteed non-existent domain to see if the environment returns a "Search Page" IP
-      let hijackIp: string | null = null;
-      try {
-        const randomDomain = `isthmic-check-${Math.random().toString(36).substring(7)}.com`;
-        const lookup = await dns.lookup(randomDomain);
-        hijackIp = lookup.address;
-      } catch {
-        // No hijacking detected, this is good
-      }
-
       let isRegistered = false;
-      let resolvedIp: string | null = null;
+      let reason = "No DNS records found";
       
       try {
-        const lookup = await dns.lookup(domain);
-        resolvedIp = lookup.address;
-        
-        // If it resolves to the same IP as our non-existent test, it's actually available
-        if (hijackIp && resolvedIp === hijackIp) {
-          isRegistered = false;
-        } else {
+        // We use resolveAny to check for ANY record type (A, AAAA, MX, NS, TXT, etc.)
+        // This is much more accurate than lookup()
+        const records = await dnsResolver.resolveAny(domain);
+        if (records && records.length > 0) {
           isRegistered = true;
+          reason = "Active DNS records detected";
         }
       } catch (error: unknown) {
         const err = error as { code?: string };
-        // ENOTFOUND and ENODATA mean it's definitely available
+        // ENOTFOUND means the domain definitely has no records in global DNS
         if (err.code === 'ENOTFOUND' || err.code === 'ENODATA') {
           isRegistered = false;
+          reason = "NXDOMAIN - Available for registration";
         } else {
-          // For other errors (timeout, etc.), we'll be optimistic to avoid false "TAKEN"
+          // For timeouts or other DNS errors, we assume it's available to avoid false positives
           isRegistered = false; 
+          reason = `DNS Query Error: ${err.code}`;
         }
       }
 
       return res.json({ 
         domain, 
         available: !isRegistered, 
-        reason: isRegistered ? 'DNS records found' : (resolvedIp ? 'DNS Hijack Detected (Likely available)' : 'No DNS records found')
+        reason
       });
     } catch (_e) {
-      return res.status(500).json({ error: "Failed to check domain" });
+      return res.status(500).json({ error: "Internal server error during DNS check" });
     }
   });
 
@@ -243,9 +249,14 @@ async function startServer() {
 }
 
 const appPromise = startServer();
-appPromise.catch(() => console.error("Server start failed"));
+appPromise.catch((err) => console.error("Server start failed:", err));
 
 export default async (req: express.Request, res: express.Response) => {
-  const app = await appPromise;
-  app(req, res);
+  try {
+    const app = await appPromise;
+    app(req, res);
+  } catch (err) {
+    console.error("Request failed because server failed to start:", err);
+    res.status(500).send("Internal Server Error: Server failed to start");
+  }
 };
