@@ -1,12 +1,12 @@
 import React, { ReactNode, useState } from 'react';
-import { AgentType } from '../../../types';
+import { AgentType, ActivityLog } from '../../../types';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useAuth } from '../../../context/AuthContext';
 import { Menu, X } from 'lucide-react';
 
 interface MainLayoutProps {
   children: ReactNode;
-  activityLogs: any[];
+  activityLogs: ActivityLog[];
   onSearchDomain: (name: string) => void;
 }
 

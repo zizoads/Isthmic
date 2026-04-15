@@ -11,7 +11,7 @@ import { ConceptLabHub } from '../hubs/ConceptLabHub';
 interface HubRendererProps {
   domains: Domain[];
   stats: PlatformStats;
-  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: any) => void;
+  addLog: (agent: string, message: string, type?: 'info' | 'success' | 'warning' | 'critical', payload?: unknown) => void;
 }
 
 const HubRenderer: React.FC<HubRendererProps> = () => {

@@ -13,6 +13,20 @@ interface HistoryItem {
   timestamp: number;
 }
 
+const ConceptLabHeader: React.FC = () => (
+  <header className="mb-16 border-b border-white/5 pb-10">
+    <div className="flex items-center gap-6 mb-4">
+      <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
+        <Brain className="w-10 h-10 text-[#d4af37]" />
+      </div>
+      <div>
+        <h1 className="text-5xl prestige-title italic leading-none mb-2">Concept Lab</h1>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Abstract Brand Synthesis</p>
+      </div>
+    </div>
+  </header>
+);
+
 export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
   const [selectedTrend, setSelectedTrend] = useState(trends[0]?.keyword || '');
   const [selectedVibe, setSelectedVibe] = useState('Minimalist');
@@ -97,17 +111,7 @@ export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
 
   return (
     <div className="p-12 bg-[#050507] min-h-screen text-white">
-      <header className="mb-16 border-b border-white/5 pb-10">
-        <div className="flex items-center gap-6 mb-4">
-          <div className="p-4 bg-white/2 border border-white/5 rounded-3xl">
-            <Brain className="w-10 h-10 text-[#d4af37]" />
-          </div>
-          <div>
-            <h1 className="text-5xl prestige-title italic leading-none mb-2">Concept Lab</h1>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Abstract Brand Synthesis</p>
-          </div>
-        </div>
-      </header>
+      <ConceptLabHeader />
 
       <section className="bg-[#08080a] border border-white/5 p-8 rounded-[40px] max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
@@ -173,8 +177,8 @@ export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
               <div className="text-right">Discovered</div>
             </div>
             <div className="max-h-96 overflow-y-auto custom-scrollbar">
-              {history.map((item, idx) => (
-                <div key={`${item.name}-${idx}`} className="grid grid-cols-4 gap-4 p-4 border-b border-white/5 hover:bg-white/5 transition-colors items-center">
+              {history.map((item) => (
+                <div key={`${item.name}-${item.timestamp}`} className="grid grid-cols-4 gap-4 p-4 border-b border-white/5 hover:bg-white/5 transition-colors items-center">
                   <div className="font-bold text-[#d4af37]">{item.name}.com</div>
                   <div className="text-xs text-slate-300 truncate">{item.trend}</div>
                   <div className="text-xs text-slate-400">{item.vibe}</div>

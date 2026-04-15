@@ -73,21 +73,22 @@ async function startServer() {
         if (records && records.length > 0) {
           isRegistered = true;
         }
-      } catch (error: any) {
-        if (error.code === 'ENOTFOUND' || error.code === 'ENODATA') {
+      } catch (error: unknown) {
+        const err = error as { code?: string };
+        if (err.code === 'ENOTFOUND' || err.code === 'ENODATA') {
           isRegistered = false;
         } else {
           isRegistered = true; // Err on the side of caution for SERVFAIL, etc.
         }
       }
 
-      res.json({ 
+      return res.json({ 
         domain, 
         available: !isRegistered, 
         reason: isRegistered ? 'DNS records found' : 'No DNS records (Likely available)' 
       });
-    } catch (e) {
-      res.status(500).json({ error: "Failed to check domain" });
+    } catch (_e) {
+      return res.status(500).json({ error: "Failed to check domain" });
     }
   });
 
