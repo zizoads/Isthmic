@@ -69,10 +69,8 @@ async function startServer() {
     try {
       let isRegistered = false;
       try {
-        const records = await dns.resolveAny(domain);
-        if (records && records.length > 0) {
-          isRegistered = true;
-        }
+        await dns.lookup(domain);
+        isRegistered = true; // If lookup succeeds, it resolves to an IP
       } catch (error: unknown) {
         const err = error as { code?: string };
         if (err.code === 'ENOTFOUND' || err.code === 'ENODATA') {

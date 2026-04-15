@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ApiKeys, ToolDefinition, ToolType } from '../../types';
-import { Plus, Trash2, Zap } from 'lucide-react';
+import { ApiKeys, ToolDefinition, ToolType, SavedDomain } from '../../types';
+import { Plus, Trash2, Zap, Bookmark } from 'lucide-react';
 
 const RECOMMENDED_TOOLS: { name: string; type: ToolType }[] = [
   { name: 'Estibot', type: 'ANALYTICS' },
@@ -16,6 +16,7 @@ const RECOMMENDED_TOOLS: { name: string; type: ToolType }[] = [
 export const UserProfile: React.FC = () => {
   const { user, refreshProfile } = useAuth();
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
+  const [savedDomains, setSavedDomains] = useState<SavedDomain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'error' | 'success', msg: string } | null>(null);
 
@@ -26,7 +27,9 @@ export const UserProfile: React.FC = () => {
           const docRef = doc(db, 'users', user.id);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setApiKeys(docSnap.data().apiKeys || {});
+            const data = docSnap.data();
+            setApiKeys(data.apiKeys || {});
+            setSavedDomains(data.savedDomains || []);
           }
         } catch (error) {
           console.error("Failed to fetch profile:", error);
@@ -41,13 +44,24 @@ export const UserProfile: React.FC = () => {
     setIsLoading(true);
     setStatus(null);
     try {
-      await updateDoc(doc(db, 'users', user.id), { apiKeys });
+      await updateDoc(doc(db, 'users', user.id), { apiKeys, savedDomains });
       await refreshProfile();
-      setStatus({ type: 'success', msg: 'API Keys updated successfully.' });
+      setStatus({ type: 'success', msg: 'Profile updated successfully.' });
     } catch (e: any) {
       setStatus({ type: 'error', msg: e.message });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const removeSavedDomain = async (name: string) => {
+    if (!user) return;
+    const newSavedDomains = savedDomains.filter(d => d.name !== name);
+    setSavedDomains(newSavedDomains);
+    try {
+      await updateDoc(doc(db, 'users', user.id), { savedDomains: newSavedDomains });
+    } catch (e) {
+      console.error("Failed to remove saved domain", e);
     }
   };
 
@@ -130,6 +144,38 @@ export const UserProfile: React.FC = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="pt-6 md:pt-8 border-t border-white/5 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block flex items-center gap-2">
+            <Bookmark className="w-3 h-3" /> Saved Domains
+          </label>
+        </div>
+        
+        {savedDomains.length === 0 ? (
+          <div className="text-center text-slate-500 text-xs py-4 border border-white/5 rounded-2xl bg-white/2">
+            No domains saved yet. Use Concept Lab to find and save domains.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {savedDomains.map((domain) => (
+              <div key={domain.name} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div>
+                  <div className="font-bold text-[#d4af37] text-sm">{domain.name}.com</div>
+                  <div className="text-[10px] text-slate-400 mt-1">{domain.trend} • {domain.vibe}</div>
+                </div>
+                <button 
+                  onClick={() => removeSavedDomain(domain.name)}
+                  className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <button 

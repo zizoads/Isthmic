@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, History } from 'lucide-react';
+import React, { useState } from 'react';
+import { Brain, BookmarkPlus, Check } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import { db } from '../../../../firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 interface Trend {
   id: string;
   keyword: string;
-}
-
-interface HistoryItem {
-  name: string;
-  trend: string;
-  vibe: string;
-  timestamp: number;
 }
 
 const ConceptLabHeader: React.FC = () => (
@@ -28,21 +24,13 @@ const ConceptLabHeader: React.FC = () => (
 );
 
 export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
+  const { user } = useAuth();
   const [selectedTrend, setSelectedTrend] = useState(trends[0]?.keyword || '');
   const [selectedVibe, setSelectedVibe] = useState('Minimalist');
   const [results, setResults] = useState<{name: string, status: 'checking' | 'available' | 'taken' | 'error'}[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'error'>('idle');
-  const [history, setHistory] = useState<HistoryItem[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('conceptLabHistory') || '[]');
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('conceptLabHistory', JSON.stringify(history));
-  }, [history]);
+  const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [saved, setSaved] = useState<Record<string, boolean>>({});
 
   const checkDomain = async (name: string): Promise<'available' | 'taken' | 'error'> => {
     try {
@@ -54,22 +42,54 @@ export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
     }
   };
 
+  const handleSaveDomain = async (name: string) => {
+    if (!user) return;
+    setSaving(prev => ({ ...prev, [name]: true }));
+    try {
+      const userRef = doc(db, 'users', user.id);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const savedDomains = userData.savedDomains || [];
+        
+        // Check if already saved
+        if (!savedDomains.some((d: any) => d.name === name)) {
+          const newDomain = {
+            name,
+            trend: selectedTrend,
+            vibe: selectedVibe,
+            savedAt: Date.now()
+          };
+          await updateDoc(userRef, {
+            savedDomains: [...savedDomains, newDomain]
+          });
+        }
+        setSaved(prev => ({ ...prev, [name]: true }));
+      }
+    } catch (e) {
+      console.error("Failed to save domain", e);
+    } finally {
+      setSaving(prev => ({ ...prev, [name]: false }));
+    }
+  };
+
   const generateBrandableNames = async (trend: string, vibe: string) => {
     setStatus('running');
     setResults([]);
+    setSaved({});
     try {
       const { generateStructuredAI } = await import('../../../services/ai/base');
       const res = await generateStructuredAI<{ names: string[] }>(
         "gemini-3-flash-preview",
         "You are a master brand naming expert specializing in high phonetic entropy.",
-        `Generate 15 abstract, highly brandable names inspired by the concept: ${trend}.
+        `Generate 25 abstract, highly brandable names inspired by the concept: ${trend}.
          Vibe: ${vibe}.
          
          CRITICAL CONSTRAINTS:
          1. Length: MUST be exactly 5 or 6 letters long.
          2. Phonetic Entropy: DO NOT use dictionary words, common prefixes, or obvious suffixes. Create completely invented, abstract syllable combinations (e.g., Vexlo, Zynta, Quora).
          3. Pronounceability: Must be easy to read and say aloud despite being abstract.
-         4. Output: Return exactly 15 unique names.`,
+         4. Output: Return exactly 25 unique names.`,
         {
           type: "object",
           properties: {
@@ -81,26 +101,17 @@ export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
       
       const names = res.data?.names || [];
       
-      // Check domains in parallel and only keep available ones
+      // Show them immediately as checking
+      setResults(names.map(name => ({ name, status: 'checking' })));
+      
+      // Check domains in parallel and update UI progressively
       const checkPromises = names.map(async (name) => {
         const status = await checkDomain(name);
+        setResults(prev => prev.map(r => r.name === name ? { ...r, status } : r));
         return { name, status };
       });
 
-      const checkedResults = await Promise.all(checkPromises);
-      const availableNames = checkedResults.filter(r => r.status === 'available');
-      
-      setResults(availableNames);
-
-      if (availableNames.length > 0) {
-        const newHistoryItems = availableNames.map(r => ({
-          name: r.name,
-          trend,
-          vibe,
-          timestamp: Date.now()
-        }));
-        setHistory(prev => [...newHistoryItems, ...prev].slice(0, 50)); // Keep last 50
-      }
+      await Promise.all(checkPromises);
     } catch (e) {
       console.error(e);
       setStatus('error');
@@ -145,52 +156,40 @@ export const ConceptLabHub: React.FC<{ trends: Trend[] }> = ({ trends }) => {
 
         {status === 'idle' && results.length === 0 && (
           <div className="text-center text-slate-500 text-sm py-8">
-            Ready to synthesize. Only available domains will be shown.
+            Ready to synthesize. Results will be checked against DNS records in real-time.
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {results.map(r => (
-            <div key={r.name} className="bg-white/5 border border-white/5 p-6 rounded-2xl text-center hover:border-[#d4af37]/50 transition-all">
-              <div className="text-lg font-bold text-white mb-2">{r.name}</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-green-500">
-                AVAILABLE
+            <div key={r.name} className={`relative border p-6 rounded-2xl text-center transition-all group ${
+              r.status === 'available' ? 'bg-[#d4af37]/10 border-[#d4af37]' :
+              r.status === 'taken' ? 'bg-white/2 border-white/5 opacity-50' :
+              'bg-white/5 border-white/10'
+            }`}>
+              {r.status === 'available' && (
+                <button 
+                  onClick={() => handleSaveDomain(r.name)}
+                  disabled={saving[r.name] || saved[r.name]}
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-slate-400 hover:text-[#d4af37] hover:bg-black transition-all opacity-0 group-hover:opacity-100 disabled:opacity-100"
+                  title="Save to Profile"
+                >
+                  {saved[r.name] ? <Check className="w-4 h-4 text-green-500" /> : <BookmarkPlus className="w-4 h-4" />}
+                </button>
+              )}
+              <div className={`text-lg font-bold mb-2 ${r.status === 'available' ? 'text-[#d4af37]' : 'text-white'}`}>
+                {r.name}
+              </div>
+              <div className={`text-[10px] font-black uppercase tracking-widest ${
+                r.status === 'available' ? 'text-green-500' : 
+                r.status === 'taken' ? 'text-red-500' : 'text-yellow-500 animate-pulse'
+              }`}>
+                {r.status === 'checking' ? 'Checking...' : r.status}
               </div>
             </div>
           ))}
         </div>
       </section>
-
-      {history.length > 0 && (
-        <section className="mt-12 max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <History className="w-5 h-5 text-slate-400" />
-            <h3 className="text-lg font-bold text-slate-300 uppercase tracking-tighter">Lab History</h3>
-            <span className="text-xs text-slate-500 ml-auto">Last 50 available discoveries</span>
-          </div>
-          
-          <div className="bg-[#08080a] border border-white/5 rounded-3xl overflow-hidden">
-            <div className="grid grid-cols-4 gap-4 p-4 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <div>Domain</div>
-              <div>Trend</div>
-              <div>Vibe</div>
-              <div className="text-right">Discovered</div>
-            </div>
-            <div className="max-h-96 overflow-y-auto custom-scrollbar">
-              {history.map((item) => (
-                <div key={`${item.name}-${item.timestamp}`} className="grid grid-cols-4 gap-4 p-4 border-b border-white/5 hover:bg-white/5 transition-colors items-center">
-                  <div className="font-bold text-[#d4af37]">{item.name}.com</div>
-                  <div className="text-xs text-slate-300 truncate">{item.trend}</div>
-                  <div className="text-xs text-slate-400">{item.vibe}</div>
-                  <div className="text-xs text-slate-500 text-right">
-                    {new Date(item.timestamp).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 };

@@ -1,4 +1,11 @@
 
+export interface SavedDomain {
+  name: string;
+  trend: string;
+  vibe: string;
+  savedAt: number;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -7,6 +14,7 @@ export interface UserProfile {
   avatar?: string;
   createdAt: string;
   apiKeys?: ApiKeys;
+  savedDomains?: SavedDomain[];
 }
 
 export type ToolType = 'DOMAIN_CHECK' | 'WHOIS' | 'ANALYTICS' | 'OTHER';
