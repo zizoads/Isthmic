@@ -178,6 +178,38 @@ export const UserProfile: React.FC = () => {
         )}
       </div>
 
+      <div className="pt-6 md:pt-8 border-t border-white/5 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block flex items-center gap-2">
+            <Bookmark className="w-3 h-3" /> Saved Domains
+          </label>
+        </div>
+        
+        {savedDomains.length === 0 ? (
+          <div className="text-center text-slate-500 text-xs py-4 border border-white/5 rounded-2xl bg-white/2">
+            No domains saved yet. Use Concept Lab to find and save domains.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {savedDomains.map((domain) => (
+              <div key={domain.name} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                <div>
+                  <div className="font-bold text-[#d4af37] text-sm">{domain.name}.com</div>
+                  <div className="text-[10px] text-slate-400 mt-1">{domain.trend} • {domain.vibe}</div>
+                </div>
+                <button 
+                  onClick={() => removeSavedDomain(domain.name)}
+                  className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <button 
         onClick={handleSave} 
         disabled={isLoading}

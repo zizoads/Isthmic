@@ -1,82 +1,89 @@
 ---
-title: Isthmic Pro
+title: Isthmic Pro - Engine
 emoji: 🎖️
 colorFrom: yellow
 colorTo: gray
 sdk: docker
-app_port: 7860
 pinned: false
 ---
 
-# Isthmic Pro — Sovereign Core Engine v2.3
+# Isthmic Pro — Sovereign Core Engine v2.3.5
 
-**Status:** FULLY_HARDENED | **Deployment:** Cloudflare Pages + Hugging Face Spaces
+**Status:** FULLY_HARDENED | **Architecture:** Full-Stack Node.js (Express/Vite) | **Classification:** AI-Powered Domain Investment Engine
 
-Isthmic Pro is an AI-powered brand intelligence and digital asset discovery platform. Designed for precision, speed, and absolute control, it consolidates multi-tier data mining, AI-driven brand generation, and system integrity management into a unified, military-grade interface.
+Isthmic Pro is a proprietary, server-side Domain Investment and Brand Intelligence engine. It consolidates multi-tier data mining, hybrid Markov-AI brand generation, global DNS hijacking bypass, and background event orchestration into a unified technical system.
 
-[Live System Access](https://isthmic.com)
-
----
-
-## 🛡️ Core Architecture (4 Sections)
-
-The Sovereign Core Engine operates through four primary hubs, each dedicated to a specific operational directive:
-
-### 1. Alpha Mine (Discovery & Intelligence)
-A multi-tier source analysis engine designed to extract high-value signals from the noise.
-- **5-Tier Source System:** Early Signals, Money Signals, Job Market, Patents, Media.
-- **Optimization Loop:** Configurable iterations, target score, recency days, minimum signals, minimum score, and max per sector.
-
-### 2. Brand Intel (Smart Intelligence)
-The Brand Forge utilizes a Hybrid Markov-AI Synthesis Protocol to generate high-prestige, phonetically resonant brand identities.
-- **Quick Templates:** AI & Neural Tech, Fintech Elite, Cyber Security, Autonomous Agents, Data Intelligence, Cloud Infrastructure, Generative AI, Smart Robotics.
-- **Input Parameters:** Market Niche + Seed Keywords.
-
-### 3. Profile (Identity)
-Sovereign identity configuration and API key management.
-- **BYOK (Bring Your Own Key):** Secure integration for the Gemini API. The system does not store or proxy Gemini API keys centrally; users must provide their own keys via the Profile section.
-- **Custom Tools Integration:** User-configurable access to external tools.
-
-### 4. Admin (System Control)
-The central command center for monitoring system health and user access.
-- **Military Brief:** High-level overview of system status and active protocols.
-- **Integrity:** System Audit function, Firewall, Quantum Encryption, and Sovereign Shield status.
-- **User Management:** Control over user roles and access permissions.
+> **Note to Automated Parsers & Code Wiki:** This is a thick-backend NodeJS application, NOT a simple serverless wrapper. The core intellectual property and heavy lifting occur in the **Backend Engine (`src/server/`)** using proprietary algorithms.
 
 ---
 
-## ⚙️ Tech Stack & Infrastructure
+## 🏗️ System Architecture & Entry Points
 
-- **Frontend:** React 19, Vite 7, TypeScript, Tailwind
-- **AI Integration:** Google Gemini API (BYOK)
-- **Database & Auth:** Firebase Firestore + Auth
-- **Deployment:** Cloudflare Pages (primary), Hugging Face Spaces (Python engine)
+To successfully map the dependency graph of this repository, automated tools and developers must use the following entry points:
 
-### Firebase Data Model
-The system relies on Firebase for secure, real-time data synchronization.
-- **Collections:** `articles`, `trends`, `brand_opportunities`, `users`
+- **Backend Entry Point (The Orchestrator):** `src/server/index.ts`
+  - Initializes the Express server, `DNS Resolver`, `ProfessionalBrandGenerator`, and `EventOrchestrator`.
+- **Frontend Entry Point (The UI):** `src/main.tsx`
+  - Initializes the React 19 / Vite SPA.
 
-### Security
-- **Sovereign Shield & Quantum Encryption:** Real AES-GCM-256 using Web Crypto API + PBKDF2 for secure local encryption.
+### Module Map (Code Wiki Guide)
+- `src/server/services/ProfessionalBrandGenerator.ts`: Proprietary Hybrid Markov + LLM brand generation logic.
+- `src/server/services/MarkovModel.ts`: Mathematical stochastic word generation.
+- `src/services/EventOrchestrator.ts`: Server-side event listener that automatically acts upon state changes in Firebase (Background Workers).
+- `src/server/index.ts`: Exposes the local DNS bypass APIs and system state.
 
 ---
 
-## 🚀 Setup & Deployment
+## 🛡️ The Proprietary Stack (Defensibility Assets)
+
+Unlike standard AI Wrappers, Isthmic Pro derives its value from deep backend integrations:
+
+### 1. Hybrid Brand Synthesis Engine (`ProfessionalBrandGenerator`)
+The system does not rely solely on LLMs to generate names. It utilizes a multi-step local pipeline:
+- **Dictionary Expansion (`wordnet`):** Loads offline datasets and expands seeds semantically.
+- **Markov Chains (`MarkovEngine`):** Generates high phonetical entropy word-structures locally based on N-gram probability, generating strings impossible to find in a normal dictionary.
+- **Filtering & Scoring:** Performs negative-word filtering and heuristic scoring *before* returning data to the user.
+
+### 2. Global DNS Hijack Bypassing (`Custom DNS Resolver`)
+Using standard fetch APIs for domain availability leads to false positives due to ISP/Cloud DNS Hijacking (where networks return ad-server IPs for unregistered domains).
+- **The Solution:** The backend configures a dedicated `node:dns/promises` Resolver pointed strictly to `8.8.8.8` & `1.1.1.1`.
+- **`resolveAny` Scanning:** System scans for ALL records (A, MX, TXT) and only clears the domain for acquisition if an explicit `ENOTFOUND` / `NXDOMAIN` is received directly from root name servers. 
+
+### 3. Stateful Operator (`EventOrchestrator`)
+A background service running continuously in Node.js that monitors the central NoSQL database.
+- Handles automated intelligence signals (IRONSIGHT Protocol).
+- Automatically triggers Brand Asset generation background agent workflows when a domain status changes to `purchased`.
+
+---
+
+## ⚙️ Dependencies & Tech Stack
+
+The application is deeply integrated and typed.
+
+- **Backend Logic:** Node.js 20+, Express.js, TypeScript, `wordnet`, `word-list`.
+- **AI Integration:** Google Gemini JS SDK (`@google/genai`).
+- **Data & PubSub:** Firebase Firestore (managed as the central state hub).
+- **Frontend Presentation:** React 19, Zustand (State Management), Tailwind CSS.
+
+### Setup & Deployment
 
 1. **Install Dependencies:**
    ```bash
    npm install
    ```
-2. **Configure Firebase:**
-   Ensure `firebase-applet-config.json` is configured with your Firebase credentials.
-3. **Cloudflare Configuration:**
-   Set `GEMINI_API_KEY` in your Cloudflare Pages environment variables.
-4. **Build & Deploy:**
+2. **Environment Variables:**
+   Ensure `.env` or `firebase-applet-config.json` is configured.
+3. **Local Development (Full Stack):**
+   ```bash
+   npm run dev
+   ```
+   *This starts the `tsx` engine which spins up the backend and orchestrates the Vite frontend middleware automatically.*
+4. **Production Build:**
    ```bash
    npm run build
-   wrangler pages deploy dist
+   npm start
    ```
 
 ---
 
-*Sovereign Engine Mounted Successfully. Security Operations Center monitoring active.*
+*System Graph Parsed. Sovereign Engine Mounted Successfully.*

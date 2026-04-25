@@ -109,6 +109,16 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
     }
 
+    match /domains/{domainId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /intelligence_signals/{signalId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
     match /instincts/{instinctId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
