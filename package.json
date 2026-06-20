@@ -20,7 +20,7 @@
     "@types/express": "^5.0.6",
     "express": "^5.2.1",
     "firebase": "^12.11.0",
-    "http-proxy-middleware": "^3.0.5",
+    "http-proxy-middleware": "^3.0.7",
     "lodash": "^4.17.23",
     "lucide-react": "^0.577.0",
     "motion": "^12.34.3",
